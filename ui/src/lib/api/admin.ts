@@ -15,6 +15,7 @@ import { fetchAPI } from './shared'
 
 export interface ClusterCreateRequest {
   name: string
+  clusterId: string
   description?: string
   config?: string
   prometheusURL?: string

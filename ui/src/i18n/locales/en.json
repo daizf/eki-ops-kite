@@ -708,6 +708,7 @@
     },
     "table": {
       "name": "Name",
+      "clusterId": "Cluster ID",
       "type": "Type",
       "status": "Status",
       "prometheus": "Prometheus",
@@ -742,6 +743,8 @@
       "editTitle": "Edit Cluster",
       "name": "Name",
       "namePlaceholder": "Enter cluster name",
+      "clusterId": "Cluster ID",
+      "clusterIdPlaceholder": "e.g., prod-001, staging-002",
       "description": "Description",
       "descriptionPlaceholder": "Enter cluster description (optional)",
       "type": "Type",

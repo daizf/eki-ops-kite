@@ -99,6 +99,15 @@ export function ClusterManagement() {
         ),
       },
       {
+        id: 'clusterId',
+        header: t('clusterManagement.table.clusterId', 'Cluster ID'),
+        cell: ({ row: { original: cluster } }) => (
+          <div className="text-sm font-mono text-muted-foreground">
+            {cluster.clusterId}
+          </div>
+        ),
+      },
+      {
         id: 'version',
         header: t('common.version', 'Version'),
         cell: ({ row: { original: cluster } }) => {

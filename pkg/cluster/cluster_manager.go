@@ -218,6 +218,7 @@ func ImportClustersFromKubeconfig(kubeconfig *clientcmdapi.Config) int64 {
 			continue
 		}
 		cluster := model.Cluster{
+			ClusterID: contextName,
 			Name:      contextName,
 			Config:    model.SecretString(configStr),
 			IsDefault: contextName == kubeconfig.CurrentContext,

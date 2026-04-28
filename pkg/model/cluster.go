@@ -2,7 +2,8 @@ package model
 
 type Cluster struct {
 	Model
-	Name          string       `json:"name" gorm:"type:varchar(100);uniqueIndex;not null"`
+	Name          string       `json:"name" gorm:"type:varchar(100);not null"`
+	ClusterID     string       `json:"clusterId" gorm:"type:varchar(255);uniqueIndex"`
 	Description   string       `json:"description" gorm:"type:text"`
 	Config        SecretString `json:"config" gorm:"type:text"`
 	PrometheusURL string       `json:"prometheus_url,omitempty" gorm:"type:varchar(255)"`
