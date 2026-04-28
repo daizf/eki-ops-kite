@@ -34,6 +34,7 @@ interface ClusterDialogProps {
 function createClusterFormData(cluster?: Cluster | null) {
   return {
     name: cluster?.name || '',
+    clusterId: cluster?.clusterId || '',
     description: cluster?.description || '',
     config: cluster?.config || '',
     prometheusURL: cluster?.prometheusURL || '',
@@ -118,6 +119,24 @@ function ClusterDialogContent({
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="cluster-id">
+              {t('clusterManagement.form.clusterId.label', 'Cluster ID')} *
+            </Label>
+            <Input
+              id="cluster-id"
+              value={formData.clusterId}
+              onChange={(e) => handleChange('clusterId', e.target.value)}
+              placeholder={t(
+                'clusterManagement.form.clusterId.placeholder',
+                'e.g., prod-001, staging-002'
+              )}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {!isEditMode && (
             <div className="space-y-2">
               <Label htmlFor="cluster-type">
@@ -261,6 +280,7 @@ function ClusterDialogContent({
             type="submit"
             disabled={
               !formData.name ||
+              !formData.clusterId ||
               (!isEditMode && !formData.inCluster && !formData.config)
             }
           >

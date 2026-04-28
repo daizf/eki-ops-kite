@@ -319,6 +319,7 @@ export interface RelatedResources {
 export interface Cluster {
   id: number
   name: string
+  clusterId: string
   description?: string
   version?: string
   config?: string

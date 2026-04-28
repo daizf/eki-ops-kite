@@ -60,6 +60,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 		clusterInfo := gin.H{
 			"id":            cluster.ID,
 			"name":          cluster.Name,
+			"clusterId":     cluster.ClusterID,
 			"description":   cluster.Description,
 			"enabled":       cluster.Enable,
 			"inCluster":     cluster.InCluster,
@@ -89,6 +90,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 
 	var req struct {
 		Name          string `json:"name" binding:"required"`
+		ClusterID     string `json:"clusterId" binding:"required"`
 		Description   string `json:"description"`
 		Config        string `json:"config"`
 		PrometheusURL string `json:"prometheusURL"`
@@ -118,6 +120,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 
 	cluster := &model.Cluster{
 		Name:          req.Name,
+		ClusterID:     req.ClusterID,
 		Description:   req.Description,
 		Config:        model.SecretString(req.Config),
 		PrometheusURL: req.PrometheusURL,
@@ -154,6 +157,7 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 
 	var req struct {
 		Name          string `json:"name"`
+		ClusterID     string `json:"clusterId"`
 		Description   string `json:"description"`
 		Config        string `json:"config"`
 		PrometheusURL string `json:"prometheusURL"`
@@ -194,6 +198,10 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 
 	if req.Name != "" && req.Name != cluster.Name {
 		updates["name"] = req.Name
+	}
+
+	if req.ClusterID != "" && req.ClusterID != cluster.ClusterID {
+		updates["cluster_id"] = req.ClusterID
 	}
 
 	if req.Config != "" {
@@ -279,6 +287,7 @@ func (cm *ClusterManager) ImportClustersFromKubeconfig(c *gin.Context) {
 		// In-cluster config
 		cluster := &model.Cluster{
 			Name:        "in-cluster",
+			ClusterID:   "in-cluster",
 			InCluster:   true,
 			Description: "Kubernetes in-cluster config",
 			IsDefault:   true,

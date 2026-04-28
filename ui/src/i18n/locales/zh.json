@@ -744,7 +744,12 @@
       "add": "添加集群"
     },
     "table": {
-      "prometheus": "Prometheus"
+      "name": "名称",
+      "clusterId": "集群ID",
+      "type": "类型",
+      "status": "状态",
+      "prometheus": "Prometheus",
+      "actions": "操作"
     },
     "type": {
       "inCluster": "集群内",
@@ -771,6 +776,8 @@
       "editTitle": "编辑集群",
       "name": "名称",
       "namePlaceholder": "输入集群名称",
+      "clusterId": "集群ID",
+      "clusterIdPlaceholder": "例如：prod-001, staging-002",
       "description": "描述",
       "descriptionPlaceholder": "输入集群描述（可选）",
       "type": "类型",
