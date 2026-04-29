@@ -22,6 +22,7 @@ import { AIChatProvider } from './contexts/ai-chat-context'
 import { ClusterProvider } from './contexts/cluster-context'
 import { TerminalProvider, useTerminal } from './contexts/terminal-context'
 import { useCluster } from './hooks/use-cluster'
+import { ClusterSearch } from './pages/cluster-search'
 
 function ClusterGate({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -124,6 +125,14 @@ export function StandaloneAIChatApp() {
       <ClusterGate>
         <StandaloneAIChatbox />
       </ClusterGate>
+    </AppProviders>
+  )
+}
+
+export function ClusterSearchApp() {
+  return (
+    <AppProviders>
+      <ClusterSearch />
     </AppProviders>
   )
 }

@@ -43,7 +43,7 @@ resourceCatalog
         sidebar.titleKey ||
         ('titleKey' in resource ? resource.titleKey : undefined) ||
         resource.pluralLabel,
-      url: `/${resource.type}`,
+      url: `/dashboard/${resource.type}`,
       icon: getResourceIconComponent(resource.icon),
     })
   })

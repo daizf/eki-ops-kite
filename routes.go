@@ -117,7 +117,7 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 
 func registerProtectedRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *cluster.ClusterManager) {
 	api := r.Group("/api/v1")
-	api.GET("/clusters", authHandler.RequireAuth(), cm.GetClusters)
+	api.GET("/clusters", authHandler.RequireAuth(), cm.GetClusterList)
 	api.Use(authHandler.RequireAuth(), middleware.ClusterMiddleware(cm))
 
 	api.GET("/overview", handlers.GetOverview)
