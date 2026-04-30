@@ -33,7 +33,7 @@ export function CronJobListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/cronjobs/${row.original.metadata!.namespace}/${
+              to={`/dashboard/cronjobs/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >

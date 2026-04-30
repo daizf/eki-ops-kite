@@ -63,8 +63,8 @@ export function CRListPage() {
           const resource = row.original
           const namespace = resource.metadata?.namespace
           const path = namespace
-            ? `/crds/${crd}/${namespace}/${resource.metadata.name}`
-            : `/crds/${crd}/${resource.metadata.name}`
+            ? `/dashboard/crds/${crd}/${namespace}/${resource.metadata.name}`
+            : `/dashboard/crds/${crd}/${resource.metadata.name}`
 
           return (
             <div className="font-medium app-link">

@@ -20,7 +20,7 @@ export function HTTPRouteListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/httproutes/${row.original.metadata!.namespace}/${row.original.metadata!.name}`}
+              to={`/dashboard/httproutes/${row.original.metadata!.namespace}/${row.original.metadata!.name}`}
             >
               {row.original.metadata!.name}
             </Link>

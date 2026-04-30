@@ -66,7 +66,7 @@ export function HorizontalPodAutoscalerListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/horizontalpodautoscalers/${row.original.metadata!.namespace}/${
+              to={`/dashboard/horizontalpodautoscalers/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >

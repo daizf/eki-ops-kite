@@ -25,7 +25,7 @@ export function JobListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/jobs/${row.original.metadata!.namespace}/${
+              to={`/dashboard/jobs/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >

@@ -28,7 +28,7 @@ export function PVListPage() {
         header: t('common.fields.name'),
         cell: ({ row }) => (
           <div className="font-medium app-link">
-            <Link to={`/persistentvolumes/${row.original.metadata!.name}`}>
+            <Link to={`/dashboard/persistentvolumes/${row.original.metadata!.name}`}>
               {row.original.metadata!.name}
             </Link>
           </div>
@@ -65,7 +65,7 @@ export function PVListPage() {
           if (scName) {
             return (
               <div className="font-medium app-link">
-                <Link to={`/storageclasses/${scName}`}>{scName}</Link>
+                <Link to={`/dashboard/storageclasses/${scName}`}>{scName}</Link>
               </div>
             )
           }
@@ -101,7 +101,7 @@ export function PVListPage() {
             return (
               <div className="font-medium app-link">
                 <Link
-                  to={`/persistentvolumeclaims/${claimRef.namespace}/${claimRef.name}`}
+                  to={`/dashboard/persistentvolumeclaims/${claimRef.namespace}/${claimRef.name}`}
                 >
                   {claimRef.namespace}/{claimRef.name}
                 </Link>

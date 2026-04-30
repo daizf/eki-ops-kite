@@ -258,7 +258,7 @@ export const SidebarConfigProvider: React.FC<SidebarConfigProviderProps> = ({
           const newItem: SidebarItem = {
             id: itemId,
             titleKey: kind,
-            url: `/crds/${crdName}`,
+            url: `/dashboard/crds/${crdName}`,
             icon: 'IconCode',
             visible: true,
             pinned: false,

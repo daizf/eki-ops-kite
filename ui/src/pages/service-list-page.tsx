@@ -33,7 +33,7 @@ export function ServiceListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/services/${row.original.metadata!.namespace}/${
+              to={`/dashboard/services/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >

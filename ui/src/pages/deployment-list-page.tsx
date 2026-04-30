@@ -32,7 +32,7 @@ export function DeploymentListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/deployments/${row.original.metadata!.namespace}/${
+              to={`/dashboard/deployments/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >
@@ -87,7 +87,7 @@ export function DeploymentListPage() {
 
   const handleCreateSuccess = (deployment: Deployment, namespace: string) => {
     // Navigate to the newly created deployment's detail page
-    navigate(`/deployments/${namespace}/${deployment.metadata?.name}`)
+    navigate(`/dashboard/deployments/${namespace}/${deployment.metadata?.name}`)
   }
 
   return (

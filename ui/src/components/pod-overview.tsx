@@ -183,7 +183,7 @@ function PodSummaryGrid({
         value={
           pod.spec?.nodeName ? (
             <Link
-              to={`/nodes/${pod.spec.nodeName}`}
+              to={`/dashboard/nodes/${pod.spec.nodeName}`}
               className="app-link inline-block max-w-full truncate"
             >
               {pod.spec.nodeName}

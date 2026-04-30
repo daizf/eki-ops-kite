@@ -20,7 +20,7 @@ export function GatewayListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/gateways/${row.original.metadata!.namespace}/${row.original.metadata!.name}`}
+              to={`/dashboard/gateways/${row.original.metadata!.namespace}/${row.original.metadata!.name}`}
             >
               {row.original.metadata!.name}
             </Link>

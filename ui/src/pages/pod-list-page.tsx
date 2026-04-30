@@ -36,7 +36,7 @@ export function PodListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/pods/${row.original.metadata!.namespace}/${
+              to={`/dashboard/pods/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >
@@ -116,7 +116,7 @@ export function PodListPage() {
           if (row.original.spec?.nodeName) {
             return (
               <div className="font-medium app-link">
-                <Link to={`/nodes/${row.original.spec?.nodeName}`}>
+                <Link to={`/dashboard/nodes/${row.original.spec?.nodeName}`}>
                   {row.original.spec?.nodeName}
                 </Link>
               </div>

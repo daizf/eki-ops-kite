@@ -31,7 +31,7 @@ export function PodTable(props: {
           const meta = value as Pod['metadata']
           return (
             <div className="font-medium app-link">
-              <Link to={`/pods/${meta!.namespace}/${meta!.name}`}>
+              <Link to={`/dashboard/pods/${meta!.namespace}/${meta!.name}`}>
                 {meta!.name}
               </Link>
             </div>
@@ -108,7 +108,7 @@ export function PodTable(props: {
               header: 'Node',
               accessor: (pod: Pod) => pod.spec?.nodeName || '-',
               cell: (value: unknown) => (
-                <Link to={`/nodes/${value}`} className="app-link">
+                <Link to={`/dashboard/nodes/${value}`} className="app-link">
                   {value as string}
                 </Link>
               ),

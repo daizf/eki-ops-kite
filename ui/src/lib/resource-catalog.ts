@@ -474,7 +474,7 @@ export function isClusterScopedResource(resource?: string | null) {
 }
 
 export function getResourceListPath(resource: string) {
-  return `/${resource}`
+  return `/dashboard/${resource}`
 }
 
 export function getResourceDetailPath(
@@ -483,8 +483,8 @@ export function getResourceDetailPath(
   namespace?: string
 ) {
   return isClusterScopedResource(resource) || !namespace
-    ? `/${resource}/${name}`
-    : `/${resource}/${namespace}/${name}`
+    ? `/dashboard/${resource}/${name}`
+    : `/dashboard/${resource}/${namespace}/${name}`
 }
 
 export function getResourceQueryKey(

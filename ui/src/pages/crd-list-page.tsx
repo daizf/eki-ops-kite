@@ -26,7 +26,7 @@ export function CRDListPage() {
         header: 'Name',
         cell: ({ row }) => (
           <div className="font-medium app-link">
-            <Link to={`/crds/${row.original.metadata!.name}`}>
+            <Link to={`/dashboard/crds/${row.original.metadata!.name}`}>
               {row.original.metadata!.name}
             </Link>
           </div>

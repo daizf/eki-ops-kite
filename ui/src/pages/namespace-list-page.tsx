@@ -21,7 +21,7 @@ export function NamespaceListPage() {
         header: t('common.fields.name'),
         cell: ({ row }) => (
           <div className="font-medium app-link">
-            <Link to={`/namespaces/${row.original.metadata!.name}`}>
+            <Link to={`/dashboard/namespaces/${row.original.metadata!.name}`}>
               {row.original.metadata!.name}
             </Link>
           </div>
