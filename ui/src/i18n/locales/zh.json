@@ -73,6 +73,8 @@
       "cluster": "集群",
       "clusters": "集群",
       "clusterIP": "Cluster IP",
+      "clusterId": "集群ID",
+      "pool": "资源池",
       "completed": "完成时间",
       "config": "配置",
       "container": "容器",
@@ -749,6 +751,7 @@
       "type": "类型",
       "status": "状态",
       "prometheus": "Prometheus",
+      "pool": "资源池",
       "actions": "操作"
     },
     "type": {
@@ -766,6 +769,12 @@
       "createError": "创建集群失败",
       "updateError": "更新集群失败",
       "deleteError": "删除集群失败"
+    },
+    "form": {
+      "pool": {
+        "label": "资源池",
+        "placeholder": "例如：华东-苏州, 华北-呼和浩特"
+      }
     },
     "errors": {
       "loadFailed": "加载集群失败"
@@ -785,6 +794,8 @@
       "configPlaceholder": "粘贴 kubeconfig 内容...",
       "prometheusUrl": "Prometheus URL",
       "prometheusUrlPlaceholder": "https://prometheus.example.com",
+      "pool": "资源池",
+      "poolPlaceholder": "例如：华北-北京",
       "enabled": "启用",
       "isDefault": "设为默认"
     }

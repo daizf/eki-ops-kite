@@ -38,6 +38,7 @@ function createClusterFormData(cluster?: Cluster | null) {
     description: cluster?.description || '',
     config: cluster?.config || '',
     prometheusURL: cluster?.prometheusURL || '',
+    pool: cluster?.pool || '',
     enabled: cluster?.enabled ?? true,
     isDefault: cluster?.isDefault ?? false,
     inCluster: cluster?.inCluster ?? false,
@@ -121,14 +122,14 @@ function ClusterDialogContent({
 
           <div className="space-y-2">
             <Label htmlFor="cluster-id">
-              {t('clusterManagement.form.clusterId.label', 'Cluster ID')} *
+              {t('clusterManagement.dialog.clusterId', 'Cluster ID')} *
             </Label>
             <Input
               id="cluster-id"
               value={formData.clusterId}
               onChange={(e) => handleChange('clusterId', e.target.value)}
               placeholder={t(
-                'clusterManagement.form.clusterId.placeholder',
+                'clusterManagement.dialog.clusterIdPlaceholder',
                 'e.g., prod-001, staging-002'
               )}
               required
@@ -218,6 +219,21 @@ function ClusterDialogContent({
             value={formData.prometheusURL}
             onChange={(e) => handleChange('prometheusURL', e.target.value)}
             type="url"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="cluster-pool">
+            {t('clusterManagement.dialog.pool', 'Resource Pool')}
+          </Label>
+          <Input
+            id="cluster-pool"
+            value={formData.pool}
+            onChange={(e) => handleChange('pool', e.target.value)}
+            placeholder={t(
+              'clusterManagement.dialog.poolPlaceholder',
+              'e.g., production, staging'
+            )}
           />
         </div>
 

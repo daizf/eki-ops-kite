@@ -73,6 +73,8 @@
       "cluster": "Cluster",
       "clusters": "Clusters",
       "clusterIP": "Cluster IP",
+      "clusterId": "Cluster ID",
+      "pool": "Resource Pool",
       "completed": "Completed",
       "config": "Configuration",
       "container": "Container",
@@ -737,6 +739,7 @@
       "type": "Type",
       "status": "Status",
       "prometheus": "Prometheus",
+      "pool": "Resource Pool",
       "actions": "Actions"
     },
     "type": {
@@ -768,6 +771,8 @@
       "clusterIdPlaceholder": "e.g., prod-001, staging-002",
       "description": "Description",
       "descriptionPlaceholder": "Enter cluster description (optional)",
+      "pool": "Resource Pool",
+      "poolPlaceholder": "e.g., beijing, suzhou",
       "type": "Type",
       "config": "Configuration",
       "configPlaceholder": "Paste kubeconfig content here...",

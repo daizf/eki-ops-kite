@@ -94,7 +94,7 @@ export function ClusterManagement() {
       },
       {
         id: 'clusterId',
-        header: t('clusterManagement.table.clusterId', 'Cluster ID'),
+        header: t('common.fields.clusterId', 'Cluster ID'),
         cell: ({ row: { original: cluster } }) => (
           <div className="text-sm font-mono text-muted-foreground">
             {cluster.clusterId}
@@ -144,6 +144,15 @@ export function ClusterManagement() {
         cell: ({ row: { original: cluster } }) => (
           <div className="text-sm text-muted-foreground">
             {cluster.prometheusURL ? 'Yes' : 'No'}
+          </div>
+        ),
+      },
+      {
+        id: 'pool',
+        header: t('common.fields.pool', 'Resource Pool'),
+        cell: ({ row: { original: cluster } }) => (
+          <div className="text-sm text-muted-foreground">
+            {cluster.pool || '-'}
           </div>
         ),
       },
