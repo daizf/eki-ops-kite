@@ -450,3 +450,14 @@ export interface ResourceTemplate {
   description: string
   yaml: string
 }
+
+export interface Pool {
+  id: number
+  poolId: string
+  poolName: string
+  description?: string
+  proxy?: string
+  enable: boolean
+  createdAt: string
+  updatedAt: string
+}
