@@ -10,7 +10,7 @@ type Cluster struct {
 	InCluster     bool         `json:"in_cluster" gorm:"type:boolean;default:false"`
 	IsDefault     bool         `json:"is_default" gorm:"type:boolean;default:false"`
 	Enable        bool         `json:"enable" gorm:"type:boolean;default:true"`
-	Pool          string       `json:"pool" gorm:"type:varchar(100)"`
+	PoolID        string       `json:"poolId" gorm:"type:varchar(100)"`
 }
 
 func AddCluster(cluster *Cluster) error {

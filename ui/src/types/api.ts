@@ -329,7 +329,7 @@ export interface Cluster {
   createdAt: string
   updatedAt: string
   prometheusURL?: string
-  pool?: string
+  poolId?: string
   error?: string
 }
 

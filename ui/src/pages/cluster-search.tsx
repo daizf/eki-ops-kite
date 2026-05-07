@@ -31,7 +31,7 @@ export function ClusterSearch() {
     return clusters.filter((cluster) => {
       const nameMatch = cluster.name?.toLowerCase().includes(query) ?? false
       const idMatch = cluster.clusterId?.toLowerCase().includes(query) ?? false
-      const poolMatch = cluster.pool?.toLowerCase().includes(query) ?? false
+      const poolMatch = cluster.poolId?.toLowerCase().includes(query) ?? false
       return nameMatch || idMatch || poolMatch
     })
   }, [clusters, searchQuery])
@@ -218,9 +218,9 @@ export function ClusterSearch() {
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="font-mono">{cluster.clusterId}</span>
-                            {cluster.pool && (
+                            {cluster.poolId && (
                               <Badge variant="outline" className="text-xs">
-                                Pool: {cluster.pool}
+                                Pool: {cluster.poolId}
                               </Badge>
                             )}
                             {cluster.version && (

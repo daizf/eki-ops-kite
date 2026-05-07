@@ -148,11 +148,11 @@ export function ClusterManagement() {
         ),
       },
       {
-        id: 'pool',
+        id: 'poolId',
         header: t('common.fields.pool', 'Resource Pool'),
         cell: ({ row: { original: cluster } }) => (
           <div className="text-sm text-muted-foreground">
-            {cluster.pool || '-'}
+            {cluster.poolId || '-'}
           </div>
         ),
       },

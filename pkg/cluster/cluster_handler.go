@@ -66,7 +66,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 			"inCluster":     cluster.InCluster,
 			"isDefault":     cluster.IsDefault,
 			"prometheusURL": cluster.PrometheusURL,
-			"pool":          cluster.Pool,
+			"poolId":        cluster.PoolID,
 			"config":        "",
 		}
 
@@ -95,7 +95,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		Description   string `json:"description"`
 		Config        string `json:"config"`
 		PrometheusURL string `json:"prometheusURL"`
-		Pool          string `json:"pool"`
+		PoolID        string `json:"poolId"`
 		InCluster     bool   `json:"inCluster"`
 		IsDefault     bool   `json:"isDefault"`
 	}
@@ -126,7 +126,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		Description:   req.Description,
 		Config:        model.SecretString(req.Config),
 		PrometheusURL: req.PrometheusURL,
-		Pool:          req.Pool,
+		PoolID:        req.PoolID,
 		InCluster:     req.InCluster,
 		IsDefault:     req.IsDefault,
 		Enable:        true,
@@ -164,7 +164,7 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 		Description   string `json:"description"`
 		Config        string `json:"config"`
 		PrometheusURL string `json:"prometheusURL"`
-		Pool          string `json:"pool"`
+		PoolID        string `json:"poolId"`
 		InCluster     bool   `json:"inCluster"`
 		IsDefault     bool   `json:"isDefault"`
 		Enabled       bool   `json:"enabled"`
@@ -195,7 +195,7 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 	updates := map[string]interface{}{
 		"description":    req.Description,
 		"prometheus_url": req.PrometheusURL,
-		"pool":           req.Pool,
+		"pool_id":        req.PoolID,
 		"in_cluster":     req.InCluster,
 		"is_default":     req.IsDefault,
 		"enable":         req.Enabled,

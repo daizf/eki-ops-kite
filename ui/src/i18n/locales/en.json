@@ -779,7 +779,7 @@
       "description": "Description",
       "descriptionPlaceholder": "Enter cluster description (optional)",
       "pool": "Resource Pool",
-      "poolPlaceholder": "e.g., beijing, suzhou",
+      "poolPlaceholder": "e.g., CIDC-RP-29, suzhou",
       "type": "Type",
       "config": "Configuration",
       "configPlaceholder": "Paste kubeconfig content here...",
