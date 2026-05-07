@@ -12,6 +12,7 @@ import (
 	"github.com/zxh326/kite/pkg/handlers"
 	"github.com/zxh326/kite/pkg/handlers/resources"
 	"github.com/zxh326/kite/pkg/middleware"
+	"github.com/zxh326/kite/pkg/pool"
 	"github.com/zxh326/kite/pkg/rbac"
 	"github.com/zxh326/kite/pkg/version"
 	ctrlmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
@@ -113,11 +114,17 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	templateAPI.POST("/", handlers.CreateTemplate)
 	templateAPI.PUT("/:id", handlers.UpdateTemplate)
 	templateAPI.DELETE("/:id", handlers.DeleteTemplate)
+
+	poolAPI := adminAPI.Group("/pools")
+	poolAPI.GET("/", pool.GetPoolList)
+	poolAPI.POST("/", pool.CreatePool)
+	poolAPI.PUT("/:id", pool.UpdatePool)
+	poolAPI.DELETE("/:id", pool.DeletePool)
 }
 
 func registerProtectedRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *cluster.ClusterManager) {
 	api := r.Group("/api/v1")
-	api.GET("/clusters", authHandler.RequireAuth(), cm.GetClusters)
+	api.GET("/clusters", authHandler.RequireAuth(), cm.GetClusterList)
 	api.Use(authHandler.RequireAuth(), middleware.ClusterMiddleware(cm))
 
 	api.GET("/overview", handlers.GetOverview)

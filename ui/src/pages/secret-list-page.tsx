@@ -27,7 +27,7 @@ export function SecretListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/secrets/${row.original.metadata!.namespace}/${
+              to={`/dashboard/secrets/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >

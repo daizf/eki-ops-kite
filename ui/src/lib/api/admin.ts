@@ -8,6 +8,7 @@ import {
   OAuthProvider,
   Role,
   UserItem,
+  Pool,
 } from '@/types/api'
 
 import { apiClient } from '../api-client'
@@ -15,9 +16,11 @@ import { fetchAPI } from './shared'
 
 export interface ClusterCreateRequest {
   name: string
+  clusterId: string
   description?: string
   config?: string
   prometheusURL?: string
+  pool?: string
   inCluster?: boolean
   isDefault?: boolean
 }
@@ -494,4 +497,57 @@ export const deleteAPIKey = async (
   id: number
 ): Promise<{ message: string }> => {
   return await apiClient.delete<{ message: string }>(`/admin/apikeys/${id}`)
+}
+
+export interface PoolCreateRequest {
+  poolId: string
+  poolName: string
+  description?: string
+  proxy?: string
+  enable?: boolean
+}
+
+export interface PoolUpdateRequest {
+  poolId?: string
+  poolName?: string
+  description?: string
+  proxy?: string
+  enable?: boolean
+}
+
+export const fetchPoolList = (): Promise<Pool[]> => {
+  return fetchAPI<Pool[]>('/admin/pools/')
+}
+
+export const usePoolList = (options?: { staleTime?: number }) => {
+  return useQuery({
+    queryKey: ['pool-list'],
+    queryFn: fetchPoolList,
+    staleTime: options?.staleTime || 30000,
+  })
+}
+
+export const createPool = async (
+  poolData: PoolCreateRequest
+): Promise<{ id: number; message: string }> => {
+  return await apiClient.post<{ id: number; message: string }>(
+    '/admin/pools/',
+    poolData
+  )
+}
+
+export const updatePool = async (
+  id: number,
+  poolData: PoolUpdateRequest
+): Promise<{ message: string }> => {
+  return await apiClient.put<{ message: string }>(
+    `/admin/pools/${id}`,
+    poolData
+  )
+}
+
+export const deletePool = async (
+  id: number
+): Promise<{ message: string }> => {
+  return await apiClient.delete<{ message: string }>(`/admin/pools/${id}`)
 }

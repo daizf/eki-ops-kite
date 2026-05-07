@@ -34,9 +34,11 @@ interface ClusterDialogProps {
 function createClusterFormData(cluster?: Cluster | null) {
   return {
     name: cluster?.name || '',
+    clusterId: cluster?.clusterId || '',
     description: cluster?.description || '',
     config: cluster?.config || '',
     prometheusURL: cluster?.prometheusURL || '',
+    poolId: cluster?.poolId || '',
     enabled: cluster?.enabled ?? true,
     isDefault: cluster?.isDefault ?? false,
     inCluster: cluster?.inCluster ?? false,
@@ -118,6 +120,24 @@ function ClusterDialogContent({
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="cluster-id">
+              {t('clusterManagement.dialog.clusterId', 'Cluster ID')} *
+            </Label>
+            <Input
+              id="cluster-id"
+              value={formData.clusterId}
+              onChange={(e) => handleChange('clusterId', e.target.value)}
+              placeholder={t(
+                'clusterManagement.dialog.clusterIdPlaceholder',
+                'e.g., prod-001, staging-002'
+              )}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {!isEditMode && (
             <div className="space-y-2">
               <Label htmlFor="cluster-type">
@@ -202,6 +222,21 @@ function ClusterDialogContent({
           />
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="cluster-poolId">
+            {t('clusterManagement.dialog.pool', 'Resource Pool')}
+          </Label>
+          <Input
+            id="cluster-poolId"
+            value={formData.poolId}
+            onChange={(e) => handleChange('poolId', e.target.value)}
+            placeholder={t(
+              'clusterManagement.dialog.poolPlaceholder',
+              'e.g., CIDC-RP-29, suzhou'
+            )}
+          />
+        </div>
+
         {/* Cluster Status Controls */}
         <div className="space-y-4 border-t pt-4">
           {/* Enabled Status */}
@@ -261,6 +296,7 @@ function ClusterDialogContent({
             type="submit"
             disabled={
               !formData.name ||
+              !formData.clusterId ||
               (!isEditMode && !formData.inCluster && !formData.config)
             }
           >

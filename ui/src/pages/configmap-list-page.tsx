@@ -26,7 +26,7 @@ export function ConfigMapListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/configmaps/${row.original.metadata!.namespace}/${
+              to={`/dashboard/configmaps/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >

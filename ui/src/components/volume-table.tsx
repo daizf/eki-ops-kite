@@ -49,7 +49,7 @@ export function VolumeTable({
     if (volume.persistentVolumeClaim) {
       return (
         <Link
-          to={`/persistentvolumeclaims/${namespace}/${volume.persistentVolumeClaim.claimName}`}
+          to={`/dashboard/persistentvolumeclaims/${namespace}/${volume.persistentVolumeClaim.claimName}`}
           className="app-link"
         >
           {volume.persistentVolumeClaim.claimName}
@@ -59,7 +59,7 @@ export function VolumeTable({
     if (volume.configMap) {
       return (
         <Link
-          to={`/configmaps/${namespace}/${volume.configMap.name}`}
+          to={`/dashboard/configmaps/${namespace}/${volume.configMap.name}`}
           className="app-link"
         >
           {volume.configMap.name || 'N/A'}
@@ -69,7 +69,7 @@ export function VolumeTable({
     if (volume.secret) {
       return (
         <Link
-          to={`/secrets/${namespace}/${volume.secret.secretName}`}
+          to={`/dashboard/secrets/${namespace}/${volume.secret.secretName}`}
           className="app-link"
         >
           {volume.secret.secretName || 'N/A'}

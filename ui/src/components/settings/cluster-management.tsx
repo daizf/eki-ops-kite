@@ -93,6 +93,15 @@ export function ClusterManagement() {
         ),
       },
       {
+        id: 'clusterId',
+        header: t('common.fields.clusterId', 'Cluster ID'),
+        cell: ({ row: { original: cluster } }) => (
+          <div className="text-sm font-mono text-muted-foreground">
+            {cluster.clusterId}
+          </div>
+        ),
+      },
+      {
         id: 'version',
         header: t('common.fields.version', 'Version'),
         cell: ({ row: { original: cluster } }) => {
@@ -135,6 +144,15 @@ export function ClusterManagement() {
         cell: ({ row: { original: cluster } }) => (
           <div className="text-sm text-muted-foreground">
             {cluster.prometheusURL ? 'Yes' : 'No'}
+          </div>
+        ),
+      },
+      {
+        id: 'poolId',
+        header: t('common.fields.pool', 'Resource Pool'),
+        cell: ({ row: { original: cluster } }) => (
+          <div className="text-sm text-muted-foreground">
+            {cluster.poolId || '-'}
           </div>
         ),
       },

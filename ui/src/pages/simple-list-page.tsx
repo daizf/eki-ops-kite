@@ -43,7 +43,7 @@ export function SimpleListPage<T extends keyof ResourceTypeMap>({
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/${resourceType}${isClusterScope ? '' : `/${row.original.metadata!.namespace}`}/${row.original.metadata!.name}`}
+              to={`/dashboard/${resourceType}${isClusterScope ? '' : `/${row.original.metadata!.namespace}`}/${row.original.metadata!.name}`}
             >
               {row.original.metadata!.name}
             </Link>

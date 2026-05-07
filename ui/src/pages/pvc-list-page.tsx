@@ -30,7 +30,7 @@ export function PVCListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/persistentvolumeclaims/${row.original.metadata!.namespace}/${
+              to={`/dashboard/persistentvolumeclaims/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >
@@ -67,7 +67,7 @@ export function PVCListPage() {
           if (volumeName) {
             return (
               <div className="font-medium app-link">
-                <Link to={`/persistentvolumes/${volumeName}`}>
+                <Link to={`/dashboard/persistentvolumes/${volumeName}`}>
                   {volumeName}
                 </Link>
               </div>
@@ -84,7 +84,7 @@ export function PVCListPage() {
           if (scName) {
             return (
               <div className="font-medium app-link">
-                <Link to={`/storageclasses/${scName}`}>{scName}</Link>
+                <Link to={`/dashboard/storageclasses/${scName}`}>{scName}</Link>
               </div>
             )
           }

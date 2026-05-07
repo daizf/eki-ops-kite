@@ -401,7 +401,7 @@ export function getCRDResourcePath(
   name?: string
 ): string {
   const group = apiVersion.includes('/') ? apiVersion.split('/')[0] : ''
-  return `/crds/${kind}.${group}/${namespace}/${name}`
+  return `/dashboard/crds/${kind}.${group}/${namespace}/${name}`
 }
 
 // Get owner reference information for a pod
@@ -436,7 +436,7 @@ export function getOwnerInfo(metadata?: ObjectMeta) {
     return {
       kind: ownerRef.kind,
       name: ownerRef.name,
-      path: `/crds/${ownerRef.kind.toLowerCase()}s.${group}/${metadata.namespace}/${ownerRef.name}`,
+      path: `/dashboard/crds/${ownerRef.kind.toLowerCase()}s.${group}/${metadata.namespace}/${ownerRef.name}`,
       controller: ownerRef.controller || false,
     }
   }

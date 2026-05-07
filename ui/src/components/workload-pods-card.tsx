@@ -122,7 +122,7 @@ function WorkloadPodRow({ pod }: { pod: Pod }) {
   const namespace = pod.metadata?.namespace
   const path =
     namespace && pod.metadata?.name
-      ? `/pods/${namespace}/${pod.metadata.name}`
+      ? `/dashboard/pods/${namespace}/${pod.metadata.name}`
       : undefined
   const age = pod.metadata?.creationTimestamp
     ? getAge(pod.metadata.creationTimestamp)
@@ -213,7 +213,7 @@ function WorkloadPodRow({ pod }: { pod: Pod }) {
         <div className="flex min-w-0 justify-center text-center">
           {pod.spec?.nodeName ? (
             <Link
-              to={`/nodes/${pod.spec.nodeName}`}
+              to={`/dashboard/nodes/${pod.spec.nodeName}`}
               className="app-link block max-w-full truncate"
               title={pod.spec.nodeName}
             >

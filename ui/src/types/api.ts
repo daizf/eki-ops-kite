@@ -319,6 +319,7 @@ export interface RelatedResources {
 export interface Cluster {
   id: number
   name: string
+  clusterId: string
   description?: string
   version?: string
   config?: string
@@ -328,6 +329,7 @@ export interface Cluster {
   createdAt: string
   updatedAt: string
   prometheusURL?: string
+  poolId?: string
   error?: string
 }
 
@@ -447,4 +449,15 @@ export interface ResourceTemplate {
   name: string
   description: string
   yaml: string
+}
+
+export interface Pool {
+  id: number
+  poolId: string
+  poolName: string
+  description?: string
+  proxy?: string
+  enable: boolean
+  createdAt: string
+  updatedAt: string
 }

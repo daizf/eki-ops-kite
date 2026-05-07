@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import App, { StandaloneAIChatApp } from './App'
+import App, { ClusterSearchApp, StandaloneAIChatApp } from './App'
 import { InitCheckRoute } from './components/init-check-route'
 import { ProtectedRoute } from './components/protected-route'
 import { getSubPath } from './lib/subpath'
@@ -40,6 +40,32 @@ export const router = createBrowserRouter(
     },
     {
       path: '/',
+      element: (
+        <InitCheckRoute>
+          <ProtectedRoute>
+            <ClusterSearchApp />
+          </ProtectedRoute>
+        </InitCheckRoute>
+      ),
+    },
+    {
+      path: '/settings',
+      element: (
+        <InitCheckRoute>
+          <ProtectedRoute>
+            <App />
+          </ProtectedRoute>
+        </InitCheckRoute>
+      ),
+      children: [
+        {
+          index: true,
+          element: <SettingsPage />,
+        },
+      ],
+    },
+    {
+      path: '/dashboard',
       element: (
         <InitCheckRoute>
           <ProtectedRoute>

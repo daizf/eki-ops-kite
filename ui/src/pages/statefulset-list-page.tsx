@@ -29,7 +29,7 @@ export function StatefulSetListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/statefulsets/${row.original.metadata!.namespace}/${
+              to={`/dashboard/statefulsets/${row.original.metadata!.namespace}/${
                 row.original.metadata!.name
               }`}
             >

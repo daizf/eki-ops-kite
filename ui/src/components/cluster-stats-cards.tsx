@@ -51,7 +51,7 @@ export function ClusterStatsCards({
       icon: IconServer,
       color: 'text-blue-600 dark:text-blue-400',
       bgColor: 'bg-blue-50 dark:bg-blue-950/50',
-      routePath: '/nodes',
+      routePath: '/dashboard/nodes',
     },
     {
       label: t('nav.pods'),
@@ -60,7 +60,7 @@ export function ClusterStatsCards({
       icon: IconBox,
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-950/50',
-      routePath: '/pods',
+      routePath: '/dashboard/pods',
     },
     {
       label: t('nav.namespaces'),
@@ -68,7 +68,7 @@ export function ClusterStatsCards({
       icon: IconFolders,
       color: 'text-purple-600 dark:text-purple-400',
       bgColor: 'bg-purple-50 dark:bg-purple-950/50',
-      routePath: '/namespaces',
+      routePath: '/dashboard/namespaces',
     },
     {
       label: t('nav.services'),
@@ -76,7 +76,7 @@ export function ClusterStatsCards({
       icon: IconNetwork,
       color: 'text-orange-600 dark:text-orange-400',
       bgColor: 'bg-orange-50 dark:bg-orange-950/50',
-      routePath: '/services',
+      routePath: '/dashboard/services',
     },
   ]
 

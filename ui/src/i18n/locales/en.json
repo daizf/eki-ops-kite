@@ -73,6 +73,8 @@
       "cluster": "Cluster",
       "clusters": "Clusters",
       "clusterIP": "Cluster IP",
+      "clusterId": "Cluster ID",
+      "pool": "Resource Pool",
       "completed": "Completed",
       "config": "Configuration",
       "container": "Container",
@@ -209,7 +211,10 @@
       "volumes": "Volumes",
       "yamlConfiguration": "YAML Configuration",
       "yamlContent": "YAML Content",
-      "yamlDiff": "YAML Diff"
+      "yamlDiff": "YAML Diff",
+      "proxy": "Proxy",
+      "poolName": "Pool Name",
+      "poolId": "Pool Id"
     },
     "messages": {
       "addNewItem": "Add a new {{resource}}",
@@ -626,10 +631,14 @@
     "description": "Manage clusters, roles and permissions",
     "tabs": {
       "clusters": "Cluster",
+      "pools": "Pool",
       "general": "General",
       "oauth": "Authentication",
       "rbac": "RBAC",
-      "users": "User"
+      "users": "User",
+      "apikeys": "API Keys",
+      "templates": "Templates",
+      "audit": "Audit"
     }
   },
   "generalManagement": {
@@ -732,7 +741,13 @@
       "add": "Add Cluster"
     },
     "table": {
-      "prometheus": "Prometheus"
+      "name": "Name",
+      "clusterId": "Cluster ID",
+      "type": "Type",
+      "status": "Status",
+      "prometheus": "Prometheus",
+      "pool": "Resource Pool",
+      "actions": "Actions"
     },
     "type": {
       "inCluster": "In-Cluster",
@@ -759,8 +774,12 @@
       "editTitle": "Edit Cluster",
       "name": "Name",
       "namePlaceholder": "Enter cluster name",
+      "clusterId": "Cluster ID",
+      "clusterIdPlaceholder": "e.g., prod-001, staging-002",
       "description": "Description",
       "descriptionPlaceholder": "Enter cluster description (optional)",
+      "pool": "Resource Pool",
+      "poolPlaceholder": "e.g., CIDC-RP-29, suzhou",
       "type": "Type",
       "config": "Configuration",
       "configPlaceholder": "Paste kubeconfig content here...",
@@ -974,6 +993,50 @@
         "workloadIssues": "List problematic workloads and probable root causes",
         "runbook": "Provide a prioritized troubleshooting runbook"
       }
+    }
+  },
+  "poolManagement": {
+    "title": "Pool Management",
+    "actions": {
+      "add": "Add Pool"
+    },
+    "empty": {
+      "title": "No pools configured",
+      "description": "Add your first pool to get started"
+    },
+    "messages": {
+      "created": "Pool created successfully",
+      "updated": "Pool updated successfully",
+      "deleted": "Pool deleted successfully",
+      "createError": "Failed to create pool",
+      "updateError": "Failed to update pool",
+      "deleteError": "Failed to delete pool"
+    },
+    "errors": {
+      "loadFailed": "Failed to load pools"
+    },
+    "deleteConfirmation": "This action will delete the pool and cannot be undone.",
+    "validation": {
+      "poolIdRequired": "Pool ID is required",
+      "poolNameRequired": "Pool name is required"
+    },
+    "dialog": {
+      "createTitle": "Create Pool",
+      "editTitle": "Edit Pool",
+      "description": "Configure pool settings. Required fields are marked with *."
+    },
+    "fields": {
+      "poolId": "Pool ID",
+      "name": "Name",
+      "description": "Description",
+      "proxy": "Proxy",
+      "enabled": "Enabled"
+    },
+    "placeholders": {
+      "poolIdPlaceholder": "Enter pool ID",
+      "namePlaceholder": "Enter pool name",
+      "descriptionPlaceholder": "Enter pool description (optional)",
+      "proxyPlaceholder": "http://proxy.example.com:8080"
     }
   },
   "apikeyManagement": {

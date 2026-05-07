@@ -70,7 +70,7 @@ export function SiteHeader() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => navigate('/settings')}
+                    onClick={() => navigate('/dashboard/settings')}
                     className="hidden sm:flex"
                   >
                     <Settings className="h-5 w-5" />

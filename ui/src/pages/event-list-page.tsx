@@ -41,8 +41,8 @@ export function EventListPage() {
 
             const resourcePath = kind.toLowerCase() + 's'
             const link = namespace
-              ? `/${resourcePath}/${namespace}/${name}`
-              : `/${resourcePath}/${name}`
+              ? `/dashboard/${resourcePath}/${namespace}/${name}`
+              : `/dashboard/${resourcePath}/${name}`
 
             return (
               <div className="flex flex-col gap-0.5">

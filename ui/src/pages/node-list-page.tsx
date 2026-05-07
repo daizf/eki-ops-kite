@@ -134,7 +134,7 @@ export function NodeListPage() {
         header: t('common.fields.name'),
         cell: ({ row }) => (
           <div className="font-medium app-link">
-            <Link to={`/nodes/${row.original.metadata!.name}`}>
+            <Link to={`/dashboard/nodes/${row.original.metadata!.name}`}>
               {row.original.metadata!.name}
             </Link>
           </div>
@@ -178,7 +178,7 @@ export function NodeListPage() {
         header: 'Pods',
         cell: ({ row }) => (
           <Link
-            to={`/nodes/${row.original.metadata!.name}?tab=pods`}
+            to={`/dashboard/nodes/${row.original.metadata!.name}?tab=pods`}
             className="text-muted-foreground hover:text-primary/80 hover:underline transition-colors cursor-pointer"
           >
             {row.original.metrics?.pods || 0} /{' '}

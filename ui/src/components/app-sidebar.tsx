@@ -148,10 +148,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 tooltip={t('nav.overview')}
                 asChild
-                isActive={isActive('/')}
+                isActive={isActive('/dashboard')}
                 className="transition-all duration-200 hover:bg-accent/60 active:scale-95 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm"
               >
-                <Link to="/" onClick={handleMenuItemClick}>
+                <Link to="/dashboard" onClick={handleMenuItemClick}>
                   <IconLayoutDashboard className="text-sidebar-primary" />
                   <span className="font-medium">{t('nav.overview')}</span>
                 </Link>

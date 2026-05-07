@@ -21,7 +21,7 @@ export function IngressListPage() {
         cell: ({ row }) => (
           <div className="font-medium app-link">
             <Link
-              to={`/ingresses/${row.original.metadata!.namespace}/${row.original.metadata!.name}`}
+              to={`/dashboard/ingresses/${row.original.metadata!.namespace}/${row.original.metadata!.name}`}
             >
               {row.original.metadata!.name}
             </Link>
