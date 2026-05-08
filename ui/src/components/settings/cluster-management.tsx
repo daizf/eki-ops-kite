@@ -152,7 +152,7 @@ export function ClusterManagement() {
         header: t('common.fields.pool', 'Resource Pool'),
         cell: ({ row: { original: cluster } }) => (
           <div className="text-sm text-muted-foreground">
-            {cluster.poolId || '-'}
+            {cluster.pool?.poolName || cluster.poolId || '-'}
           </div>
         ),
       },

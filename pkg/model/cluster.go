@@ -11,6 +11,7 @@ type Cluster struct {
 	IsDefault     bool         `json:"is_default" gorm:"type:boolean;default:false"`
 	Enable        bool         `json:"enable" gorm:"type:boolean;default:true"`
 	PoolID        string       `json:"poolId" gorm:"type:varchar(100)"`
+	Pool          *Pool        `json:"pool" gorm:"foreignKey:PoolID;references:PoolID"`
 }
 
 func AddCluster(cluster *Cluster) error {
@@ -55,7 +56,7 @@ func EnableCluster(cluster *Cluster) error {
 
 func ListClusters() ([]*Cluster, error) {
 	var clusters []*Cluster
-	if err := DB.Find(&clusters).Error; err != nil {
+	if err := DB.Preload("Pool").Find(&clusters).Error; err != nil {
 		return nil, err
 	}
 	return clusters, nil

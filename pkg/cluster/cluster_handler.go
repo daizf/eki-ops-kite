@@ -68,6 +68,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 			"prometheusURL": cluster.PrometheusURL,
 			"poolId":        cluster.PoolID,
 			"config":        "",
+			"pool":          cluster.Pool,
 		}
 
 		if clientSet, exists := clusterState[cluster.Name]; exists {

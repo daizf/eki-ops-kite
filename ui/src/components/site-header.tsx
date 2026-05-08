@@ -49,7 +49,7 @@ export function SiteHeader() {
           <div className="ml-auto flex items-center gap-2">
             {clusterInfo && !isMobile && (
               <div className="text-sm text-red-500 pr-2">
-                {t('overview.clusterInfo')}: {clusterInfo.name} (ID: {clusterInfo.clusterId}) | {t('common.fields.pool')}: {clusterInfo.poolId}
+                {t('overview.clusterInfo')}: {clusterInfo.name} (ID: {clusterInfo.clusterId}) | {t('common.fields.pool')}: {clusterInfo.pool?.poolName || clusterInfo.poolId}
               </div>
             )}
             <Search />
