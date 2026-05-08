@@ -413,7 +413,8 @@
     "recentEvents": "最近事件",
     "resourceCharts": "资源图表",
     "failedToLoad": "加载概览数据失败",
-    "unknownError": "未知错误"
+    "unknownError": "未知错误",
+    "clusterInfo": "集群信息"
   },
   "pods": {
     "title": "Pods",

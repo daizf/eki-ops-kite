@@ -407,7 +407,8 @@
     "recentEvents": "Recent Events",
     "resourceCharts": "Resource Charts",
     "failedToLoad": "Failed to load overview data",
-    "unknownError": "Unknown error occurred"
+    "unknownError": "Unknown error occurred",
+    "clusterInfo": "Cluster"
   },
   "pods": {
     "title": "Pods",

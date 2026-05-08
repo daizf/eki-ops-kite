@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
+import { useClusterContext } from '@/contexts/cluster-context'
 import { useTerminal } from '@/contexts/terminal-context'
 import { Plus, Settings, TerminalSquare } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { useGeneralSetting } from '@/lib/api'
+import type { Cluster } from '@/types/api'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -18,9 +21,11 @@ import { Search } from './search'
 import { UserMenu } from './user-menu'
 
 export function SiteHeader() {
+  const { t } = useTranslation()
   const isMobile = useIsMobile()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { clusters, currentCluster } = useClusterContext()
   const { toggleTerminal, isOpen } = useTerminal()
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const isAdmin = user?.isAdmin() ?? false
@@ -28,6 +33,8 @@ export function SiteHeader() {
     enabled: isAdmin,
   })
   const kubectlEnabled = generalSetting?.kubectlEnabled ?? true
+
+  const clusterInfo = clusters.find((c: Cluster) => c.clusterId === currentCluster)
 
   return (
     <>
@@ -40,6 +47,11 @@ export function SiteHeader() {
           />
           <DynamicBreadcrumb />
           <div className="ml-auto flex items-center gap-2">
+            {clusterInfo && !isMobile && (
+              <div className="text-sm text-red-500 pr-2">
+                {t('overview.clusterInfo')}: {clusterInfo.name} (ID: {clusterInfo.clusterId}) | {t('common.fields.pool')}: {clusterInfo.poolId}
+              </div>
+            )}
             <Search />
             <Plus
               className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-foreground"
