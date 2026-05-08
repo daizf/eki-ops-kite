@@ -1,15 +1,25 @@
-import { IconCheck, IconChevronDown, IconServer } from '@tabler/icons-react'
+import { IconCheck, IconServer } from '@tabler/icons-react'
+import { useState } from 'react'
 
+import type { Cluster } from '@/types/api'
 import { cn } from '@/lib/utils'
 import { useCluster } from '@/hooks/use-cluster'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 export function ClusterSelector() {
   const {
@@ -19,6 +29,8 @@ export function ClusterSelector() {
     isSwitching,
     isLoading,
   } = useCluster()
+  const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   if (isLoading || isSwitching) {
     return (
@@ -33,11 +45,23 @@ export function ClusterSelector() {
     )
   }
 
-  const currentClusterData = clusters.find((c) => c.name === currentCluster)
+  const currentClusterData = clusters.find((c) => c.clusterId === currentCluster)
+
+  const filteredClusters = clusters.filter((cluster) => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      cluster.name?.toLowerCase().includes(query) ||
+      cluster.clusterId?.toLowerCase().includes(query)
+    )
+  })
+
+  const defaultClusters = filteredClusters.filter((c) => c.isDefault)
+  const regularClusters = filteredClusters.filter((c) => !c.isDefault)
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
@@ -50,47 +74,124 @@ export function ClusterSelector() {
               ? 'Switching...'
               : currentClusterData?.name || 'Select Cluster'}
           </span>
-          <IconChevronDown className="h-3 w-3 opacity-50" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
-        {clusters.map((cluster) => (
-          <DropdownMenuItem
-            key={cluster.name}
-            onClick={() => setCurrentCluster(cluster.name)}
-            disabled={!!cluster.error}
-            className="flex items-center justify-between"
-          >
-            <div className="flex flex-col overflow-hidden">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{cluster.name}</span>
-                {cluster.isDefault && (
-                  <Badge className="text-xs">Default</Badge>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <Command>
+          <CommandInput
+            placeholder="Search cluster by name or ID..."
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
+          <CommandList>
+            {filteredClusters.length === 0 ? (
+              <CommandEmpty>No clusters found</CommandEmpty>
+            ) : (
+              <>
+                {defaultClusters.length > 0 && (
+                  <>
+                    <CommandGroup
+                      heading={
+                        searchQuery.trim()
+                          ? `Default Clusters (${defaultClusters.length})`
+                          : 'Default Clusters'
+                      }
+                    >
+                      {defaultClusters.map((cluster) => (
+                        <ClusterMenuItem
+                          key={cluster.clusterId}
+                          cluster={cluster}
+                          currentCluster={currentCluster}
+                          onSelect={() => {
+                            setCurrentCluster(cluster.clusterId)
+                            setOpen(false)
+                            setSearchQuery('')
+                          }}
+                        />
+                      ))}
+                    </CommandGroup>
+                    {regularClusters.length > 0 && <CommandSeparator />}
+                  </>
                 )}
-                {cluster.error && (
-                  <Badge variant="destructive" className="text-xs">
-                    Sync Error
-                  </Badge>
+                {regularClusters.length > 0 && (
+                  <CommandGroup
+                    heading={
+                      searchQuery.trim()
+                        ? `Clusters (${regularClusters.length})`
+                        : 'Clusters'
+                    }
+                  >
+                    {regularClusters.map((cluster) => (
+                      <ClusterMenuItem
+                        key={cluster.clusterId}
+                        cluster={cluster}
+                        currentCluster={currentCluster}
+                        onSelect={() => {
+                          setCurrentCluster(cluster.clusterId)
+                          setOpen(false)
+                          setSearchQuery('')
+                        }}
+                      />
+                    ))}
+                  </CommandGroup>
                 )}
-              </div>
-              <span
-                className={cn(
-                  'text-xs truncate',
-                  cluster.error
-                    ? 'text-red-500'
-                    : 'text-muted-foreground font-mono'
-                )}
-                title={cluster.error}
-              >
-                {cluster.error || cluster.version}
-              </span>
-            </div>
-            {currentCluster === cluster.name && (
-              <IconCheck className="h-4 w-4" />
+              </>
             )}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function ClusterMenuItem({
+  cluster,
+  currentCluster,
+  onSelect,
+}: {
+  cluster: Cluster
+  currentCluster: string | null
+  onSelect: () => void
+}) {
+  const isSelected = currentCluster === cluster.clusterId
+  const hasError = !!cluster.error
+
+  return (
+    <CommandItem
+      onSelect={onSelect}
+      disabled={hasError}
+      className="flex items-center justify-between gap-2 cursor-pointer"
+    >
+      <div className="flex flex-col overflow-hidden flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-medium truncate">{cluster.name}</span>
+          {cluster.isDefault && (
+            <Badge variant="secondary" className="text-xs shrink-0">
+              Default
+            </Badge>
+          )}
+          {hasError && (
+            <Badge variant="destructive" className="text-xs shrink-0">
+              Sync Error
+            </Badge>
+          )}
+        </div>
+        <span
+          className={cn(
+            'text-xs truncate font-mono',
+            hasError ? 'text-red-500' : 'text-muted-foreground'
+          )}
+          title={hasError ? cluster.error : cluster.clusterId}
+        >
+          {hasError ? cluster.error : cluster.clusterId}
+        </span>
+        {cluster.version && !hasError && (
+          <span className="text-xs text-muted-foreground">
+            {cluster.version}
+          </span>
+        )}
+      </div>
+      {isSelected && <IconCheck className="h-4 w-4 shrink-0" />}
+    </CommandItem>
   )
 }

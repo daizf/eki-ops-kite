@@ -32,8 +32,8 @@ func Logger() gin.HandlerFunc {
 			}
 
 			cluster := "-"
-			if clusterName, exists := param.Keys[ClusterNameKey]; exists {
-				cluster = clusterName.(string)
+			if clusterID, exists := param.Keys[ClusterIdKey]; exists {
+				cluster = clusterID.(string)
 			}
 
 			return fmt.Sprintf("%s - %s \"%s %s\" %d %s %s %s\n",

@@ -59,7 +59,7 @@ export function ClusterSearch() {
         e.preventDefault()
         const selectedCluster = filteredClusters[hoveredIndex]
         if (selectedCluster) {
-          setCurrentCluster(selectedCluster.name)
+          setCurrentCluster(selectedCluster.clusterId)
           navigate('/dashboard')
         }
       }
@@ -79,7 +79,7 @@ export function ClusterSearch() {
       // Only auto-select if we haven't manually selected this cluster recently
       // This prevents jumping between clusters when typing
       if (firstMatch && clusters) {
-        setCurrentCluster(firstMatch.name)
+        setCurrentCluster(firstMatch.clusterId)
         setHoveredIndex(0)
       }
     }
@@ -90,7 +90,7 @@ export function ClusterSearch() {
   }
 
   const handleClusterClick = (cluster: Cluster) => {
-    setCurrentCluster(cluster.name)
+    setCurrentCluster(cluster.clusterId)
     navigate('/dashboard')
   }
 

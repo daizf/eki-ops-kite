@@ -22,6 +22,7 @@ import (
 
 type ClientSet struct {
 	Name       string
+	ClusterID  string
 	Version    string // Kubernetes version
 	K8sClient  *kube.K8sClient
 	PromClient *prometheus.Client
@@ -173,26 +174,26 @@ func (t *k8sProxyTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	return t.transport.RoundTrip(req)
 }
 
-func (cm *ClusterManager) GetClientSet(clusterName string) (*ClientSet, error) {
+func (cm *ClusterManager) GetClientSet(clusterID string) (*ClientSet, error) {
 	cm.mu.RLock()
 	defer cm.mu.RUnlock()
 
 	if len(cm.clusters) == 0 {
 		return nil, fmt.Errorf("no clusters available")
 	}
-	if clusterName == "" {
-		clusterName = cm.defaultContext
-		if clusterName == "" {
+	if clusterID == "" {
+		clusterID = cm.defaultContext
+		if clusterID == "" {
 			// If no default context is set, return the first available cluster
 			for _, cs := range cm.clusters {
 				return cs, nil
 			}
 		}
 	}
-	if cluster, ok := cm.clusters[clusterName]; ok {
+	if cluster, ok := cm.clusters[clusterID]; ok {
 		return cluster, nil
 	}
-	return nil, fmt.Errorf("cluster not found: %s", clusterName)
+	return nil, fmt.Errorf("cluster not found: %s", clusterID)
 }
 
 func ImportClustersFromKubeconfig(kubeconfig *clientcmdapi.Config) int64 {
@@ -272,27 +273,27 @@ func syncClusters(cm *ClusterManager, readyCh chan<- struct{}) error {
 	}
 	buildQueue := make([]*model.Cluster, 0)
 	for _, cluster := range clusters {
-		dbClusterMap[cluster.Name] = cluster
+		dbClusterMap[cluster.ClusterID] = cluster
 		if cluster.IsDefault {
 			cm.mu.Lock()
-			cm.defaultContext = cluster.Name
+			cm.defaultContext = cluster.ClusterID
 			cm.mu.Unlock()
 		}
 		cm.mu.RLock()
-		current, currentExist := cm.clusters[cluster.Name]
+		current, currentExist := cm.clusters[cluster.ClusterID]
 		cm.mu.RUnlock()
 		if shouldUpdateCluster(current, cluster) {
 			if currentExist {
 				cm.mu.Lock()
-				delete(cm.clusters, cluster.Name)
+				delete(cm.clusters, cluster.ClusterID)
 				cm.mu.Unlock()
-				current.K8sClient.Stop(cluster.Name)
+				current.K8sClient.Stop(cluster.ClusterID)
 			}
 			if cluster.Enable {
 				buildQueue = append(buildQueue, cluster)
 			} else {
 				cm.mu.Lock()
-				delete(cm.errors, cluster.Name)
+				delete(cm.errors, cluster.ClusterID)
 				cm.mu.Unlock()
 			}
 		}
@@ -319,25 +320,25 @@ func syncClusters(cm *ClusterManager, readyCh chan<- struct{}) error {
 		if result.err != nil {
 			klog.Errorf("Failed to build k8s client for cluster %s, in cluster: %t, err: %v", result.cluster.Name, result.cluster.InCluster, result.err)
 			cm.mu.Lock()
-			cm.errors[result.cluster.Name] = result.err.Error()
+			cm.errors[result.cluster.ClusterID] = result.err.Error()
 			cm.mu.Unlock()
 			continue
 		}
 		cm.mu.Lock()
-		delete(cm.errors, result.cluster.Name)
-		cm.clusters[result.cluster.Name] = result.clientSet
+		delete(cm.errors, result.cluster.ClusterID)
+		cm.clusters[result.cluster.ClusterID] = result.clientSet
 		cm.mu.Unlock()
 	}
 	cm.mu.Lock()
-	for name, clientSet := range cm.clusters {
-		if _, ok := dbClusterMap[name]; !ok {
-			delete(cm.clusters, name)
-			clientSet.K8sClient.Stop(name)
+	for clusterID, clientSet := range cm.clusters {
+		if _, ok := dbClusterMap[clusterID]; !ok {
+			delete(cm.clusters, clusterID)
+			clientSet.K8sClient.Stop(clusterID)
 		}
 	}
-	for name := range cm.errors {
-		if _, ok := dbClusterMap[name]; !ok {
-			delete(cm.errors, name)
+	for clusterID := range cm.errors {
+		if _, ok := dbClusterMap[clusterID]; !ok {
+			delete(cm.errors, clusterID)
 		}
 	}
 	cm.mu.Unlock()

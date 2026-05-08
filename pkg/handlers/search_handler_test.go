@@ -68,39 +68,39 @@ func TestSortResults(t *testing.T) {
 func TestGetSearchClusterNamePrecedence(t *testing.T) {
 	t.Run("context beats header query and cookie", func(t *testing.T) {
 		ctx := newSearchContextWithRequest(t)
-		ctx.Set(middleware.ClusterNameKey, "context-cluster")
-		ctx.Request.Header.Set(middleware.ClusterNameHeader, "header-cluster")
-		ctx.Request.URL.RawQuery = middleware.ClusterNameHeader + "=query-cluster"
+		ctx.Set(middleware.ClusterIdKey, "context-cluster")
+		ctx.Request.Header.Set(middleware.ClusterIdHeader, "header-cluster")
+		ctx.Request.URL.RawQuery = middleware.ClusterIdHeader + "=query-cluster"
 
-		if got := getSearchClusterName(ctx); got != "context-cluster" {
-			t.Fatalf("getSearchClusterName() = %q, want %q", got, "context-cluster")
+		if got := getSearchClusterID(ctx); got != "context-cluster" {
+			t.Fatalf("getSearchClusterID() = %q, want %q", got, "context-cluster")
 		}
 	})
 
 	t.Run("header beats query and cookie", func(t *testing.T) {
 		ctx := newSearchContextWithRequest(t)
-		ctx.Request.Header.Set(middleware.ClusterNameHeader, "header-cluster")
-		ctx.Request.URL.RawQuery = middleware.ClusterNameHeader + "=query-cluster"
+		ctx.Request.Header.Set(middleware.ClusterIdHeader, "header-cluster")
+		ctx.Request.URL.RawQuery = middleware.ClusterIdHeader + "=query-cluster"
 
-		if got := getSearchClusterName(ctx); got != "header-cluster" {
-			t.Fatalf("getSearchClusterName() = %q, want %q", got, "header-cluster")
+		if got := getSearchClusterID(ctx); got != "header-cluster" {
+			t.Fatalf("getSearchClusterID() = %q, want %q", got, "header-cluster")
 		}
 	})
 
 	t.Run("query beats cookie", func(t *testing.T) {
 		ctx := newSearchContextWithRequest(t)
-		ctx.Request.URL.RawQuery = middleware.ClusterNameHeader + "=query-cluster"
+		ctx.Request.URL.RawQuery = middleware.ClusterIdHeader + "=query-cluster"
 
-		if got := getSearchClusterName(ctx); got != "query-cluster" {
-			t.Fatalf("getSearchClusterName() = %q, want %q", got, "query-cluster")
+		if got := getSearchClusterID(ctx); got != "query-cluster" {
+			t.Fatalf("getSearchClusterID() = %q, want %q", got, "query-cluster")
 		}
 	})
 
 	t.Run("cookie fallback", func(t *testing.T) {
 		ctx := newSearchContextWithRequest(t)
 
-		if got := getSearchClusterName(ctx); got != "cookie-cluster" {
-			t.Fatalf("getSearchClusterName() = %q, want %q", got, "cookie-cluster")
+		if got := getSearchClusterID(ctx); got != "cookie-cluster" {
+			t.Fatalf("getSearchClusterID() = %q, want %q", got, "cookie-cluster")
 		}
 	})
 }
@@ -137,7 +137,7 @@ func TestGlobalSearchCacheKeyIncludesClusterAndLimit(t *testing.T) {
 	oldSearchFuncs := resources.SearchFuncs
 	resources.SearchFuncs = map[string]func(*gin.Context, string, int64) ([]common.SearchResult, error){
 		"pods": func(c *gin.Context, _ string, _ int64) ([]common.SearchResult, error) {
-			clusterName := c.GetString(middleware.ClusterNameKey)
+			clusterName := c.GetString(middleware.ClusterIdKey)
 			switch clusterName {
 			case "cluster-a":
 				return []common.SearchResult{
@@ -188,7 +188,7 @@ func newSearchContext(t *testing.T, clusterName string) *gin.Context {
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.Request = httptest.NewRequest(http.MethodGet, "/search", nil)
 	if clusterName != "" {
-		ctx.Set(middleware.ClusterNameKey, clusterName)
+		ctx.Set(middleware.ClusterIdKey, clusterName)
 	}
 	ctx.Set("user", model.AnonymousUser)
 	return ctx
@@ -201,7 +201,7 @@ func newSearchContextWithRequest(t *testing.T) *gin.Context {
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 	req := httptest.NewRequest(http.MethodGet, "/search", nil)
-	req.AddCookie(&http.Cookie{Name: middleware.ClusterNameHeader, Value: "cookie-cluster"})
+	req.AddCookie(&http.Cookie{Name: middleware.ClusterIdHeader, Value: "cookie-cluster"})
 	ctx.Request = req
 	return ctx
 }
@@ -213,7 +213,7 @@ func performGlobalSearch(t *testing.T, handler *SearchHandler, clusterName, targ
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.Request = httptest.NewRequest(http.MethodGet, target, nil)
 	if clusterName != "" {
-		ctx.Set(middleware.ClusterNameKey, clusterName)
+		ctx.Set(middleware.ClusterIdKey, clusterName)
 	}
 	ctx.Set("user", model.AnonymousUser)
 

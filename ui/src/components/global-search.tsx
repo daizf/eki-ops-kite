@@ -224,21 +224,21 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       },
       ...(clusters.length > 1
         ? clusters
-            .filter((cluster) => cluster.name !== currentCluster)
+            .filter((cluster) => cluster.clusterId !== currentCluster)
             .map((cluster) => ({
-              id: `switch-cluster-${cluster.name}`,
-              label: t('globalSearch.switchCluster', { name: cluster.name }),
+              id: `switch-cluster-${cluster.clusterId}`,
+              label: t('globalSearch.switchCluster', { name: cluster.clusterId }),
               icon: IconServer,
-              searchText: `cluster ${cluster.name}`.toLocaleLowerCase(),
+              searchText: `cluster ${cluster.clusterId}`.toLocaleLowerCase(),
               onSelect: () => {
                 if (
                   isSwitching ||
                   isClusterLoading ||
-                  cluster.name === currentCluster
+                  cluster.clusterId === currentCluster
                 ) {
                   return
                 }
-                setCurrentCluster(cluster.name)
+                setCurrentCluster(cluster.clusterId)
               },
             }))
         : []),

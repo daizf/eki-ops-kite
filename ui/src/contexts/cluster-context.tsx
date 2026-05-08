@@ -24,6 +24,14 @@ export const ClusterContext = createContext<ClusterContextType | undefined>(
   undefined
 )
 
+export function useClusterContext() {
+  const context = React.useContext(ClusterContext)
+  if (context === undefined) {
+    throw new Error('useClusterContext must be used within a ClusterProvider')
+  }
+  return context
+}
+
 export const ClusterProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -78,8 +86,8 @@ export const ClusterProvider: React.FC<{ children: React.ReactNode }> = ({
     if (clusters.length > 0 && !currentCluster) {
       const defaultCluster = clusters.find((cluster) => cluster.isDefault)
       const nextCluster = defaultCluster
-        ? defaultCluster.name
-        : clusters[0].name
+        ? defaultCluster.clusterId
+        : clusters[0].clusterId
       setCurrentClusterState(nextCluster)
       persistCurrentCluster(nextCluster)
     }
@@ -87,21 +95,29 @@ export const ClusterProvider: React.FC<{ children: React.ReactNode }> = ({
     if (
       currentCluster &&
       clusters.length > 0 &&
-      !clusters.some((cluster) => cluster.name === currentCluster)
+      !clusters.some((cluster) => cluster.clusterId === currentCluster)
     ) {
       setCurrentClusterState(null)
       clearCurrentCluster()
     }
   }, [clusters, currentCluster])
 
-  const setCurrentCluster = async (clusterName: string) => {
-    if (clusterName === currentCluster || isSwitching) {
+  const setCurrentCluster = async (clusterID: string) => {
+    if (clusterID === currentCluster || isSwitching) {
+      return
+    }
+
+    const cluster = clusters.find((c) => c.clusterId === clusterID)
+    if (!cluster) {
+      toast.error(`Cluster not found: ${clusterID}`, {
+        id: 'cluster-switch',
+      })
       return
     }
 
     setIsSwitching(true)
-    setCurrentClusterState(clusterName)
-    persistCurrentCluster(clusterName)
+    setCurrentClusterState(clusterID)
+    persistCurrentCluster(clusterID)
 
     try {
       await queryClient.invalidateQueries({
@@ -110,7 +126,7 @@ export const ClusterProvider: React.FC<{ children: React.ReactNode }> = ({
           return !['user', 'auth', 'clusters'].includes(key)
         },
       })
-      toast.success(`Switched to cluster: ${clusterName}`, {
+      toast.success(`Switched to cluster: ${cluster.name}`, {
         id: 'cluster-switch',
       })
     } catch (switchError) {
