@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -35,6 +36,7 @@ export function useClusterContext() {
 export const ClusterProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const navigate = useNavigate()
   const [clusters, setClusters] = useState<Cluster[]>([])
   const [currentCluster, setCurrentClusterState] = useState<string | null>(
     getCurrentCluster()
@@ -129,6 +131,7 @@ export const ClusterProvider: React.FC<{ children: React.ReactNode }> = ({
       toast.success(`Switched to cluster: ${cluster.name}`, {
         id: 'cluster-switch',
       })
+      navigate('/dashboard')
     } catch (switchError) {
       console.error('Failed to switch cluster:', switchError)
       toast.error('Failed to switch cluster', {
