@@ -210,9 +210,9 @@ export function ClusterSearch() {
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="font-mono">{cluster.clusterId}</span>
-                            {cluster.poolId && (
+                            {cluster.pool?.poolName && (
                               <Badge variant="outline" className="text-xs">
-                                Pool: {cluster.poolId}
+                                Pool: {cluster.pool.poolName}
                               </Badge>
                             )}
                             {cluster.version && (
