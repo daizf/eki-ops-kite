@@ -1,4 +1,4 @@
-import { IconCheck, IconServer } from '@tabler/icons-react'
+import { IconCheck, IconChevronRight, IconServer, IconSearch } from '@tabler/icons-react'
 import { useState } from 'react'
 
 import type { Cluster } from '@/types/api'
@@ -7,19 +7,16 @@ import { useCluster } from '@/hooks/use-cluster'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from '@/components/ui/command'
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+
+type PoolGroup = {
+  poolId: string
+  poolName: string
+  clusters: Cluster[]
+}
 
 export function ClusterSelector() {
   const {
@@ -31,6 +28,7 @@ export function ClusterSelector() {
   } = useCluster()
   const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [expandedPools, setExpandedPools] = useState<Set<string>>(new Set())
 
   if (isLoading || isSwitching) {
     return (
@@ -38,7 +36,7 @@ export function ClusterSelector() {
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
         {isSwitching && (
           <span className="ml-2 text-sm text-muted-foreground">
-            Switching cluster...
+            Switching...
           </span>
         )}
       </div>
@@ -52,12 +50,70 @@ export function ClusterSelector() {
     const query = searchQuery.toLowerCase()
     return (
       cluster.name?.toLowerCase().includes(query) ||
-      cluster.clusterId?.toLowerCase().includes(query)
+      cluster.clusterId?.toLowerCase().includes(query) ||
+      cluster.pool?.poolName?.toLowerCase().includes(query)
     )
   })
 
-  const defaultClusters = filteredClusters.filter((c) => c.isDefault)
-  const regularClusters = filteredClusters.filter((c) => !c.isDefault)
+  // Group clusters by pool
+  const poolGroups = filteredClusters.reduce((acc, cluster) => {
+    const poolId = cluster.poolId || 'no-pool'
+    const poolName = cluster.pool?.poolName || 'No Pool'
+
+    if (!acc[poolId]) {
+      acc[poolId] = {
+        poolId,
+        poolName,
+        clusters: [],
+      }
+    }
+    acc[poolId].clusters.push(cluster)
+    return acc
+  }, {} as Record<string, PoolGroup>)
+
+  const poolList = Object.values(poolGroups).sort((a, b) => {
+    if (a.poolId === 'no-pool') return 1
+    if (b.poolId === 'no-pool') return -1
+    return a.poolName.localeCompare(b.poolName)
+  })
+
+  // Auto-expand pools when searching
+  const shouldAutoExpand = searchQuery.trim().length > 0
+  const autoExpandedPools = shouldAutoExpand
+    ? new Set(poolList.map((p) => p.poolId))
+    : expandedPools
+
+  // Limit to 20 clusters total
+  const MAX_CLUSTERS = 20
+  let displayedClusterCount = 0
+  const limitedPoolList = poolList.map((pool) => {
+    if (displayedClusterCount >= MAX_CLUSTERS) {
+      return { ...pool, clusters: [] }
+    }
+    const remainingSlots = MAX_CLUSTERS - displayedClusterCount
+    const clusters = pool.clusters.slice(0, remainingSlots)
+    displayedClusterCount += clusters.length
+    return { ...pool, clusters }
+  }).filter((pool) => pool.clusters.length > 0)
+
+  const togglePool = (poolId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    setExpandedPools((prev) => {
+      const next = new Set(prev)
+      if (next.has(poolId)) {
+        next.delete(poolId)
+      } else {
+        next.add(poolId)
+      }
+      return next
+    })
+  }
+
+  const handleClusterSelect = (clusterId: string) => {
+    setCurrentCluster(clusterId)
+    setOpen(false)
+    setSearchQuery('')
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,7 +121,7 @@ export function ClusterSelector() {
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center gap-2 h-8 px-3 max-w-full focus-visible:ring-0 focus-visible:border-transparent"
+          className="flex items-center gap-2 h-9 px-3 max-w-[200px] focus-visible:ring-0 focus-visible:border-transparent"
           disabled={isSwitching}
         >
           <IconServer className="h-4 w-4" />
@@ -76,69 +132,73 @@ export function ClusterSelector() {
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <Command>
-          <CommandInput
-            placeholder="Search cluster by name or ID..."
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-          />
-          <CommandList>
+      <PopoverContent className="w-[360px] p-0" align="end">
+        <div className="flex flex-col max-h-[500px]">
+          {/* Search input */}
+          <div className="border-b px-3 py-2 flex items-center gap-2">
+            <IconSearch className="h-4 w-4 text-muted-foreground shrink-0" />
+            <input
+              type="text"
+              placeholder="Search cluster by name or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 text-sm outline-none bg-transparent placeholder:text-muted-foreground"
+            />
+          </div>
+
+          {/* Cluster tree */}
+          <div className="overflow-auto flex-1">
             {filteredClusters.length === 0 ? (
-              <CommandEmpty>No clusters found</CommandEmpty>
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                No clusters found
+              </div>
             ) : (
-              <>
-                {defaultClusters.length > 0 && (
-                  <>
-                    <CommandGroup
-                      heading={
-                        searchQuery.trim()
-                          ? `Default Clusters (${defaultClusters.length})`
-                          : 'Default Clusters'
-                      }
+              <div className="py-1">
+                {limitedPoolList.map((pool) => (
+                  <div key={pool.poolId}>
+                    {/* Pool header */}
+                    <button
+                      onClick={(e) => togglePool(pool.poolId, e)}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-accent/50 cursor-pointer transition-colors"
                     >
-                      {defaultClusters.map((cluster) => (
-                        <ClusterMenuItem
-                          key={cluster.clusterId}
-                          cluster={cluster}
-                          currentCluster={currentCluster}
-                          onSelect={() => {
-                            setCurrentCluster(cluster.clusterId)
-                            setOpen(false)
-                            setSearchQuery('')
-                          }}
-                        />
-                      ))}
-                    </CommandGroup>
-                    {regularClusters.length > 0 && <CommandSeparator />}
-                  </>
-                )}
-                {regularClusters.length > 0 && (
-                  <CommandGroup
-                    heading={
-                      searchQuery.trim()
-                        ? `Clusters (${regularClusters.length})`
-                        : 'Clusters'
-                    }
-                  >
-                    {regularClusters.map((cluster) => (
-                      <ClusterMenuItem
-                        key={cluster.clusterId}
-                        cluster={cluster}
-                        currentCluster={currentCluster}
-                        onSelect={() => {
-                          setCurrentCluster(cluster.clusterId)
-                          setOpen(false)
-                          setSearchQuery('')
-                        }}
+                      <IconChevronRight
+                        className={cn(
+                          'h-4 w-4 transition-transform shrink-0 text-muted-foreground',
+                          autoExpandedPools.has(pool.poolId) && 'rotate-90'
+                        )}
                       />
-                    ))}
-                  </CommandGroup>
+                      <span className="flex-1 text-left text-sm font-medium truncate">
+                        {pool.poolName}
+                      </span>
+                      <Badge variant="outline" className="text-xs h-5 px-1.5 shrink-0">
+                        {pool.clusters.length}
+                      </Badge>
+                    </button>
+
+                    {/* Cluster items */}
+                    {autoExpandedPools.has(pool.poolId) && (
+                      <div className="pl-4">
+                        {pool.clusters.map((cluster) => (
+                          <ClusterMenuItem
+                            key={cluster.clusterId}
+                            cluster={cluster}
+                            currentCluster={currentCluster}
+                            onSelect={() => handleClusterSelect(cluster.clusterId)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {filteredClusters.length > MAX_CLUSTERS && (
+                  <div className="px-3 py-2 text-xs text-muted-foreground text-center border-t">
+                    Showing {MAX_CLUSTERS} of {filteredClusters.length} clusters
+                  </div>
                 )}
-              </>
+              </div>
             )}
-          </CommandList>
-        </Command>
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   )
@@ -157,21 +217,21 @@ function ClusterMenuItem({
   const hasError = !!cluster.error
 
   return (
-    <CommandItem
-      onSelect={onSelect}
+    <button
+      onClick={onSelect}
       disabled={hasError}
-      className="flex items-center justify-between gap-2 cursor-pointer"
+      className="flex items-center justify-between gap-2 w-full px-3 py-2 text-sm hover:bg-accent/50 disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer transition-colors"
     >
-      <div className="flex flex-col overflow-hidden flex-1 min-w-0">
+      <div className="flex flex-col overflow-hidden flex-1 min-w-0 text-left">
         <div className="flex items-center gap-2">
-          <span className="font-medium truncate">{cluster.name}</span>
+          <span className="font-medium truncate text-sm">{cluster.name}</span>
           {cluster.isDefault && (
-            <Badge variant="secondary" className="text-xs shrink-0">
+            <Badge variant="secondary" className="text-xs h-5 px-1.5 shrink-0">
               Default
             </Badge>
           )}
           {hasError && (
-            <Badge variant="destructive" className="text-xs shrink-0">
+            <Badge variant="destructive" className="text-xs h-5 px-1.5 shrink-0">
               Sync Error
             </Badge>
           )}
@@ -192,6 +252,6 @@ function ClusterMenuItem({
         )}
       </div>
       {isSelected && <IconCheck className="h-4 w-4 shrink-0" />}
-    </CommandItem>
+    </button>
   )
 }
