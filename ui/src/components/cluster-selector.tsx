@@ -51,7 +51,8 @@ export function ClusterSelector() {
     return (
       cluster.name?.toLowerCase().includes(query) ||
       cluster.clusterId?.toLowerCase().includes(query) ||
-      cluster.pool?.poolName?.toLowerCase().includes(query)
+      cluster.pool?.poolName?.toLowerCase().includes(query) ||
+      cluster.category?.toLowerCase().includes(query)
     )
   })
 
@@ -225,6 +226,11 @@ function ClusterMenuItem({
       <div className="flex flex-col overflow-hidden flex-1 min-w-0 text-left">
         <div className="flex items-center gap-2">
           <span className="font-medium truncate text-sm">{cluster.name}</span>
+          {cluster.category && (
+            <Badge variant="outline" className="text-xs h-5 px-1.5 shrink-0 bg-purple-50 text-purple-700 border-purple-200">
+              {cluster.category}
+            </Badge>
+          )}
           {cluster.isDefault && (
             <Badge variant="secondary" className="text-xs h-5 px-1.5 shrink-0">
               Default

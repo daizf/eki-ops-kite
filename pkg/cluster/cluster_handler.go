@@ -67,6 +67,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 			"isDefault":     cluster.IsDefault,
 			"prometheusURL": cluster.PrometheusURL,
 			"poolId":        cluster.PoolID,
+			"category":      cluster.Category,
 			"config":        "",
 			"pool":          cluster.Pool,
 		}
@@ -97,6 +98,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		Config        string `json:"config"`
 		PrometheusURL string `json:"prometheusURL"`
 		PoolID        string `json:"poolId"`
+		Category      string `json:"category"`
 		InCluster     bool   `json:"inCluster"`
 		IsDefault     bool   `json:"isDefault"`
 	}
@@ -128,6 +130,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		Config:        model.SecretString(req.Config),
 		PrometheusURL: req.PrometheusURL,
 		PoolID:        req.PoolID,
+		Category:      req.Category,
 		InCluster:     req.InCluster,
 		IsDefault:     req.IsDefault,
 		Enable:        true,
@@ -166,14 +169,21 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 		Config        string `json:"config"`
 		PrometheusURL string `json:"prometheusURL"`
 		PoolID        string `json:"poolId"`
+		Category      string `json:"category"`
 		InCluster     bool   `json:"inCluster"`
 		IsDefault     bool   `json:"isDefault"`
 		Enabled       bool   `json:"enabled"`
+		Pool          string `json:"pool"` // Allow both pool and poolId
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Support both pool and poolId fields for backward compatibility
+	if req.Pool != "" && req.PoolID == "" {
+		req.PoolID = req.Pool
 	}
 
 	cluster, err := model.GetClusterByID(uint(id))
@@ -197,6 +207,7 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 		"description":    req.Description,
 		"prometheus_url": req.PrometheusURL,
 		"pool_id":        req.PoolID,
+		"category":       req.Category,
 		"in_cluster":     req.InCluster,
 		"is_default":     req.IsDefault,
 		"enable":         req.Enabled,

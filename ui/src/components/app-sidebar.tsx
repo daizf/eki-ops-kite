@@ -113,7 +113,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <img src={Icon} alt="Kite Logo" className="h-8 w-8" />
                     <div className="flex flex-col">
                       <span className="text-base font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                        Kite
+                        EKI-Ops
                       </span>
                       <VersionInfo />
                     </div>

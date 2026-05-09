@@ -73,6 +73,28 @@ export function ClusterManagement() {
     [t]
   )
 
+  const getCategoryBadge = useCallback(
+    (cluster: Cluster) => {
+      if (!cluster.category) return '-'
+
+      const categoryColors: Record<string, string> = {
+        ESK: 'bg-purple-50 text-purple-700 border-purple-200',
+        KCS: 'bg-orange-50 text-orange-700 border-orange-200',
+        共享集群: 'bg-green-50 text-green-700 border-green-200',
+        管理集群: 'bg-red-50 text-red-700 border-red-200',
+      }
+
+      const colorClass = categoryColors[cluster.category] || 'bg-gray-50 text-gray-700 border-gray-200'
+
+      return (
+        <Badge variant="outline" className={colorClass}>
+          {cluster.category}
+        </Badge>
+      )
+    },
+    []
+  )
+
   const columns = useMemo<ColumnDef<Cluster>[]>(
     () => [
       {
@@ -156,8 +178,13 @@ export function ClusterManagement() {
           </div>
         ),
       },
+      {
+        id: 'category',
+        header: t('common.fields.category', 'Category'),
+        cell: ({ row: { original: cluster } }) => getCategoryBadge(cluster),
+      },
     ],
-    [getClusterTypeBadge, getStatusBadge, t]
+    [getClusterTypeBadge, getStatusBadge, getCategoryBadge, t]
   )
 
   const actions = useMemo<Action<Cluster>[]>(

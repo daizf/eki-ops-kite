@@ -39,6 +39,7 @@ function createClusterFormData(cluster?: Cluster | null) {
     config: cluster?.config || '',
     prometheusURL: cluster?.prometheusURL || '',
     poolId: cluster?.poolId || '',
+    category: cluster?.category || '',
     enabled: cluster?.enabled ?? true,
     isDefault: cluster?.isDefault ?? false,
     inCluster: cluster?.inCluster ?? false,
@@ -72,6 +73,8 @@ function ClusterDialogContent({
 }: Omit<ClusterDialogProps, 'open'>) {
   const { t } = useTranslation()
   const isEditMode = !!cluster
+
+  const CATEGORIES = ['ESK', 'KCS', '共享集群', '管理集群']
 
   const [formData, setFormData] = useState(() => createClusterFormData(cluster))
 
@@ -235,6 +238,27 @@ function ClusterDialogContent({
               'e.g., CIDC-RP-29, suzhou'
             )}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="cluster-category">
+            {t('clusterManagement.dialog.category', 'Category')}
+          </Label>
+          <Select
+            value={formData.category}
+            onValueChange={(value) => handleChange('category', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t('clusterManagement.dialog.categoryPlaceholder', 'Select a category')} />
+            </SelectTrigger>
+            <SelectContent>
+              {CATEGORIES.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Cluster Status Controls */}

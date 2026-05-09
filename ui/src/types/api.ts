@@ -323,6 +323,7 @@ export interface Cluster {
   description?: string
   version?: string
   config?: string
+  category?: string
   enabled: boolean
   inCluster: boolean
   isDefault: boolean

@@ -214,7 +214,8 @@
       "yamlDiff": "YAML Diff",
       "proxy": "代理",
       "poolName": "资源池名称",
-      "poolId": "资源池编码"
+      "poolId": "资源池编码",
+      "category": "分类"
     },
     "messages": {
       "addNewItem": "添加新的{{resource}}",
@@ -801,6 +802,8 @@
       "prometheusUrlPlaceholder": "https://prometheus.example.com",
       "pool": "资源池",
       "poolPlaceholder": "例如：华北-北京",
+      "category": "分类",
+      "categoryPlaceholder": "选择一个分类",
       "enabled": "启用",
       "isDefault": "设为默认"
     }

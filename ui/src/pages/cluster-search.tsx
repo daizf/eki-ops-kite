@@ -32,7 +32,8 @@ export function ClusterSearch() {
       const nameMatch = cluster.name?.toLowerCase().includes(query) ?? false
       const idMatch = cluster.clusterId?.toLowerCase().includes(query) ?? false
       const poolMatch = cluster.poolId?.toLowerCase().includes(query) ?? false
-      return nameMatch || idMatch || poolMatch
+      const categoryMatch = cluster.category?.toLowerCase().includes(query) ?? false
+      return nameMatch || idMatch || poolMatch || categoryMatch
     })
   }, [clusters, searchQuery])
 
@@ -102,7 +103,7 @@ export function ClusterSearch() {
             <img src={Icon} alt="Kite Logo" className="h-8 w-8" />
             <div className="flex flex-col">
               <span className="text-base font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Kite
+                EKI-Ops
               </span>
               <VersionInfo />
             </div>
@@ -210,6 +211,11 @@ export function ClusterSearch() {
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="font-mono">{cluster.clusterId}</span>
+                            {cluster.category && (
+                              <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                {cluster.category}
+                              </Badge>
+                            )}
                             {cluster.pool?.poolName && (
                               <Badge variant="outline" className="text-xs">
                                 Pool: {cluster.pool.poolName}

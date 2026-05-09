@@ -214,7 +214,8 @@
       "yamlDiff": "YAML Diff",
       "proxy": "Proxy",
       "poolName": "Pool Name",
-      "poolId": "Pool Id"
+      "poolId": "Pool Id",
+      "category": "category"
     },
     "messages": {
       "addNewItem": "Add a new {{resource}}",
@@ -781,6 +782,8 @@
       "descriptionPlaceholder": "Enter cluster description (optional)",
       "pool": "Resource Pool",
       "poolPlaceholder": "e.g., CIDC-RP-29, suzhou",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
       "type": "Type",
       "config": "Configuration",
       "configPlaceholder": "Paste kubeconfig content here...",
