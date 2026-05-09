@@ -54,9 +54,13 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 		return
 	}
 
+	user := c.MustGet("user").(model.User)
 	clusterState, errorState, _ := cm.snapshotState()
 	result := make([]gin.H, 0, len(clusters))
 	for _, cluster := range clusters {
+		if !rbac.CanAccessCluster(user, cluster.Name) {
+			continue
+		}
 		clusterInfo := gin.H{
 			"id":            cluster.ID,
 			"name":          cluster.Name,
