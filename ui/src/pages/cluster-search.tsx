@@ -60,7 +60,6 @@ export function ClusterSearch() {
         const selectedCluster = filteredClusters[hoveredIndex]
         if (selectedCluster) {
           setCurrentCluster(selectedCluster.clusterId)
-          navigate('/dashboard')
         }
       }
     }
@@ -69,21 +68,14 @@ export function ClusterSearch() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [filteredClusters, hoveredIndex, setCurrentCluster, navigate])
+  }, [filteredClusters, hoveredIndex, setCurrentCluster])
 
-  // Auto-select first matching cluster when search results change
+  // Auto-select first cluster when search results change
   useEffect(() => {
-    if (filteredClusters.length > 0 && filteredClusters[0] !== undefined) {
-      // Check if current cluster is different from the first matching one
-      const firstMatch = filteredClusters[0]
-      // Only auto-select if we haven't manually selected this cluster recently
-      // This prevents jumping between clusters when typing
-      if (firstMatch && clusters) {
-        setCurrentCluster(firstMatch.clusterId)
-        setHoveredIndex(0)
-      }
+    if (filteredClusters.length > 0) {
+      setHoveredIndex(0)
     }
-  }, [filteredClusters, clusters, setCurrentCluster])
+  }, [filteredClusters])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,7 +83,6 @@ export function ClusterSearch() {
 
   const handleClusterClick = (cluster: Cluster) => {
     setCurrentCluster(cluster.clusterId)
-    navigate('/dashboard')
   }
 
   const handleClusterHover = (index: number) => {
@@ -136,15 +127,16 @@ export function ClusterSearch() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-2xl space-y-8">
+      <div className="flex-1 flex flex-col p-4">
+        <div className="flex-1 flex flex-col items-center justify-start pt-24 sm:pt-32 md:pt-40">
+          <div className="w-full max-w-2xl space-y-8">
           {/* Logo/Title */}
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold text-foreground">
               Cluster Search
             </h1>
             <p className="text-muted-foreground">
-              Search for clusters by name or ID
+              Search for clusters by name or ID. Supports EKS, KCS, shared clusters, and more.
             </p>
           </div>
 
@@ -252,6 +244,7 @@ export function ClusterSearch() {
               </p>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
