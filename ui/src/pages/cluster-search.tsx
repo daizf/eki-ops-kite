@@ -13,11 +13,12 @@ import { LanguageToggle } from '@/components/language-toggle'
 import { ModeToggle } from '@/components/mode-toggle'
 import { UserMenu } from '@/components/user-menu'
 import { VersionInfo } from '@/components/version-info'
+import { ClusterPanel } from '@/components/cluster-panel'
 
 export function ClusterSearch() {
   const navigate = useNavigate()
   const clusterContext = useClusterContext()
-  const { clusters, isLoading, setCurrentCluster } = clusterContext
+  const { clusters, isLoading, setCurrentCluster, currentCluster } = clusterContext
   const { user } = useAuth()
   const isAdmin = user?.isAdmin() ?? false
   const [searchQuery, setSearchQuery] = useState('')
@@ -128,9 +129,24 @@ export function ClusterSearch() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col p-4">
-        <div className="flex-1 flex flex-col items-center justify-start pt-24 sm:pt-32 md:pt-40">
-          <div className="w-full max-w-2xl space-y-8">
+      <div className="flex-1 flex">
+        {/* Left Sidebar - Cluster Panel */}
+        <aside className="w-80 border-r bg-muted/10 flex-shrink-0 overflow-y-auto">
+          <div className="p-4">
+            <h2 className="text-sm font-semibold text-muted-foreground mb-4">
+              Clusters by Category
+            </h2>
+            <ClusterPanel
+              clusters={clusters || []}
+              onClusterClick={handleClusterClick}
+              currentCluster={currentCluster}
+            />
+          </div>
+        </aside>
+
+        <div className="flex-1 flex flex-col p-4">
+          <div className="flex-1 flex flex-col items-center justify-start pt-24 sm:pt-32 md:pt-40">
+            <div className="w-full max-w-2xl space-y-8">
           {/* Logo/Title */}
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold text-foreground">
@@ -250,6 +266,7 @@ export function ClusterSearch() {
               </p>
             </div>
           )}
+          </div>
           </div>
         </div>
       </div>
