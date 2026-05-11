@@ -540,8 +540,8 @@
   },
   "login": {
     "title": "Sign In",
-    "subtitle": "Access your Kubernetes dashboard",
-    "kubernetesDashboard": "Kubernetes Dashboard",
+    "subtitle": "Access your EKI Unified O&M Platform",
+    "kubernetesDashboard": "EKI Unified O&M Platform",
     "signIn": "Sign In",
     "enterUsername": "Enter your username",
     "enterPassword": "Enter your password",
@@ -557,7 +557,7 @@
     "tryAgainHint": "You can try logging in with a different account that has the required permissions.",
     "noLoginMethods": "No login methods configured",
     "configureAuth": "Please configure authentication providers in your environment",
-    "footer": "© {{year}} Kite. All rights reserved.",
+    "footer": "© {{year}} EKI. All rights reserved.",
     "documentation": "Documentation",
     "errors": {
       "accessDenied": "Access Denied",
@@ -592,6 +592,21 @@
     "loading": "Loading clusters...",
     "error": "Error loading clusters: {{error}}",
     "error403": "You do not have permission to access this cluster. Please contact your administrator for more information."
+  },
+  "clusterSearch": {
+    "title": "Cluster Search",
+    "clustersByCategory": "Clusters by Category",
+    "description": "Search for clusters by name or ID. Supports EKS, KCS, shared clusters, and more.",
+    "placeholder": "Search by cluster name, ID, or Pool...",
+    "loading": "Loading clusters...",
+    "noResults": "No clusters found matching \"{{query}}\"",
+    "resultsCount": "Found {{count}} cluster{{count, plural, one{} other{s}}}",
+    "badges": {
+      "default": "Default",
+      "error": "Error",
+      "pool": "Pool: {{name}}"
+    },
+    "availableCount": "Available: {{count}} cluster{{count, plural, one{} other{s}}}"
   },
   "resourceTable": {
     "errorLoading": "Error loading {{resourceName}}",

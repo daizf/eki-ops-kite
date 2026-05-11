@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Search, Settings } from 'lucide-react'
 
 import Icon from '@/assets/icon.svg'
@@ -16,6 +17,7 @@ import { VersionInfo } from '@/components/version-info'
 import { ClusterPanel } from '@/components/cluster-panel'
 
 export function ClusterSearch() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const clusterContext = useClusterContext()
   const { clusters, isLoading, setCurrentCluster, currentCluster } = clusterContext
@@ -134,7 +136,7 @@ export function ClusterSearch() {
         <aside className="w-80 border-r bg-muted/10 flex-shrink-0 overflow-y-auto">
           <div className="p-4">
             <h2 className="text-sm font-semibold text-muted-foreground mb-4">
-              Clusters by Category
+              {t('clusterSearch.clustersByCategory')}
             </h2>
             <ClusterPanel
               clusters={clusters || []}
@@ -150,10 +152,10 @@ export function ClusterSearch() {
           {/* Logo/Title */}
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold text-foreground">
-              Cluster Search
+              {t('clusterSearch.title')}
             </h1>
             <p className="text-muted-foreground">
-              Search for clusters by name or ID. Supports EKS, KCS, shared clusters, and more.
+              {t('clusterSearch.description')}
             </p>
           </div>
 
@@ -163,7 +165,7 @@ export function ClusterSearch() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search by cluster name, ID, or Pool..."
+                placeholder={t('clusterSearch.placeholder')}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value)
@@ -185,17 +187,17 @@ export function ClusterSearch() {
             <div className="space-y-4">
               {isLoading ? (
                 <div className="text-center text-muted-foreground py-8">
-                  Loading clusters...
+                  {t('clusterSearch.loading')}
                 </div>
               ) : filteredClusters.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
-                  No clusters found matching "{searchQuery}"
+                  {t('clusterSearch.noResults', { query: searchQuery })}
                 </div>
               ) : (
                 <div className="bg-card border rounded-lg shadow-lg overflow-hidden">
                   <div className="px-4 py-3 border-b bg-muted/30">
                     <p className="text-sm text-muted-foreground">
-                      Found {filteredClusters.length} cluster{filteredClusters.length !== 1 ? 's' : ''}
+                      {t('clusterSearch.resultsCount', { count: filteredClusters.length })}
                     </p>
                   </div>
                   <div className="divide-y">
@@ -216,12 +218,12 @@ export function ClusterSearch() {
                             </span>
                             {cluster.isDefault && (
                               <Badge variant="secondary" className="text-xs">
-                                Default
+                                {t('clusterSearch.badges.default')}
                               </Badge>
                             )}
                             {cluster.error && (
                               <Badge variant="destructive" className="text-xs">
-                                Error
+                                {t('clusterSearch.badges.error')}
                               </Badge>
                             )}
                           </div>
@@ -234,7 +236,7 @@ export function ClusterSearch() {
                             )}
                             {cluster.pool?.poolName && (
                               <Badge variant="outline" className="text-xs">
-                                Pool: {cluster.pool.poolName}
+                                {t('clusterSearch.badges.pool', { name: cluster.pool.poolName })}
                               </Badge>
                             )}
                             {cluster.version && (
@@ -262,7 +264,7 @@ export function ClusterSearch() {
           {!searchQuery.trim() && !isLoading && clusters && clusters.length > 0 && (
             <div className="text-center space-y-2">
               <p className="text-muted-foreground text-sm">
-                Available: {clusters.length} cluster{clusters.length !== 1 ? 's' : ''}
+                {t('clusterSearch.availableCount', { count: clusters.length })}
               </p>
             </div>
           )}

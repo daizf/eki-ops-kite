@@ -546,8 +546,8 @@
   },
   "login": {
     "title": "登录",
-    "subtitle": "访问 Kubernetes 控制台",
-    "kubernetesDashboard": "Kubernetes Dashboard",
+    "subtitle": "访问 EKI 统一运维工作台",
+    "kubernetesDashboard": "EKI 统一运维工作台",
     "signIn": "登录",
     "enterUsername": "请输入用户名",
     "enterPassword": "请输入密码",
@@ -563,7 +563,7 @@
     "tryAgainHint": "请尝试使用有权限的其他账号登录。",
     "noLoginMethods": "未配置登录方式",
     "configureAuth": "请先配置认证方式",
-    "footer": "© {{year}} Kite. All rights reserved.",
+    "footer": "© {{year}} EKI. All rights reserved.",
     "documentation": "文档",
     "errors": {
       "accessDenied": "访问被拒绝",
@@ -598,6 +598,21 @@
     "loading": "加载集群中...",
     "error": "加载集群失败：{{error}}",
     "error403": "你没有权限访问此集群，请联系管理员。"
+  },
+  "clusterSearch": {
+    "title": "集群搜索",
+    "clustersByCategory": "按分类分组",
+    "description": "按名称或 ID 搜索集群。支持 EKS、KCS、共享集群等。",
+    "placeholder": "搜索集群名称、ID 或资源池...",
+    "loading": "加载集群中...",
+    "noResults": "未找到匹配 \"{{query}}\" 的集群",
+    "resultsCount": "找到 {{count}} 个集群",
+    "badges": {
+      "default": "默认",
+      "error": "错误",
+      "pool": "资源池：{{name}}"
+    },
+    "availableCount": "可用：{{count}} 个集群"
   },
   "resourceTable": {
     "errorLoading": "加载 {{resourceName}} 失败",
