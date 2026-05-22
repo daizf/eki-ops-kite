@@ -81,6 +81,7 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	clusterAPI.POST("/", cm.CreateCluster)
 	clusterAPI.PUT("/:id", cm.UpdateCluster)
 	clusterAPI.DELETE("/:id", cm.DeleteCluster)
+	clusterAPI.POST("/batch", cm.BatchImportClusters)
 
 	rbacAPI := adminAPI.Group("/roles")
 	rbacAPI.GET("/", rbac.ListRoles)

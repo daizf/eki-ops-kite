@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { IconEdit, IconPlus, IconServer, IconTrash } from '@tabler/icons-react'
+import { IconEdit, IconPlus, IconServer, IconTrash, IconUpload } from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
@@ -26,6 +26,7 @@ import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialo
 
 import { Action, ActionTable } from '../action-table'
 import { ClusterDialog } from './cluster-dialog'
+import { BatchImportDialog } from './batch-import-dialog'
 
 export function ClusterManagement() {
   const { t } = useTranslation()
@@ -36,6 +37,7 @@ export function ClusterManagement() {
   const [showClusterDialog, setShowClusterDialog] = useState(false)
   const [editingCluster, setEditingCluster] = useState<Cluster | null>(null)
   const [deletingCluster, setDeletingCluster] = useState<Cluster | null>(null)
+  const [showBatchImportDialog, setShowBatchImportDialog] = useState(false)
 
   const getClusterTypeBadge = useCallback(
     (cluster: Cluster) => {
@@ -330,16 +332,26 @@ export function ClusterManagement() {
                 {t('clusterManagement.title', 'Cluster Management')}
               </CardTitle>
             </div>
-            <Button
-              onClick={() => {
-                setEditingCluster(null)
-                setShowClusterDialog(true)
-              }}
-              className="gap-2"
-            >
-              <IconPlus className="h-4 w-4" />
-              {t('clusterManagement.actions.add', 'Add Cluster')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowBatchImportDialog(true)}
+                className="gap-2"
+              >
+                <IconUpload className="h-4 w-4" />
+                {t('clusterManagement.actions.batchImport', 'Batch Import')}
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditingCluster(null)
+                  setShowClusterDialog(true)
+                }}
+                className="gap-2"
+              >
+                <IconPlus className="h-4 w-4" />
+                {t('clusterManagement.actions.add', 'Add Cluster')}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -385,6 +397,12 @@ export function ClusterManagement() {
           'clusterManagement.deleteConfirmation',
           "This action will only remove the current cluster's configuration in kite and will not delete any cluster resources."
         )}
+      />
+
+      {/* Batch Import Dialog */}
+      <BatchImportDialog
+        open={showBatchImportDialog}
+        onOpenChange={setShowBatchImportDialog}
       />
     </div>
   )

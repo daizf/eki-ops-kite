@@ -6,6 +6,7 @@
       "assign": "Assign",
       "assignRoles": "Assign Roles",
       "cancel": "Cancel",
+      "clear": "Clear",
       "close": "Close",
       "confirm": "Confirm",
       "copy": "Copy",
@@ -40,6 +41,7 @@
       "taint": "Taint",
       "uncordon": "Uncordon",
       "update": "Update",
+      "upload": "Upload",
       "viewDiff": "View Diff",
       "viewError": "View Error",
       "watch": "Watch"
@@ -755,7 +757,8 @@
   "clusterManagement": {
     "title": "Cluster Management",
     "actions": {
-      "add": "Add Cluster"
+      "add": "Add Cluster",
+      "batchImport": "Batch Import"
     },
     "table": {
       "name": "Name",
@@ -769,6 +772,9 @@
     "type": {
       "inCluster": "In-Cluster",
       "external": "External"
+    },
+    "badges": {
+      "default": "Default"
     },
     "empty": {
       "title": "No clusters configured",
@@ -786,6 +792,31 @@
       "loadFailed": "Failed to load clusters"
     },
     "deleteConfirmation": "This action will only remove the current cluster's configuration in kite and will not delete any cluster resources.",
+    "batchImport": {
+      "title": "Batch Import Clusters",
+      "selectFile": "Select Excel File",
+      "downloadTemplate": "Download Template",
+      "fileFormat": "Excel File Columns",
+      "clustersPreview": "Clusters to Import",
+      "empty": "Upload an Excel file containing cluster configurations",
+      "parsed": "Parsed {{count}} clusters from file",
+      "parsedWithInvalid": "Parsed {{count}} clusters from file, {{invalid}} rows invalid",
+      "noValidData": "No valid clusters found in file",
+      "parseError": "Failed to parse file",
+      "formatError": "Invalid file format",
+      "formatErrorDesc": "File must contain cluster data",
+      "invalidData": "Some cluster items are missing required fields",
+      "noClusters": "No clusters to import",
+      "import": "Import Clusters",
+      "importing": "Importing...",
+      "success": "Clusters imported successfully",
+      "successCount": "{{count}} clusters imported",
+      "error": "Failed to import clusters",
+      "warning": {
+        "partialSuccess": "Import completed with warnings",
+        "rejected": "Imported {{imported}} clusters, rejected {{rejected}} clusters"
+      }
+    },
     "dialog": {
       "createTitle": "Add Cluster",
       "editTitle": "Edit Cluster",

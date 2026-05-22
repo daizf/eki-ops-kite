@@ -337,3 +337,99 @@ func (cm *ClusterManager) ImportClustersFromKubeconfig(c *gin.Context) {
 	time.Sleep(1 * time.Second)
 	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("imported %d clusters successfully", importedCount)})
 }
+
+type BatchClusterImportRequest struct {
+	Clusters []ClusterImportItem `json:"clusters" binding:"required"`
+}
+
+type ClusterImportItem struct {
+	Name          string `json:"name" binding:"required"`
+	ClusterID     string `json:"clusterId" binding:"required"`
+	Description   string `json:"description"`
+	Config        string `json:"config"`
+	PrometheusURL string `json:"prometheusURL"`
+	PoolID        string `json:"poolId"`
+	Category      string `json:"category"`
+	InCluster     bool   `json:"inCluster"`
+	IsDefault     bool   `json:"isDefault"`
+	Enabled       bool   `json:"enabled"`
+}
+
+type BatchClusterImportResult struct {
+	Imported []string `json:"imported"`
+	Rejected []string `json:"rejected"`
+}
+
+func (cm *ClusterManager) BatchImportClusters(c *gin.Context) {
+	if common.IsSectionManaged("clusters") {
+		c.JSON(http.StatusForbidden, gin.H{"error": common.ManagedSectionError})
+		return
+	}
+
+	var req BatchClusterImportRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	result := BatchClusterImportResult{
+		Imported: []string{},
+		Rejected: []string{},
+	}
+
+	existingClusters, err := model.ListClusters()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	existingClusterIDs := make(map[string]bool)
+	for _, cluster := range existingClusters {
+		existingClusterIDs[cluster.ClusterID] = true
+	}
+
+	for _, item := range req.Clusters {
+		if existingClusterIDs[item.ClusterID] {
+			result.Rejected = append(result.Rejected, item.ClusterID)
+			continue
+		}
+
+		if item.IsDefault {
+			for _, existingCluster := range existingClusters {
+				if existingCluster.IsDefault {
+					model.UpdateCluster(existingCluster, map[string]interface{}{
+						"is_default": false,
+					})
+				}
+			}
+		}
+
+		cluster := &model.Cluster{
+			Name:          item.Name,
+			ClusterID:     item.ClusterID,
+			Description:   item.Description,
+			Config:        model.SecretString(item.Config),
+			PrometheusURL: item.PrometheusURL,
+			PoolID:        item.PoolID,
+			Category:      item.Category,
+			InCluster:     item.InCluster,
+			IsDefault:     item.IsDefault,
+			Enable:        item.Enabled,
+		}
+
+		if err := model.AddCluster(cluster); err != nil {
+			result.Rejected = append(result.Rejected, item.ClusterID+" ("+err.Error()+")")
+			continue
+		}
+
+		result.Imported = append(result.Imported, item.ClusterID)
+		existingClusterIDs[item.ClusterID] = true
+	}
+
+	if len(result.Imported) > 0 {
+		TriggerClusterSync()
+		time.Sleep(1 * time.Second)
+	}
+
+	c.JSON(http.StatusOK, result)
+}

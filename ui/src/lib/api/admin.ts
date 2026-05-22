@@ -71,6 +71,38 @@ export const deleteCluster = async (
   return await apiClient.delete<{ message: string }>(`/admin/clusters/${id}`)
 }
 
+// Batch import clusters
+export interface ClusterBatchImportItem {
+  name: string
+  clusterId: string
+  description?: string
+  config?: string
+  prometheusURL?: string
+  category?: string
+  poolId?: string
+  inCluster?: boolean
+  isDefault?: boolean
+  enabled?: boolean
+}
+
+export interface ClusterBatchImportRequest {
+  clusters: ClusterBatchImportItem[]
+}
+
+export interface ClusterBatchImportResult {
+  imported: string[]
+  rejected: string[]
+}
+
+export const batchImportClusters = async (
+  importData: ClusterBatchImportRequest
+): Promise<ClusterBatchImportResult> => {
+  return await apiClient.post<ClusterBatchImportResult>(
+    '/admin/clusters/batch',
+    importData
+  )
+}
+
 // OAuth Provider Management
 export interface OAuthProviderCreateRequest {
   name: string

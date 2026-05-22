@@ -6,6 +6,7 @@
       "assign": "分配",
       "assignRoles": "分配角色",
       "cancel": "取消",
+      "clear": "清除",
       "close": "关闭",
       "confirm": "确认",
       "copy": "复制",
@@ -40,6 +41,7 @@
       "taint": "污点",
       "uncordon": "恢复调度",
       "update": "更新",
+      "upload": "上传",
       "viewDiff": "查看差异",
       "viewError": "查看错误",
       "watch": "监听"
@@ -764,7 +766,8 @@
   "clusterManagement": {
     "title": "集群管理",
     "actions": {
-      "add": "添加集群"
+      "add": "添加集群",
+      "batchImport": "批量导入"
     },
     "table": {
       "name": "名称",
@@ -778,6 +781,9 @@
     "type": {
       "inCluster": "集群内",
       "external": "外部"
+    },
+    "badges": {
+      "default": "默认"
     },
     "empty": {
       "title": "暂无集群",
@@ -801,6 +807,31 @@
       "loadFailed": "加载集群失败"
     },
     "deleteConfirmation": "此操作仅移除 Kite 中的集群配置，不会删除集群内的任何资源。",
+    "batchImport": {
+      "title": "批量导入集群",
+      "selectFile": "选择 Excel 文件",
+      "downloadTemplate": "下载模板",
+      "fileFormat": "Excel 文件列名",
+      "clustersPreview": "待导入集群",
+      "empty": "上传包含集群配置的 Excel 文件",
+      "parsed": "从文件中解析到 {{count}} 个集群",
+      "parsedWithInvalid": "从文件中解析到 {{count}} 个集群，{{invalid}} 行无效",
+      "noValidData": "文件中未找到有效的集群数据",
+      "parseError": "文件解析失败",
+      "formatError": "无效的文件格式",
+      "formatErrorDesc": "文件必须包含集群数据",
+      "invalidData": "部分集群记录缺少必填字段",
+      "noClusters": "没有集群可导入",
+      "import": "导入集群",
+      "importing": "导入中...",
+      "success": "集群导入成功",
+      "successCount": "成功导入 {{count}} 个集群",
+      "error": "集群导入失败",
+      "warning": {
+        "partialSuccess": "导入完成，存在部分警告",
+        "rejected": "成功导入 {{imported}} 个集群，拒绝 {{rejected}} 个集群"
+      }
+    },
     "dialog": {
       "createTitle": "添加集群",
       "editTitle": "编辑集群",
