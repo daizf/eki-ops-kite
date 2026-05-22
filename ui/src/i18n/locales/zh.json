@@ -217,7 +217,8 @@
       "proxy": "代理",
       "poolName": "资源池名称",
       "poolId": "资源池编码",
-      "category": "分类"
+      "category": "分类",
+      "tags": "标签"
     },
     "messages": {
       "addNewItem": "添加新的{{resource}}",
@@ -807,6 +808,11 @@
       "loadFailed": "加载集群失败"
     },
     "deleteConfirmation": "此操作仅移除 Kite 中的集群配置，不会删除集群内的任何资源。",
+    "filter": {
+      "byTags": "按标签筛选",
+      "empty": "没有集群匹配选中的筛选条件",
+      "clearFilters": "清除"
+    },
     "batchImport": {
       "title": "批量导入集群",
       "selectFile": "选择 Excel 文件",
@@ -851,7 +857,9 @@
       "category": "分类",
       "categoryPlaceholder": "选择一个分类",
       "enabled": "启用",
-      "isDefault": "设为默认"
+      "isDefault": "设为默认",
+      "tags": "标签",
+      "tagsPlaceholder": "添加标签（按 Enter 添加）"
     }
   },
   "poolManagement": {

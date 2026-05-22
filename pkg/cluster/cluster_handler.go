@@ -72,7 +72,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 			"prometheusURL": cluster.PrometheusURL,
 			"poolId":        cluster.PoolID,
 			"category":      cluster.Category,
-			"config":        "",
+			"tags":          cluster.GetTags(),
 			"pool":          cluster.Pool,
 		}
 
@@ -96,15 +96,16 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 	}
 
 	var req struct {
-		Name          string `json:"name" binding:"required"`
-		ClusterID     string `json:"clusterId" binding:"required"`
-		Description   string `json:"description"`
-		Config        string `json:"config"`
-		PrometheusURL string `json:"prometheusURL"`
-		PoolID        string `json:"poolId"`
-		Category      string `json:"category"`
-		InCluster     bool   `json:"inCluster"`
-		IsDefault     bool   `json:"isDefault"`
+		Name          string   `json:"name" binding:"required"`
+		ClusterID     string   `json:"clusterId" binding:"required"`
+		Description   string   `json:"description"`
+		Config        string   `json:"config"`
+		PrometheusURL string   `json:"prometheusURL"`
+		PoolID        string   `json:"poolId"`
+		Category      string   `json:"category"`
+		Tags          []string `json:"tags"`
+		InCluster     bool     `json:"inCluster"`
+		IsDefault     bool     `json:"isDefault"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -127,6 +128,8 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		}
 	}
 
+	normalizedTags := model.NormalizeTags(req.Tags)
+
 	cluster := &model.Cluster{
 		Name:          req.Name,
 		ClusterID:     req.ClusterID,
@@ -135,9 +138,15 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		PrometheusURL: req.PrometheusURL,
 		PoolID:        req.PoolID,
 		Category:      req.Category,
+		Tags:          "",
 		InCluster:     req.InCluster,
 		IsDefault:     req.IsDefault,
 		Enable:        true,
+	}
+
+	if err := cluster.SetTags(normalizedTags); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	if err := model.AddCluster(cluster); err != nil {
@@ -167,17 +176,18 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 	}
 
 	var req struct {
-		Name          string `json:"name"`
-		ClusterID     string `json:"clusterId"`
-		Description   string `json:"description"`
-		Config        string `json:"config"`
-		PrometheusURL string `json:"prometheusURL"`
-		PoolID        string `json:"poolId"`
-		Category      string `json:"category"`
-		InCluster     bool   `json:"inCluster"`
-		IsDefault     bool   `json:"isDefault"`
-		Enabled       bool   `json:"enabled"`
-		Pool          string `json:"pool"` // Allow both pool and poolId
+		Name          string   `json:"name"`
+		ClusterID     string   `json:"clusterId"`
+		Description   string   `json:"description"`
+		Config        string   `json:"config"`
+		PrometheusURL string   `json:"prometheusURL"`
+		PoolID        string   `json:"poolId"`
+		Category      string   `json:"category"`
+		Tags          []string `json:"tags"`
+		InCluster     bool     `json:"inCluster"`
+		IsDefault     bool     `json:"isDefault"`
+		Enabled       bool     `json:"enabled"`
+		Pool          string   `json:"pool"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -185,7 +195,6 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	// Support both pool and poolId fields for backward compatibility
 	if req.Pool != "" && req.PoolID == "" {
 		req.PoolID = req.Pool
 	}
@@ -228,6 +237,13 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 	if req.Config != "" {
 		updates["config"] = model.SecretString(req.Config)
 	}
+
+	normalizedTags := model.NormalizeTags(req.Tags)
+	if err := cluster.SetTags(normalizedTags); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	updates["tags"] = cluster.Tags
 
 	if err := model.UpdateCluster(cluster, updates); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -305,7 +321,6 @@ func (cm *ClusterManager) ImportClustersFromKubeconfig(c *gin.Context) {
 	}
 
 	if clusterReq.InCluster {
-		// In-cluster config
 		cluster := &model.Cluster{
 			Name:        "in-cluster",
 			ClusterID:   "in-cluster",
@@ -314,12 +329,15 @@ func (cm *ClusterManager) ImportClustersFromKubeconfig(c *gin.Context) {
 			IsDefault:   true,
 			Enable:      true,
 		}
+		if err := cluster.SetTags([]string{}); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 		if err := model.AddCluster(cluster); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		TriggerClusterSync()
-		// wait for sync to complete
 		time.Sleep(1 * time.Second)
 		c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("imported %d clusters successfully", 1)})
 		return
@@ -333,7 +351,6 @@ func (cm *ClusterManager) ImportClustersFromKubeconfig(c *gin.Context) {
 
 	importedCount := ImportClustersFromKubeconfig(kubeconfig)
 	TriggerClusterSync()
-	// wait for sync to complete
 	time.Sleep(1 * time.Second)
 	c.JSON(http.StatusCreated, gin.H{"message": fmt.Sprintf("imported %d clusters successfully", importedCount)})
 }
@@ -343,16 +360,17 @@ type BatchClusterImportRequest struct {
 }
 
 type ClusterImportItem struct {
-	Name          string `json:"name" binding:"required"`
-	ClusterID     string `json:"clusterId" binding:"required"`
-	Description   string `json:"description"`
-	Config        string `json:"config"`
-	PrometheusURL string `json:"prometheusURL"`
-	PoolID        string `json:"poolId"`
-	Category      string `json:"category"`
-	InCluster     bool   `json:"inCluster"`
-	IsDefault     bool   `json:"isDefault"`
-	Enabled       bool   `json:"enabled"`
+	Name          string   `json:"name" binding:"required"`
+	ClusterID     string   `json:"clusterId" binding:"required"`
+	Description   string   `json:"description"`
+	Config        string   `json:"config"`
+	PrometheusURL string   `json:"prometheusURL"`
+	PoolID        string   `json:"poolId"`
+	Category      string   `json:"category"`
+	Tags          []string `json:"tags"`
+	InCluster     bool     `json:"inCluster"`
+	IsDefault     bool     `json:"isDefault"`
+	Enabled       bool     `json:"enabled"`
 }
 
 type BatchClusterImportResult struct {
@@ -412,9 +430,16 @@ func (cm *ClusterManager) BatchImportClusters(c *gin.Context) {
 			PrometheusURL: item.PrometheusURL,
 			PoolID:        item.PoolID,
 			Category:      item.Category,
+			Tags:          "",
 			InCluster:     item.InCluster,
 			IsDefault:     item.IsDefault,
 			Enable:        item.Enabled,
+		}
+
+		normalizedTags := model.NormalizeTags(item.Tags)
+		if err := cluster.SetTags(normalizedTags); err != nil {
+			result.Rejected = append(result.Rejected, item.ClusterID+" (invalid tags)")
+			continue
 		}
 
 		if err := model.AddCluster(cluster); err != nil {

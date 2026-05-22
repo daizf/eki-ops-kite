@@ -217,7 +217,8 @@
       "proxy": "Proxy",
       "poolName": "Pool Name",
       "poolId": "Pool Id",
-      "category": "category"
+      "category": "category",
+      "tags": "Tags"
     },
     "messages": {
       "addNewItem": "Add a new {{resource}}",
@@ -792,6 +793,11 @@
       "loadFailed": "Failed to load clusters"
     },
     "deleteConfirmation": "This action will only remove the current cluster's configuration in kite and will not delete any cluster resources.",
+    "filter": {
+      "byTags": "Filter by tags",
+      "empty": "No clusters match the selected filters",
+      "clearFilters": "Clear"
+    },
     "batchImport": {
       "title": "Batch Import Clusters",
       "selectFile": "Select Excel File",
@@ -830,13 +836,14 @@
       "poolPlaceholder": "e.g., CIDC-RP-29, suzhou",
       "category": "Category",
       "categoryPlaceholder": "Select a category",
-      "type": "Type",
       "config": "Configuration",
       "configPlaceholder": "Paste kubeconfig content here...",
       "prometheusUrl": "Prometheus URL",
       "prometheusUrlPlaceholder": "https://prometheus.example.com",
       "enabled": "Enabled",
-      "isDefault": "Set as Default"
+      "isDefault": "Set as Default",
+      "tags": "Tags",
+      "tagsPlaceholder": "Add tags (Enter to add)"
     }
   },
   "oauthManagement": {

@@ -22,7 +22,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { TagInput } from '@/components/ui/tag-input'
 import { Textarea } from '@/components/ui/textarea'
+
+import { normalizeTags } from '@/lib/tags'
 
 interface ClusterDialogProps {
   open: boolean
@@ -40,6 +43,7 @@ function createClusterFormData(cluster?: Cluster | null) {
     prometheusURL: cluster?.prometheusURL || '',
     poolId: cluster?.poolId || '',
     category: cluster?.category || '',
+    tags: cluster?.tags || [],
     enabled: cluster?.enabled ?? true,
     isDefault: cluster?.isDefault ?? false,
     inCluster: cluster?.inCluster ?? false,
@@ -80,10 +84,18 @@ function ClusterDialogContent({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    // Normalize tags before submit
+    const normalizedData = {
+      ...formData,
+      tags: normalizeTags(formData.tags || []),
+    }
+    onSubmit(normalizedData)
   }
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (
+    field: string,
+    value: string | boolean | string[]
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -259,6 +271,15 @@ function ClusterDialogContent({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>{t('clusterManagement.dialog.tags', 'Tags')}</Label>
+          <TagInput
+            value={formData.tags}
+            onChange={(tags) => handleChange('tags', tags)}
+            placeholder={t('clusterManagement.dialog.tagsPlaceholder', 'Add tags...')}
+          />
         </div>
 
         {/* Cluster Status Controls */}

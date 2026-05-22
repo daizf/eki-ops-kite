@@ -27,6 +27,7 @@ import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialo
 import { Action, ActionTable } from '../action-table'
 import { ClusterDialog } from './cluster-dialog'
 import { BatchImportDialog } from './batch-import-dialog'
+import { getTagColor } from '@/lib/tags'
 
 export function ClusterManagement() {
   const { t } = useTranslation()
@@ -38,6 +39,37 @@ export function ClusterManagement() {
   const [editingCluster, setEditingCluster] = useState<Cluster | null>(null)
   const [deletingCluster, setDeletingCluster] = useState<Cluster | null>(null)
   const [showBatchImportDialog, setShowBatchImportDialog] = useState(false)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  // Get all available tags for filter
+  const availableTags = useMemo(() => {
+    const tagSet = new Set<string>()
+    clusters.forEach((cluster) => {
+      cluster.tags?.forEach((tag) => tagSet.add(tag))
+    })
+    return Array.from(tagSet).sort()
+  }, [clusters])
+
+  // Filter clusters by selected tags
+  const filteredClusters = useMemo(() => {
+    if (selectedTags.length === 0) return clusters
+    return clusters.filter((cluster) => {
+      if (!cluster.tags || cluster.tags.length === 0) return false
+      return selectedTags.every((tag) => cluster.tags?.includes(tag))
+    })
+  }, [clusters, selectedTags])
+
+  // Toggle tag selection
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
+  // Clear all tag filters
+  const clearTagFilters = () => {
+    setSelectedTags([])
+  }
 
   const getClusterTypeBadge = useCallback(
     (cluster: Cluster) => {
@@ -75,27 +107,6 @@ export function ClusterManagement() {
     [t]
   )
 
-  const getCategoryBadge = useCallback(
-    (cluster: Cluster) => {
-      if (!cluster.category) return '-'
-
-      const categoryColors: Record<string, string> = {
-        ESK: 'bg-purple-50 text-purple-700 border-purple-200',
-        KCS: 'bg-orange-50 text-orange-700 border-orange-200',
-        共享集群: 'bg-green-50 text-green-700 border-green-200',
-        管理集群: 'bg-red-50 text-red-700 border-red-200',
-      }
-
-      const colorClass = categoryColors[cluster.category] || 'bg-gray-50 text-gray-700 border-gray-200'
-
-      return (
-        <Badge variant="outline" className={colorClass}>
-          {cluster.category}
-        </Badge>
-      )
-    },
-    []
-  )
 
   const columns = useMemo<ColumnDef<Cluster>[]>(
     () => [
@@ -183,10 +194,38 @@ export function ClusterManagement() {
       {
         id: 'category',
         header: t('common.fields.category', 'Category'),
-        cell: ({ row: { original: cluster } }) => getCategoryBadge(cluster),
+        cell: ({ row: { original: cluster } }) => (
+          <span className="text-sm">{cluster.category || '-'}</span>
+        ),
+      },
+      {
+        id: 'tags',
+        header: t('common.fields.tags', 'Tags'),
+        cell: ({ row: { original: cluster } }) => {
+          if (!cluster.tags || cluster.tags.length === 0) return '-'
+
+          const maxDisplay = 3
+          const displayedTags = cluster.tags.slice(0, maxDisplay)
+          const remainingCount = cluster.tags.length - maxDisplay
+
+          return (
+            <div className="flex items-center gap-1 flex-wrap">
+              {displayedTags.map((tag, index) => (
+                <Badge key={index} variant="outline" className={getTagColor(tag)}>
+                  {tag}
+                </Badge>
+              ))}
+              {remainingCount > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{remainingCount}
+                </Badge>
+              )}
+            </div>
+          )
+        },
       },
     ],
-    [getClusterTypeBadge, getStatusBadge, getCategoryBadge, t]
+    [getClusterTypeBadge, getStatusBadge, getTagColor, t]
   )
 
   const actions = useMemo<Action<Cluster>[]>(
@@ -355,8 +394,43 @@ export function ClusterManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          <ActionTable data={clusters} columns={columns} actions={actions} />
-          {clusters.length === 0 && (
+          {availableTags.length > 0 && (
+            <div className="flex items-center gap-4 mb-4 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">
+                  {t('clusterManagement.filter.label', 'Filter by tags')}:
+                </span>
+                {availableTags.slice(0, 8).map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant={selectedTags.includes(tag) ? 'default' : 'outline'}
+                    className={`cursor-pointer ${!selectedTags.includes(tag) ? getTagColor(tag) : ''}`}
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+                {availableTags.length > 8 && (
+                  <span className="text-xs text-muted-foreground">
+                    +{availableTags.length - 8} more
+                  </span>
+                )}
+              </div>
+              {selectedTags.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearTagFilters}
+                  className="h-7 text-xs"
+                >
+                  {t('common.actions.clear', 'Clear')}
+                </Button>
+              )}
+            </div>
+          )}
+
+          <ActionTable data={filteredClusters} columns={columns} actions={actions} />
+          {filteredClusters.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <IconServer className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>

@@ -22,6 +22,7 @@ export interface ClusterCreateRequest {
   prometheusURL?: string
   category?: string
   poolId?: string
+  tags?: string[]
   inCluster?: boolean
   isDefault?: boolean
 }
@@ -80,6 +81,7 @@ export interface ClusterBatchImportItem {
   prometheusURL?: string
   category?: string
   poolId?: string
+  tags?: string[]
   inCluster?: boolean
   isDefault?: boolean
   enabled?: boolean

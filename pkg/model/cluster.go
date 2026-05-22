@@ -1,5 +1,10 @@
 package model
 
+import (
+	"encoding/json"
+	"strings"
+)
+
 type Cluster struct {
 	Model
 	Name          string       `json:"name" gorm:"type:varchar(100);not null"`
@@ -8,6 +13,7 @@ type Cluster struct {
 	Config        SecretString `json:"config" gorm:"type:text"`
 	PrometheusURL string       `json:"prometheus_url,omitempty" gorm:"type:varchar(255)"`
 	Category      string       `json:"category" gorm:"type:varchar(100)"`
+	Tags          string       `json:"tags" gorm:"type:varchar(500);default:''"`
 	InCluster     bool         `json:"in_cluster" gorm:"type:boolean;default:false"`
 	IsDefault     bool         `json:"is_default" gorm:"type:boolean;default:false"`
 	Enable        bool         `json:"enable" gorm:"type:boolean;default:true"`
@@ -65,4 +71,46 @@ func ListClusters() ([]*Cluster, error) {
 
 func CountClusters() (count int64, err error) {
 	return count, DB.Model(&Cluster{}).Count(&count).Error
+}
+
+// GetTags returns the tags as a string array
+func (c *Cluster) GetTags() []string {
+	if c.Tags == "" {
+		return []string{}
+	}
+	var tags []string
+	if err := json.Unmarshal([]byte(c.Tags), &tags); err != nil {
+		return []string{}
+	}
+	return tags
+}
+
+// SetTags sets the tags from a string array
+func (c *Cluster) SetTags(tags []string) error {
+	if len(tags) == 0 {
+		c.Tags = ""
+		return nil
+	}
+	data, err := json.Marshal(tags)
+	if err != nil {
+		return err
+	}
+	c.Tags = string(data)
+	return nil
+}
+
+// NormalizeTags normalizes tags by trimming whitespace and removing duplicates
+func NormalizeTags(tags []string) []string {
+	normalized := make([]string, 0, len(tags))
+	seen := make(map[string]bool)
+
+	for _, tag := range tags {
+		tag = strings.TrimSpace(tag)
+		if tag == "" || seen[tag] {
+			continue
+		}
+		normalized = append(normalized, tag)
+		seen[tag] = true
+	}
+	return normalized
 }
