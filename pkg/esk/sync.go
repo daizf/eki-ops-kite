@@ -83,16 +83,16 @@ func (s *Syncer) sync(ctx context.Context) error {
 
 		if existing == nil {
 			cl := &model.Cluster{
-				Name:         ec.ClusterName,
-				ClusterID:    ec.ClusterID,
-				Description:  derefStr(ec.Description),
-				Config:       model.SecretString(kubeConfig),
-				Category:     ec.AZ,
-				Enable:       enable,
-				MetaHash:      metaHash,
-				PoolID:       s.poolID,
+				Name:        ec.ClusterName,
+				ClusterID:   ec.ClusterID,
+				Description: derefStr(ec.Description),
+				Config:      model.SecretString(kubeConfig),
+				Category:    "ESK",
+				Enable:      enable,
+				MetaHash:    metaHash,
+				PoolID:      s.poolID,
 			}
-			if err := cl.SetTags(nil); err != nil {
+			if err := cl.SetTags([]string{ec.Provider, ec.ProductVersion}); err != nil {
 				klog.Warningf("ESK sync: failed to set tags for %s: %v", ec.ClusterID, err)
 				continue
 			}
@@ -104,13 +104,13 @@ func (s *Syncer) sync(ctx context.Context) error {
 			changed = true
 		} else {
 			updates := map[string]interface{}{
-				"name":          ec.ClusterName,
-				"description":   derefStr(ec.Description),
-				"category":      ec.AZ,
-				"enable":        enable,
-				"config":        model.SecretString(kubeConfig),
-				"meta_hash": metaHash,
-				"pool_id":       s.poolID,
+				"name":        ec.ClusterName,
+				"description": derefStr(ec.Description),
+				"category":    "ESK",
+				"enable":      enable,
+				"config":      model.SecretString(kubeConfig),
+				"meta_hash":   metaHash,
+				"pool_id":     s.poolID,
 			}
 			if err := model.UpdateCluster(existing, updates); err != nil {
 				klog.Warningf("ESK sync: failed to update cluster %s: %v", ec.ClusterID, err)

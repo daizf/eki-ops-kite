@@ -3,6 +3,8 @@ package model
 import (
 	"encoding/json"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 type Cluster struct {
@@ -65,6 +67,9 @@ func EnableCluster(cluster *Cluster) error {
 func GetClusterByClusterID(clusterID string) (*Cluster, error) {
 	var cluster Cluster
 	if err := DB.Where("cluster_id = ?", clusterID).First(&cluster).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &cluster, nil
@@ -104,6 +109,7 @@ func (c *Cluster) GetTags() []string {
 
 // SetTags sets the tags from a string array
 func (c *Cluster) SetTags(tags []string) error {
+	tags = NormalizeTags(tags)
 	if len(tags) == 0 {
 		c.Tags = ""
 		return nil

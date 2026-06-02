@@ -21,13 +21,13 @@ type kcsResponse struct {
 }
 
 type kcsCluster struct {
-	ClusterID   string `json:"clusterID"`
-	ClusterName string `json:"clusterName"`
-	UserID      string `json:"userID"`
+	ClusterID    string   `json:"clusterID"`
+	ClusterName  string   `json:"clusterName"`
+	UserID       string   `json:"userID"`
 	ApiEndpoints []string `json:"apiEndpoints"`
-	Status      bool   `json:"status"`
-	CreateTime  string `json:"createTime"`
-	CheckTime   string `json:"checkTime"`
+	Status       bool     `json:"status"`
+	CreateTime   string   `json:"createTime"`
+	CheckTime    string   `json:"checkTime"`
 }
 
 type kcsKubeconfigResponse struct {
@@ -73,14 +73,13 @@ func (s *Syncer) sync(ctx context.Context) error {
 
 		if existing == nil {
 			cl := &model.Cluster{
-				Name:        kc.ClusterName,
-				ClusterID:   kc.ClusterID,
-				Description: strings.Join(kc.ApiEndpoints, ","),
-				Config:      model.SecretString(kubeConfig),
-				Category:    "kcs",
-				Enable:      enable,
-				MetaHash:    metaHash,
-				PoolID:      s.poolID,
+				Name:      kc.ClusterName,
+				ClusterID: kc.ClusterID,
+				Config:    model.SecretString(kubeConfig),
+				Category:  "KCS",
+				Enable:    enable,
+				MetaHash:  metaHash,
+				PoolID:    s.poolID,
 			}
 			if err := cl.SetTags(nil); err != nil {
 				klog.Warningf("KCS sync: failed to set tags for %s: %v", kc.ClusterID, err)
@@ -94,13 +93,12 @@ func (s *Syncer) sync(ctx context.Context) error {
 			changed = true
 		} else {
 			updates := map[string]interface{}{
-				"name":        kc.ClusterName,
-				"description": kc.ApiEndpoints,
-				"category":    "kcs",
-				"enable":      enable,
-				"config":      model.SecretString(kubeConfig),
-				"meta_hash":   metaHash,
-				"pool_id":     s.poolID,
+				"name":      kc.ClusterName,
+				"category":  "kcs",
+				"enable":    enable,
+				"config":    model.SecretString(kubeConfig),
+				"meta_hash": metaHash,
+				"pool_id":   s.poolID,
 			}
 			if err := model.UpdateCluster(existing, updates); err != nil {
 				klog.Warningf("KCS sync: failed to update cluster %s: %v", kc.ClusterID, err)
