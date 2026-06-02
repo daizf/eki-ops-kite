@@ -70,6 +70,9 @@ func (h *NodeTerminalHandler) HandleNodeTerminalWebSocket(c *gin.Context) {
 		if nodeTerminalImage == "" {
 			nodeTerminalImage = common.NodeTerminalImage
 		}
+
+		// Resolve pool-specific image registry
+		nodeTerminalImage = model.ResolveImage(cs.PoolID, nodeTerminalImage)
 		ctx, cancel := context.WithCancel(c.Request.Context())
 		defer cancel()
 

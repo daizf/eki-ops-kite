@@ -539,6 +539,7 @@ export interface PoolCreateRequest {
   poolName: string
   description?: string
   proxy?: string
+  imageRegistry?: string
   eskBaseURL?: string
   kcsBaseURL?: string
   enable?: boolean
@@ -549,6 +550,7 @@ export interface PoolUpdateRequest {
   poolName?: string
   description?: string
   proxy?: string
+  imageRegistry?: string
   eskBaseURL?: string
   kcsBaseURL?: string
   enable?: boolean

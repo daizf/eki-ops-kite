@@ -63,6 +63,9 @@ func (h *KubectlTerminalHandler) HandleKubectlTerminalWebSocket(c *gin.Context) 
 			kubectlImage = common.KubectlTerminalImage
 		}
 
+		// Resolve pool-specific image registry
+		kubectlImage = model.ResolveImage(cs.PoolID, kubectlImage)
+
 		ctx, cancel := context.WithCancel(c.Request.Context())
 		defer cancel()
 

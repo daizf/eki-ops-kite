@@ -79,6 +79,15 @@ export function PoolManagement() {
         ),
       },
       {
+        id: 'imageRegistry',
+        header: t('poolManagement.fields.imageRegistry', 'Image Registry'),
+        cell: ({ row: { original: pool } }) => (
+          <div className="text-sm text-muted-foreground">
+            {pool.imageRegistry || '-'}
+          </div>
+        ),
+      },
+      {
         id: 'eskBaseURL',
         header: t('poolManagement.fields.eskBaseURL', 'ESK Base URL'),
         cell: ({ row: { original: pool } }) => (

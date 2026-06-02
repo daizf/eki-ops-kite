@@ -899,6 +899,8 @@
       "proxy": "代理",
       "eskBaseURL": "ESK地址",
       "kcsBaseURL": "KCS地址",
+      "imageRegistry": "镜像仓库",
+      "imageRegistryPlaceholder": "registry.example.com",
       "enabled": "启用"
     },
     "placeholders": {

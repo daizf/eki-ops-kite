@@ -460,6 +460,7 @@ export interface Pool {
   poolName: string
   description?: string
   proxy?: string
+  imageRegistry?: string
   eskBaseURL?: string
   kcsBaseURL?: string
   enable: boolean

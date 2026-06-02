@@ -33,6 +33,7 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
   const [poolName, setPoolName] = useState(pool?.poolName ?? '')
   const [description, setDescription] = useState(pool?.description ?? '')
   const [proxy, setProxy] = useState(pool?.proxy ?? '')
+  const [imageRegistry, setImageRegistry] = useState(pool?.imageRegistry ?? '')
   const [eskBaseURL, setEskBaseURL] = useState(pool?.eskBaseURL ?? '')
   const [kcsBaseURL, setKcsBaseURL] = useState(pool?.kcsBaseURL ?? '')
   const [enable, setEnable] = useState(pool?.enable ?? true)
@@ -45,6 +46,7 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
       setPoolName(pool.poolName)
       setDescription(pool.description ?? '')
       setProxy(pool.proxy ?? '')
+      setImageRegistry(pool.imageRegistry ?? '')
       setEskBaseURL(pool.eskBaseURL ?? '')
       setKcsBaseURL(pool.kcsBaseURL ?? '')
       setEnable(pool.enable)
@@ -53,6 +55,7 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
       setPoolName('')
       setDescription('')
       setProxy('')
+      setImageRegistry('')
       setEskBaseURL('')
       setKcsBaseURL('')
       setEnable(true)
@@ -93,6 +96,7 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
       poolName: poolName.trim(),
       description: description.trim(),
       proxy: proxy.trim(),
+      imageRegistry: imageRegistry.trim(),
       eskBaseURL: eskBaseURL.trim(),
       kcsBaseURL: kcsBaseURL.trim(),
       enable,
@@ -104,6 +108,7 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
       setPoolName('')
       setDescription('')
       setProxy('')
+      setImageRegistry('')
       setEskBaseURL('')
       setKcsBaseURL('')
       setEnable(true)
@@ -194,6 +199,19 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
                 placeholder={t(
                   'poolManagement.fields.proxyPlaceholder',
                   'http://proxy.example.com:8080'
+                )}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="imageRegistry">{t('poolManagement.fields.imageRegistry', 'Image Registry')}</Label>
+              <Input
+                id="imageRegistry"
+                value={imageRegistry}
+                onChange={(e) => setImageRegistry(e.target.value)}
+                placeholder={t(
+                  'poolManagement.fields.imageRegistryPlaceholder',
+                  'registry.example.com'
                 )}
               />
             </div>

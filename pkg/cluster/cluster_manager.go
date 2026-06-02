@@ -23,6 +23,7 @@ import (
 type ClientSet struct {
 	Name       string
 	ClusterID  string
+	PoolID     string
 	Version    string // Kubernetes version
 	K8sClient  *kube.K8sClient
 	PromClient *prometheus.Client
@@ -305,6 +306,8 @@ func syncClusters(cm *ClusterManager, readyCh chan<- struct{}) error {
 		go func(cluster *model.Cluster) {
 			defer wg.Done()
 			clientSet, err := buildClientSet(cluster)
+			clientSet.ClusterID = cluster.ClusterID
+			clientSet.PoolID = cluster.PoolID
 			results <- buildResult{
 				cluster:   cluster,
 				clientSet: clientSet,

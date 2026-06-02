@@ -1089,6 +1089,8 @@
       "proxy": "Proxy",
       "eskBaseURL": "ESK Base URL",
       "kcsBaseURL": "KCS Base URL",
+      "imageRegistry": "Image Registry",
+      "imageRegistryPlaceholder": "registry.example.com",
       "enabled": "Enabled"
     },
     "placeholders": {

@@ -20,14 +20,15 @@ func GetPoolList(c *gin.Context) {
 	result := make([]gin.H, 0, len(pools))
 	for _, pool := range pools {
 		result = append(result, gin.H{
-			"id":          pool.ID,
-			"poolId":      pool.PoolID,
-			"poolName":    pool.PoolName,
-			"description": pool.Description,
-			"proxy":       pool.Proxy,
-			"eskBaseURL":  pool.EskBaseURL,
-			"kcsBaseURL":  pool.KcsBaseURL,
-			"enable":      pool.Enable,
+			"id":             pool.ID,
+			"poolId":         pool.PoolID,
+			"poolName":       pool.PoolName,
+			"description":    pool.Description,
+			"proxy":          pool.Proxy,
+			"imageRegistry":  pool.ImageRegistry,
+			"eskBaseURL":     pool.EskBaseURL,
+			"kcsBaseURL":     pool.KcsBaseURL,
+			"enable":         pool.Enable,
 		})
 	}
 
@@ -36,13 +37,14 @@ func GetPoolList(c *gin.Context) {
 
 func CreatePool(c *gin.Context) {
 	var req struct {
-		PoolID      string `json:"poolId" binding:"required"`
-		PoolName    string `json:"poolName" binding:"required"`
-		Description string `json:"description"`
-		Proxy       string `json:"proxy"`
-		EskBaseURL  string `json:"eskBaseURL"`
-		KcsBaseURL  string `json:"kcsBaseURL"`
-		Enable      bool   `json:"enable"`
+		PoolID        string `json:"poolId" binding:"required"`
+		PoolName      string `json:"poolName" binding:"required"`
+		Description   string `json:"description"`
+		Proxy         string `json:"proxy"`
+		ImageRegistry string `json:"imageRegistry"`
+		EskBaseURL    string `json:"eskBaseURL"`
+		KcsBaseURL    string `json:"kcsBaseURL"`
+		Enable        bool   `json:"enable"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -59,13 +61,14 @@ func CreatePool(c *gin.Context) {
 	}
 
 	pool := &model.Pool{
-		PoolID:      req.PoolID,
-		PoolName:    req.PoolName,
-		Description: req.Description,
-		Proxy:       req.Proxy,
-		EskBaseURL:  req.EskBaseURL,
-		KcsBaseURL:  req.KcsBaseURL,
-		Enable:      req.Enable,
+		PoolID:        req.PoolID,
+		PoolName:      req.PoolName,
+		Description:   req.Description,
+		Proxy:         req.Proxy,
+		ImageRegistry: req.ImageRegistry,
+		EskBaseURL:    req.EskBaseURL,
+		KcsBaseURL:    req.KcsBaseURL,
+		Enable:        req.Enable,
 	}
 
 	if err := model.AddPool(pool); err != nil {
@@ -88,13 +91,14 @@ func UpdatePool(c *gin.Context) {
 	}
 
 	var req struct {
-		PoolID      string `json:"poolId"`
-		PoolName    string `json:"poolName"`
-		Description string `json:"description"`
-		Proxy       string `json:"proxy"`
-		EskBaseURL  string `json:"eskBaseURL"`
-		KcsBaseURL  string `json:"kcsBaseURL"`
-		Enable      bool   `json:"enable"`
+		PoolID        string `json:"poolId"`
+		PoolName      string `json:"poolName"`
+		Description   string `json:"description"`
+		Proxy         string `json:"proxy"`
+		ImageRegistry string `json:"imageRegistry"`
+		EskBaseURL    string `json:"eskBaseURL"`
+		KcsBaseURL    string `json:"kcsBaseURL"`
+		Enable        bool   `json:"enable"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -113,11 +117,12 @@ func UpdatePool(c *gin.Context) {
 	}
 
 	updates := map[string]any{
-		"description": req.Description,
-		"proxy":       req.Proxy,
-		"esk_base_url": req.EskBaseURL,
-		"kcs_base_url": req.KcsBaseURL,
-		"enable":      req.Enable,
+		"description":    req.Description,
+		"proxy":          req.Proxy,
+		"image_registry": req.ImageRegistry,
+		"esk_base_url":   req.EskBaseURL,
+		"kcs_base_url":   req.KcsBaseURL,
+		"enable":         req.Enable,
 	}
 
 	if req.PoolID != "" && req.PoolID != pool.PoolID {
