@@ -10,6 +10,7 @@ import (
 	"github.com/zxh326/kite/pkg/common"
 	"github.com/zxh326/kite/pkg/esk"
 	"github.com/zxh326/kite/pkg/handlers"
+	"github.com/zxh326/kite/pkg/kcs"
 	"github.com/zxh326/kite/pkg/middleware"
 	"github.com/zxh326/kite/pkg/model"
 	"github.com/zxh326/kite/pkg/rbac"
@@ -44,6 +45,7 @@ func initializeApp(ctx context.Context) (*cluster.ClusterManager, error) {
 		klog.Warningf("Failed to watch config file: %v", err)
 	}
 	esk.StartSyncer(ctx)
+	kcs.StartSyncer(ctx)
 	return cm, nil
 }
 
