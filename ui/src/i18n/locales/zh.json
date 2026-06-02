@@ -897,6 +897,8 @@
       "name": "名称",
       "description": "描述",
       "proxy": "代理",
+      "eskBaseURL": "ESK地址",
+      "kcsBaseURL": "KCS地址",
       "enabled": "启用"
     },
     "placeholders": {

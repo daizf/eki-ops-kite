@@ -25,6 +25,8 @@ func GetPoolList(c *gin.Context) {
 			"poolName":    pool.PoolName,
 			"description": pool.Description,
 			"proxy":       pool.Proxy,
+			"eskBaseURL":  pool.EskBaseURL,
+			"kcsBaseURL":  pool.KcsBaseURL,
 			"enable":      pool.Enable,
 		})
 	}
@@ -38,6 +40,8 @@ func CreatePool(c *gin.Context) {
 		PoolName    string `json:"poolName" binding:"required"`
 		Description string `json:"description"`
 		Proxy       string `json:"proxy"`
+		EskBaseURL  string `json:"eskBaseURL"`
+		KcsBaseURL  string `json:"kcsBaseURL"`
 		Enable      bool   `json:"enable"`
 	}
 
@@ -59,6 +63,8 @@ func CreatePool(c *gin.Context) {
 		PoolName:    req.PoolName,
 		Description: req.Description,
 		Proxy:       req.Proxy,
+		EskBaseURL:  req.EskBaseURL,
+		KcsBaseURL:  req.KcsBaseURL,
 		Enable:      req.Enable,
 	}
 
@@ -86,6 +92,8 @@ func UpdatePool(c *gin.Context) {
 		PoolName    string `json:"poolName"`
 		Description string `json:"description"`
 		Proxy       string `json:"proxy"`
+		EskBaseURL  string `json:"eskBaseURL"`
+		KcsBaseURL  string `json:"kcsBaseURL"`
 		Enable      bool   `json:"enable"`
 	}
 
@@ -107,6 +115,8 @@ func UpdatePool(c *gin.Context) {
 	updates := map[string]any{
 		"description": req.Description,
 		"proxy":       req.Proxy,
+		"esk_base_url": req.EskBaseURL,
+		"kcs_base_url": req.KcsBaseURL,
 		"enable":      req.Enable,
 	}
 

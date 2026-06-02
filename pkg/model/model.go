@@ -92,6 +92,7 @@ func InitDB() {
 	}
 	models := []interface{}{
 		User{},
+		Pool{},
 		Cluster{},
 		GeneralSetting{},
 		LDAPSetting{},

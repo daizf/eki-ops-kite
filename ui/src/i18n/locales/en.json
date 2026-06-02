@@ -1087,6 +1087,8 @@
       "name": "Name",
       "description": "Description",
       "proxy": "Proxy",
+      "eskBaseURL": "ESK Base URL",
+      "kcsBaseURL": "KCS Base URL",
       "enabled": "Enabled"
     },
     "placeholders": {

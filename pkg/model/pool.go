@@ -6,6 +6,8 @@ type Pool struct {
 	PoolName    string `json:"poolName" gorm:"type:varchar(100);not null"`
 	Description string `json:"description" gorm:"type:text"`
 	Proxy       string `json:"proxy" gorm:"type:varchar(255)"`
+	EskBaseURL  string `json:"eskBaseURL" gorm:"type:varchar(255)"`
+	KcsBaseURL  string `json:"kcsBaseURL" gorm:"type:varchar(255)"`
 	Enable      bool   `json:"enable" gorm:"type:boolean;default:true"`
 }
 

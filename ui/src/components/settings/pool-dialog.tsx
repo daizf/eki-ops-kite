@@ -33,6 +33,8 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
   const [poolName, setPoolName] = useState(pool?.poolName ?? '')
   const [description, setDescription] = useState(pool?.description ?? '')
   const [proxy, setProxy] = useState(pool?.proxy ?? '')
+  const [eskBaseURL, setEskBaseURL] = useState(pool?.eskBaseURL ?? '')
+  const [kcsBaseURL, setKcsBaseURL] = useState(pool?.kcsBaseURL ?? '')
   const [enable, setEnable] = useState(pool?.enable ?? true)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -43,12 +45,16 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
       setPoolName(pool.poolName)
       setDescription(pool.description ?? '')
       setProxy(pool.proxy ?? '')
+      setEskBaseURL(pool.eskBaseURL ?? '')
+      setKcsBaseURL(pool.kcsBaseURL ?? '')
       setEnable(pool.enable)
     } else {
       setPoolId('')
       setPoolName('')
       setDescription('')
       setProxy('')
+      setEskBaseURL('')
+      setKcsBaseURL('')
       setEnable(true)
     }
     setErrors({})
@@ -87,6 +93,8 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
       poolName: poolName.trim(),
       description: description.trim(),
       proxy: proxy.trim(),
+      eskBaseURL: eskBaseURL.trim(),
+      kcsBaseURL: kcsBaseURL.trim(),
       enable,
     })
 
@@ -96,6 +104,8 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
       setPoolName('')
       setDescription('')
       setProxy('')
+      setEskBaseURL('')
+      setKcsBaseURL('')
       setEnable(true)
     }
     setErrors({})
@@ -185,6 +195,26 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
                   'poolManagement.fields.proxyPlaceholder',
                   'http://proxy.example.com:8080'
                 )}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="eskBaseURL">{t('poolManagement.fields.eskBaseURL', 'ESK Base URL')}</Label>
+              <Input
+                id="eskBaseURL"
+                value={eskBaseURL}
+                onChange={(e) => setEskBaseURL(e.target.value)}
+                placeholder="http://10.22.58.63:32077/ops-esk-backend-service"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="kcsBaseURL">{t('poolManagement.fields.kcsBaseURL', 'KCS Base URL')}</Label>
+              <Input
+                id="kcsBaseURL"
+                value={kcsBaseURL}
+                onChange={(e) => setKcsBaseURL(e.target.value)}
+                placeholder="http://kcs.example.com/api"
               />
             </div>
 

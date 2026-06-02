@@ -17,8 +17,9 @@ type Cluster struct {
 	InCluster     bool         `json:"in_cluster" gorm:"type:boolean;default:false"`
 	IsDefault     bool         `json:"is_default" gorm:"type:boolean;default:false"`
 	Enable        bool         `json:"enable" gorm:"type:boolean;default:true"`
-	PoolID        string       `json:"poolId" gorm:"type:varchar(100)"`
-	Pool          *Pool        `json:"pool" gorm:"foreignKey:PoolID;references:PoolID"`
+	MetaHash string       `json:"-" gorm:"type:varchar(64)"`
+	PoolID      string       `json:"poolId" gorm:"type:varchar(100)"`
+	Pool        *Pool        `json:"pool" gorm:"foreignKey:PoolID;references:PoolID"`
 }
 
 func AddCluster(cluster *Cluster) error {
@@ -59,6 +60,22 @@ func DisableCluster(cluster *Cluster) error {
 
 func EnableCluster(cluster *Cluster) error {
 	return DB.Model(cluster).Update("enable", true).Error
+}
+
+func GetClusterByClusterID(clusterID string) (*Cluster, error) {
+	var cluster Cluster
+	if err := DB.Where("cluster_id = ?", clusterID).First(&cluster).Error; err != nil {
+		return nil, err
+	}
+	return &cluster, nil
+}
+
+func ListClustersByPoolID(poolID string) ([]*Cluster, error) {
+	var clusters []*Cluster
+	if err := DB.Where("pool_id = ? AND meta_hash != ''", poolID).Find(&clusters).Error; err != nil {
+		return nil, err
+	}
+	return clusters, nil
 }
 
 func ListClusters() ([]*Cluster, error) {

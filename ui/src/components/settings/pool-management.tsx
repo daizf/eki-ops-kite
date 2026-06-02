@@ -79,6 +79,24 @@ export function PoolManagement() {
         ),
       },
       {
+        id: 'eskBaseURL',
+        header: t('poolManagement.fields.eskBaseURL', 'ESK Base URL'),
+        cell: ({ row: { original: pool } }) => (
+          <div className="text-sm text-muted-foreground">
+            {pool.eskBaseURL || '-'}
+          </div>
+        ),
+      },
+      {
+        id: 'kcsBaseURL',
+        header: t('poolManagement.fields.kcsBaseURL', 'KCS Base URL'),
+        cell: ({ row: { original: pool } }) => (
+          <div className="text-sm text-muted-foreground">
+            {pool.kcsBaseURL || '-'}
+          </div>
+        ),
+      },
+      {
         id: 'status',
         header: t('common.fields.status', 'Status'),
         cell: ({ row: { original: pool } }) => (
