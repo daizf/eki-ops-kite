@@ -225,6 +225,7 @@ func ImportClustersFromKubeconfig(kubeconfig *clientcmdapi.Config) int64 {
 			Config:    model.SecretString(configStr),
 			IsDefault: contextName == kubeconfig.CurrentContext,
 		}
+		cluster.MetaHash = cluster.ComputeMetaHash()
 		if _, err := model.GetClusterByName(contextName); err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				if err := model.AddCluster(&cluster); err != nil {
@@ -306,8 +307,10 @@ func syncClusters(cm *ClusterManager, readyCh chan<- struct{}) error {
 		go func(cluster *model.Cluster) {
 			defer wg.Done()
 			clientSet, err := buildClientSet(cluster)
-			clientSet.ClusterID = cluster.ClusterID
-			clientSet.PoolID = cluster.PoolID
+			if err == nil {
+				clientSet.ClusterID = cluster.ClusterID
+				clientSet.PoolID = cluster.PoolID
+			}
 			results <- buildResult{
 				cluster:   cluster,
 				clientSet: clientSet,

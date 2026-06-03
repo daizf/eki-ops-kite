@@ -1,0 +1,12 @@
+.git/
+bin/
+node_modules/
+ui/node_modules/
+static/
+*.md
+!ui/README.md
+.env
+.env.*
+*.test
+e2e/
+docs/

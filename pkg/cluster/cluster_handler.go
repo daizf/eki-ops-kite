@@ -76,10 +76,10 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 			"pool":          cluster.Pool,
 		}
 
-		if clientSet, exists := clusterState[cluster.Name]; exists {
+		if clientSet, exists := clusterState[cluster.ClusterID]; exists {
 			clusterInfo["version"] = clientSet.Version
 		}
-		if errMsg, exists := errorState[cluster.Name]; exists {
+		if errMsg, exists := errorState[cluster.ClusterID]; exists {
 			clusterInfo["error"] = errMsg
 		}
 
@@ -148,6 +148,8 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	cluster.MetaHash = cluster.ComputeMetaHash()
 
 	if err := model.AddCluster(cluster); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -245,6 +247,36 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 	}
 	updates["tags"] = cluster.Tags
 
+	// Recompute meta_hash from the values that will be persisted
+	name := cluster.Name
+	if v, ok := updates["name"]; ok {
+		name, _ = v.(string)
+	}
+	clusterID := cluster.ClusterID
+	if v, ok := updates["cluster_id"]; ok {
+		clusterID, _ = v.(string)
+	}
+	config := string(cluster.Config)
+	if v, ok := updates["config"]; ok {
+		config, _ = v.(string)
+	}
+	prometheusURL := cluster.PrometheusURL
+	if v, ok := updates["prometheus_url"]; ok {
+		prometheusURL, _ = v.(string)
+	}
+	category := cluster.Category
+	if v, ok := updates["category"]; ok {
+		category, _ = v.(string)
+	}
+	tempCluster := &model.Cluster{
+		Name:          name,
+		ClusterID:     clusterID,
+		Config:        model.SecretString(config),
+		PrometheusURL: prometheusURL,
+		Category:      category,
+	}
+	updates["meta_hash"] = tempCluster.ComputeMetaHash()
+
 	if err := model.UpdateCluster(cluster, updates); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -333,6 +365,7 @@ func (cm *ClusterManager) ImportClustersFromKubeconfig(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		cluster.MetaHash = cluster.ComputeMetaHash()
 		if err := model.AddCluster(cluster); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -441,6 +474,8 @@ func (cm *ClusterManager) BatchImportClusters(c *gin.Context) {
 			result.Rejected = append(result.Rejected, item.ClusterID+" (invalid tags)")
 			continue
 		}
+
+		cluster.MetaHash = cluster.ComputeMetaHash()
 
 		if err := model.AddCluster(cluster); err != nil {
 			result.Rejected = append(result.Rejected, item.ClusterID+" ("+err.Error()+")")

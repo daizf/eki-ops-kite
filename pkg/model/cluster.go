@@ -1,7 +1,9 @@
 package model
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
@@ -19,9 +21,9 @@ type Cluster struct {
 	InCluster     bool         `json:"in_cluster" gorm:"type:boolean;default:false"`
 	IsDefault     bool         `json:"is_default" gorm:"type:boolean;default:false"`
 	Enable        bool         `json:"enable" gorm:"type:boolean;default:true"`
-	MetaHash string       `json:"-" gorm:"type:varchar(64)"`
-	PoolID      string       `json:"poolId" gorm:"type:varchar(100)"`
-	Pool        *Pool        `json:"pool" gorm:"foreignKey:PoolID;references:PoolID"`
+	MetaHash      string       `json:"-" gorm:"type:varchar(64)"`
+	PoolID        string       `json:"poolId" gorm:"type:varchar(100)"`
+	Pool          *Pool        `json:"pool" gorm:"foreignKey:PoolID;references:PoolID"`
 }
 
 func AddCluster(cluster *Cluster) error {
@@ -123,6 +125,24 @@ func (c *Cluster) SetTags(tags []string) error {
 }
 
 // NormalizeTags normalizes tags by trimming whitespace and removing duplicates
+func (c *Cluster) ComputeMetaHash() string {
+	type meta struct {
+		Name          string
+		ClusterID     string
+		Config        string
+		PrometheusURL string
+		Category      string
+	}
+	data, _ := json.Marshal(meta{
+		Name:          c.Name,
+		ClusterID:     c.ClusterID,
+		Config:        string(c.Config),
+		PrometheusURL: c.PrometheusURL,
+		Category:      c.Category,
+	})
+	return fmt.Sprintf("%x", sha256.Sum256(data))
+}
+
 func NormalizeTags(tags []string) []string {
 	normalized := make([]string, 0, len(tags))
 	seen := make(map[string]bool)
