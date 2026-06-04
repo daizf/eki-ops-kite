@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import type { Cluster } from '@/types/api'
 import { cn } from '@/lib/utils'
+import { ClusterStatusDot, getClusterStatus } from '@/components/cluster-status-dot'
 import { useCluster } from '@/hooks/use-cluster'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -225,6 +226,7 @@ function ClusterMenuItem({
     >
       <div className="flex flex-col overflow-hidden flex-1 min-w-0 text-left">
         <div className="flex items-center gap-2">
+          <ClusterStatusDot status={getClusterStatus(cluster)} />
           <span className="font-medium truncate text-sm">{cluster.name}</span>
           {cluster.category && (
             <Badge variant="outline" className="text-xs h-5 px-1.5 shrink-0 bg-purple-50 text-purple-700 border-purple-200">

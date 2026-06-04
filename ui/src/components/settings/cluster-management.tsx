@@ -14,6 +14,7 @@ import {
   updateCluster,
   useClusterList,
 } from '@/lib/api'
+import { ClusterStatusDot, getClusterStatus } from '@/components/cluster-status-dot'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -116,6 +117,7 @@ export function ClusterManagement() {
         cell: ({ row: { original: cluster } }) => (
           <div>
             <div className="flex items-center gap-2">
+              <ClusterStatusDot status={getClusterStatus(cluster)} />
               <span className="font-medium">{cluster.name}</span>
               {cluster.isDefault && <Badge variant="secondary">Default</Badge>}
             </div>

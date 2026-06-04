@@ -6,6 +6,7 @@ import { Search, Settings } from 'lucide-react'
 import Icon from '@/assets/icon.svg'
 import { Cluster } from '@/types/api'
 import { useCluster as useClusterContext } from '@/hooks/use-cluster'
+import { ClusterStatusDot, getClusterStatus } from '@/components/cluster-status-dot'
 import { useAuth } from '@/contexts/auth-context'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -213,6 +214,7 @@ export function ClusterSearch() {
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
+                            <ClusterStatusDot status={getClusterStatus(cluster)} />
                             <span className="font-semibold text-foreground transition-colors">
                               {cluster.name}
                             </span>

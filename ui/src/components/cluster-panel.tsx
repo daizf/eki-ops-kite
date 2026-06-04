@@ -3,6 +3,7 @@ import { IconChevronRight, IconServer } from '@tabler/icons-react'
 import type { Cluster } from '@/types/api'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { ClusterStatusDot, getClusterStatus } from '@/components/cluster-status-dot'
 import {
   Collapsible,
   CollapsibleContent,
@@ -141,6 +142,7 @@ function ClusterItem({
       <div className="flex flex-col overflow-hidden flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 overflow-hidden">
+            <ClusterStatusDot status={getClusterStatus(cluster)} />
             <IconServer className="h-4 w-4 shrink-0 text-muted-foreground" />
             <span className="font-medium truncate">{cluster.name}</span>
           </div>
