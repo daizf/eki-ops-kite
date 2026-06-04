@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/zxh326/kite/pkg/model"
@@ -45,8 +46,24 @@ func StartSyncer(ctx context.Context) {
 
 func runSyncer(ctx context.Context) {
 	interval := 5 * time.Minute
+	hostname, _ := os.Hostname()
+	lockKey := "kcs_sync"
 
-	syncAllPools(ctx, interval)
+	acquireAndSync := func() {
+		acquired, err := model.TryAcquireSyncLock(lockKey, hostname, model.SyncLockTTL)
+		if err != nil {
+			klog.Errorf("KCS sync: failed to acquire lock: %v", err)
+			return
+		}
+		if !acquired {
+			klog.Info("KCS sync: lock held by another instance, skipping this cycle")
+			return
+		}
+		defer model.ReleaseSyncLock(lockKey, hostname)
+		syncAllPools(ctx, interval)
+	}
+
+	acquireAndSync()
 
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
@@ -57,7 +74,7 @@ func runSyncer(ctx context.Context) {
 			klog.Info("KCS sync stopped")
 			return
 		case <-ticker.C:
-			syncAllPools(ctx, interval)
+			acquireAndSync()
 		}
 	}
 }
