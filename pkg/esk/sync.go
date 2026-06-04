@@ -75,7 +75,7 @@ func (s *Syncer) sync(ctx context.Context) error {
 
 		kubeConfig, err := s.fetchKubeconfig(ctx, ec.ClusterID)
 		if err != nil {
-			klog.Warningf("ESK sync: failed to fetch kubeconfig for %s: %v", ec.ClusterID, err)
+			klog.Warningf("ESK sync: failed to fetch kubeconfig for %s (%s): %v", ec.ClusterName, ec.ClusterID, err)
 			continue
 		}
 
@@ -121,13 +121,13 @@ func (s *Syncer) sync(ctx context.Context) error {
 		}
 	}
 
-	// Disable clusters that belong to this pool but are no longer in ESK
+	// Disable ESK clusters that belong to this pool but are no longer in ESK
 	poolClusters, err := model.ListClustersByPoolID(s.poolID)
 	if err != nil {
 		klog.Warningf("ESK sync: failed to list clusters for pool %s: %v", s.poolID, err)
 	} else {
 		for _, c := range poolClusters {
-			if !eskClusterIDs[c.ClusterID] && c.Enable {
+			if !eskClusterIDs[c.ClusterID] && c.Enable && c.Category == "ESK" {
 				if err := model.DisableCluster(c); err != nil {
 					klog.Warningf("ESK sync: failed to disable cluster %s: %v", c.ClusterID, err)
 				} else {

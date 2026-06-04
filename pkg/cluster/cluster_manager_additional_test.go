@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/zxh326/kite/pkg/kube"
@@ -256,10 +257,8 @@ func TestGetClientSet(t *testing.T) {
 }
 
 func TestBuildClientSet(t *testing.T) {
-	t.Run("uses in-cluster constructor", func(t *testing.T) {
-		inClusterCalled := false
-		inClusterMock := mockey.Mock(createClientSetInCluster).To(func(name, prometheusURL string) (*ClientSet, error) {
-			inClusterCalled = true
+	t.Run("uses in-cluster config", func(t *testing.T) {
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 			if name != "cluster-a" {
 				t.Fatalf("name = %q, want %q", name, "cluster-a")
 			}
@@ -268,13 +267,12 @@ func TestBuildClientSet(t *testing.T) {
 			}
 			return &ClientSet{Name: name}, nil
 		}).Build()
-		defer inClusterMock.UnPatch()
+		defer newClientSetMock.UnPatch()
 
-		fromConfigMock := mockey.Mock(createClientSetFromConfig).To(func(name, content, prometheusURL string) (*ClientSet, error) {
-			t.Fatalf("createClientSetFromConfig() unexpectedly called with name=%q content=%q prometheusURL=%q", name, content, prometheusURL)
-			return nil, nil
+		inClusterMock := mockey.Mock(rest.InClusterConfig).To(func() (*rest.Config, error) {
+			return &rest.Config{Host: "https://in-cluster"}, nil
 		}).Build()
-		defer fromConfigMock.UnPatch()
+		defer inClusterMock.UnPatch()
 
 		got, err := buildClientSet(&model.Cluster{
 			Name:          "cluster-a",
@@ -284,34 +282,25 @@ func TestBuildClientSet(t *testing.T) {
 		if err != nil {
 			t.Fatalf("buildClientSet() error = %v", err)
 		}
-		if !inClusterCalled {
-			t.Fatalf("createClientSetInCluster() was not called")
-		}
 		if got.Name != "cluster-a" {
 			t.Fatalf("buildClientSet() = %#v, want cluster name %q", got, "cluster-a")
 		}
 	})
 
-	t.Run("uses kubeconfig constructor", func(t *testing.T) {
-		fromConfigCalled := false
-		inClusterMock := mockey.Mock(createClientSetInCluster).To(func(name, prometheusURL string) (*ClientSet, error) {
-			t.Fatalf("createClientSetInCluster() unexpectedly called with name=%q prometheusURL=%q", name, prometheusURL)
-			return nil, nil
-		}).Build()
-		defer inClusterMock.UnPatch()
-
-		fromConfigMock := mockey.Mock(createClientSetFromConfig).To(func(name, content, prometheusURL string) (*ClientSet, error) {
-			fromConfigCalled = true
+	t.Run("uses kubeconfig and sets config", func(t *testing.T) {
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 			if name != "cluster-b" {
 				t.Fatalf("name = %q, want %q", name, "cluster-b")
-			}
-			if content != "config-data" {
-				t.Fatalf("content = %q, want %q", content, "config-data")
 			}
 			if prometheusURL != "http://prometheus" {
 				t.Fatalf("prometheusURL = %q, want %q", prometheusURL, "http://prometheus")
 			}
 			return &ClientSet{Name: name}, nil
+		}).Build()
+		defer newClientSetMock.UnPatch()
+
+		fromConfigMock := mockey.Mock(clientcmd.RESTConfigFromKubeConfig).To(func(data []byte) (*rest.Config, error) {
+			return &rest.Config{Host: "https://kube-cluster"}, nil
 		}).Build()
 		defer fromConfigMock.UnPatch()
 
@@ -323,11 +312,92 @@ func TestBuildClientSet(t *testing.T) {
 		if err != nil {
 			t.Fatalf("buildClientSet() error = %v", err)
 		}
-		if !fromConfigCalled {
-			t.Fatalf("createClientSetFromConfig() was not called")
-		}
 		if got.Name != "cluster-b" {
 			t.Fatalf("buildClientSet() = %#v, want cluster name %q", got, "cluster-b")
+		}
+		if got.config != "config-data" {
+			t.Fatalf("config = %q, want %q", got.config, "config-data")
+		}
+	})
+
+	t.Run("applies pool proxy for non-in-cluster cluster", func(t *testing.T) {
+		var capturedConfig *rest.Config
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+			capturedConfig = k8sConfig
+			return &ClientSet{Name: name}, nil
+		}).Build()
+		defer newClientSetMock.UnPatch()
+
+		fromConfigMock := mockey.Mock(clientcmd.RESTConfigFromKubeConfig).To(func(data []byte) (*rest.Config, error) {
+			return &rest.Config{Host: "https://kube-cluster"}, nil
+		}).Build()
+		defer fromConfigMock.UnPatch()
+
+		_, err := buildClientSet(&model.Cluster{
+			Name:          "cluster-c",
+			Config:        model.SecretString("config-data"),
+			PrometheusURL: "",
+			Pool:          &model.Pool{PoolID: "pool-1", Proxy: "http://proxy.example.com:8080"},
+		})
+		if err != nil {
+			t.Fatalf("buildClientSet() error = %v", err)
+		}
+		if capturedConfig.Proxy == nil {
+			t.Fatalf("Proxy should be set when pool has proxy")
+		}
+	})
+
+	t.Run("skips proxy when pool has no proxy", func(t *testing.T) {
+		var capturedConfig *rest.Config
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+			capturedConfig = k8sConfig
+			return &ClientSet{Name: name}, nil
+		}).Build()
+		defer newClientSetMock.UnPatch()
+
+		fromConfigMock := mockey.Mock(clientcmd.RESTConfigFromKubeConfig).To(func(data []byte) (*rest.Config, error) {
+			return &rest.Config{Host: "https://kube-cluster"}, nil
+		}).Build()
+		defer fromConfigMock.UnPatch()
+
+		_, err := buildClientSet(&model.Cluster{
+			Name:          "cluster-d",
+			Config:        model.SecretString("config-data"),
+			PrometheusURL: "",
+			Pool:          &model.Pool{PoolID: "pool-1", Proxy: ""},
+		})
+		if err != nil {
+			t.Fatalf("buildClientSet() error = %v", err)
+		}
+		if capturedConfig.Proxy != nil {
+			t.Fatalf("Proxy should not be set when pool has no proxy")
+		}
+	})
+
+	t.Run("skips proxy when pool is nil", func(t *testing.T) {
+		var capturedConfig *rest.Config
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+			capturedConfig = k8sConfig
+			return &ClientSet{Name: name}, nil
+		}).Build()
+		defer newClientSetMock.UnPatch()
+
+		fromConfigMock := mockey.Mock(clientcmd.RESTConfigFromKubeConfig).To(func(data []byte) (*rest.Config, error) {
+			return &rest.Config{Host: "https://kube-cluster"}, nil
+		}).Build()
+		defer fromConfigMock.UnPatch()
+
+		_, err := buildClientSet(&model.Cluster{
+			Name:          "cluster-e",
+			PoolID:        "pool-missing",
+			Config:        model.SecretString("config-data"),
+			PrometheusURL: "",
+		})
+		if err != nil {
+			t.Fatalf("buildClientSet() error = %v", err)
+		}
+		if capturedConfig.Proxy != nil {
+			t.Fatalf("Proxy should not be set when pool is nil")
 		}
 	})
 }

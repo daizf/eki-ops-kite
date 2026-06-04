@@ -43,28 +43,44 @@ type ClusterManager struct {
 
 const clusterStartupSyncTimeout = 10 * time.Second
 
-func createClientSetInCluster(name, prometheusURL string) (*ClientSet, error) {
-	config, err := rest.InClusterConfig()
+func buildClientSet(cluster *model.Cluster) (*ClientSet, error) {
+	var restConfig *rest.Config
+	var err error
+
+	if cluster.InCluster {
+		restConfig, err = rest.InClusterConfig()
+	} else {
+		restConfig, err = clientcmd.RESTConfigFromKubeConfig([]byte(string(cluster.Config)))
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	return newClientSet(name, config, prometheusURL)
+	if cluster.Pool != nil && cluster.Pool.Proxy != "" {
+		if applyErr := applyProxyToRestConfig(restConfig, cluster.Pool.Proxy); applyErr != nil {
+			klog.Warningf("Failed to apply proxy for cluster %s: %v", cluster.Name, applyErr)
+		} else {
+			klog.Infof("Using proxy %s for cluster %s (pool %s)", cluster.Pool.Proxy, cluster.Name, cluster.Pool.PoolID)
+		}
+	}
+
+	cs, err := newClientSet(cluster.Name, restConfig, cluster.PrometheusURL)
+	if err != nil {
+		return nil, err
+	}
+	if !cluster.InCluster {
+		cs.config = string(cluster.Config)
+	}
+	return cs, nil
 }
 
-func createClientSetFromConfig(name, content, prometheusURL string) (*ClientSet, error) {
-	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(content))
+func applyProxyToRestConfig(config *rest.Config, proxy string) error {
+	proxyURL, err := url.Parse(proxy)
 	if err != nil {
-		klog.Warningf("Failed to create REST config for cluster %s: %v", name, err)
-		return nil, err
+		return fmt.Errorf("invalid proxy URL %q: %w", proxy, err)
 	}
-	cs, err := newClientSet(name, restConfig, prometheusURL)
-	if err != nil {
-		return nil, err
-	}
-	cs.config = content
-
-	return cs, nil
+	config.Proxy = http.ProxyURL(proxyURL)
+	return nil
 }
 
 func newClientSet(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
@@ -392,13 +408,6 @@ func shouldUpdateCluster(cs *ClientSet, cluster *model.Cluster) bool {
 	}
 
 	return false
-}
-
-func buildClientSet(cluster *model.Cluster) (*ClientSet, error) {
-	if cluster.InCluster {
-		return createClientSetInCluster(cluster.Name, cluster.PrometheusURL)
-	}
-	return createClientSetFromConfig(cluster.Name, string(cluster.Config), cluster.PrometheusURL)
 }
 
 func (cm *ClusterManager) syncClusters() error {

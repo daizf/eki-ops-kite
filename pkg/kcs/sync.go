@@ -65,7 +65,7 @@ func (s *Syncer) sync(ctx context.Context) error {
 
 		kubeConfig, err := s.fetchKubeconfig(ctx, kc.ClusterID, kc.UserID, kc.ApiEndpoints)
 		if err != nil {
-			klog.Warningf("KCS sync: failed to fetch kubeconfig for %s: %v", kc.ClusterID, err)
+			klog.Warningf("KCS sync: failed to fetch kubeconfig for %s (%s): %v", kc.ClusterName, kc.ClusterID, err)
 			continue
 		}
 
@@ -109,13 +109,13 @@ func (s *Syncer) sync(ctx context.Context) error {
 		}
 	}
 
-	// Disable clusters that belong to this pool but are no longer in KCS
+	// Disable KCS clusters that belong to this pool but are no longer in KCS
 	poolClusters, err := model.ListClustersByPoolID(s.poolID)
 	if err != nil {
 		klog.Warningf("KCS sync: failed to list clusters for pool %s: %v", s.poolID, err)
 	} else {
 		for _, c := range poolClusters {
-			if !kcsClusterIDs[c.ClusterID] && c.Enable {
+			if !kcsClusterIDs[c.ClusterID] && c.Enable && c.Category == "KCS" {
 				if err := model.DisableCluster(c); err != nil {
 					klog.Warningf("KCS sync: failed to disable cluster %s: %v", c.ClusterID, err)
 				} else {
