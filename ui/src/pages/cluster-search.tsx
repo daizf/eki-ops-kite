@@ -64,7 +64,11 @@ export function ClusterSearch() {
         e.preventDefault()
         const selectedCluster = filteredClusters[hoveredIndex]
         if (selectedCluster) {
-          setCurrentCluster(selectedCluster.clusterId)
+          if (selectedCluster.clusterId === currentCluster) {
+            navigate('/dashboard')
+          } else {
+            setCurrentCluster(selectedCluster.clusterId)
+          }
         }
       }
     }
@@ -87,7 +91,11 @@ export function ClusterSearch() {
   }
 
   const handleClusterClick = (cluster: Cluster) => {
-    setCurrentCluster(cluster.clusterId)
+    if (cluster.clusterId === currentCluster) {
+      navigate('/dashboard')
+    } else {
+      setCurrentCluster(cluster.clusterId)
+    }
   }
 
   const handleClusterHover = (index: number) => {
