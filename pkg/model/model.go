@@ -2,6 +2,7 @@ package model
 
 import (
 	"log"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -28,6 +29,25 @@ type Model struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// maskDSNPassword masks the password in a DSN string for safe logging.
+func maskDSNPassword(dsn string) string {
+	// URL format: scheme://user:password@host/db?params
+	u, err := url.Parse(dsn)
+	if err == nil && u.User != nil {
+		if _, hasPassword := u.User.Password(); hasPassword {
+			u.User = url.UserPassword(u.User.Username(), "*****")
+		}
+		return u.String()
+	}
+	// MySQL Go driver format: user:password@tcp(host:port)/db?params
+	if atIdx := strings.Index(dsn, "@"); atIdx != -1 {
+		if colonIdx := strings.Index(dsn[:atIdx], ":"); colonIdx != -1 {
+			return dsn[:colonIdx+1] + "*****" + dsn[atIdx:]
+		}
+	}
+	return dsn
+}
+
 func InitDB() {
 	dsn := common.DBDSN
 	level := logger.Silent
@@ -48,6 +68,7 @@ func InitDB() {
 		cfg := &gorm.Config{
 			Logger: newLogger,
 		}
+		klog.Infof("Connecting to database: type=%s, dsn=%s", common.DBType, maskDSNPassword(dsn))
 		if common.DBType == "sqlite" {
 			DB, err = gorm.Open(sqlite.Open(dsn), cfg)
 			if err != nil {
