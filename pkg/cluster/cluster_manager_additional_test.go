@@ -249,8 +249,8 @@ func TestGetClientSet(t *testing.T) {
 		}
 
 		_, err := cm.GetClientSet("missing")
-		if err == nil || err.Error() != "cluster not found: missing" {
-			t.Fatalf("GetClientSet() error = %v, want %q", err, "cluster not found: missing")
+		if err == nil || err.Error() != "cluster not ready: missing" {
+			t.Fatalf("GetClientSet() error = %v, want %q", err, "cluster not ready: missing")
 		}
 	})
 }

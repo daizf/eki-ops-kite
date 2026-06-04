@@ -194,7 +194,7 @@ func (cm *ClusterManager) GetClientSet(clusterID string) (*ClientSet, error) {
 	if cluster, ok := cm.clusters[clusterID]; ok {
 		return cluster, nil
 	}
-	return nil, fmt.Errorf("cluster not found: %s", clusterID)
+	return nil, fmt.Errorf("cluster not ready: %s", clusterID)
 }
 
 func ImportClustersFromKubeconfig(kubeconfig *clientcmdapi.Config) int64 {

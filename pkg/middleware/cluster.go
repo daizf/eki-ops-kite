@@ -28,7 +28,7 @@ func ClusterMiddleware(cm *cluster.ClusterManager) gin.HandlerFunc {
 		}
 		cluster, err := cm.GetClientSet(clusterID)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": err.Error()})
 			c.Abort()
 			return
 		}
