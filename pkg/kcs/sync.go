@@ -52,7 +52,13 @@ func (s *Syncer) sync(ctx context.Context) error {
 	for _, kc := range allClusters {
 		kcsClusterIDs[kc.ClusterID] = true
 
-		metaHash := computeMetaHash(kc)
+		kubeConfig, err := s.fetchKubeconfig(ctx, kc.ClusterID, kc.UserID, kc.ApiEndpoints)
+		if err != nil {
+			klog.Warningf("KCS sync: failed to fetch kubeconfig for %s (%s): %v", kc.ClusterName, kc.ClusterID, err)
+			continue
+		}
+
+		metaHash := computeMetaHash(kc, kubeConfig)
 		existing, err := model.GetClusterByClusterID(kc.ClusterID)
 		if err != nil {
 			klog.Warningf("KCS sync: failed to look up cluster %s: %v", kc.ClusterID, err)
@@ -60,12 +66,6 @@ func (s *Syncer) sync(ctx context.Context) error {
 		}
 
 		if existing != nil && existing.MetaHash == metaHash {
-			continue
-		}
-
-		kubeConfig, err := s.fetchKubeconfig(ctx, kc.ClusterID, kc.UserID, kc.ApiEndpoints)
-		if err != nil {
-			klog.Warningf("KCS sync: failed to fetch kubeconfig for %s (%s): %v", kc.ClusterName, kc.ClusterID, err)
 			continue
 		}
 
@@ -94,7 +94,7 @@ func (s *Syncer) sync(ctx context.Context) error {
 		} else {
 			updates := map[string]interface{}{
 				"name":      kc.ClusterName,
-				"category":  "kcs",
+				"category":  "KCS",
 				"enable":    enable,
 				"config":    model.SecretString(kubeConfig),
 				"meta_hash": metaHash,
@@ -225,8 +225,8 @@ func (s *Syncer) fetchKubeconfig(ctx context.Context, clusterID string, userID s
 	return jsonToKubeconfigYAML(kubeJSON, apiEndpoints)
 }
 
-func computeMetaHash(c kcsCluster) string {
-	data := c.ClusterName + "|" + fmt.Sprintf("%t", c.Status) + "|" + c.CreateTime + "|" + strings.Join(c.ApiEndpoints, ",")
+func computeMetaHash(c kcsCluster, kubeConfig string) string {
+	data := c.ClusterName + "|" + fmt.Sprintf("%t", c.Status) + "|" + c.CreateTime + "|" + strings.Join(c.ApiEndpoints, ",") + "|" + kubeConfig
 	h := sha256.Sum256([]byte(data))
 	return fmt.Sprintf("%x", h)
 }

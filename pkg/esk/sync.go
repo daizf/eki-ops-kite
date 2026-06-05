@@ -62,7 +62,13 @@ func (s *Syncer) sync(ctx context.Context) error {
 	for _, ec := range allClusters {
 		eskClusterIDs[ec.ClusterID] = true
 
-		metaHash := computeMetaHash(ec)
+		kubeConfig, err := s.fetchKubeconfig(ctx, ec.ClusterID)
+		if err != nil {
+			klog.Warningf("ESK sync: failed to fetch kubeconfig for %s (%s): %v", ec.ClusterName, ec.ClusterID, err)
+			continue
+		}
+
+		metaHash := computeMetaHash(ec, kubeConfig)
 		existing, err := model.GetClusterByClusterID(ec.ClusterID)
 		if err != nil {
 			klog.Warningf("ESK sync: failed to look up cluster %s: %v", ec.ClusterID, err)
@@ -70,12 +76,6 @@ func (s *Syncer) sync(ctx context.Context) error {
 		}
 
 		if existing != nil && existing.MetaHash == metaHash {
-			continue
-		}
-
-		kubeConfig, err := s.fetchKubeconfig(ctx, ec.ClusterID)
-		if err != nil {
-			klog.Warningf("ESK sync: failed to fetch kubeconfig for %s (%s): %v", ec.ClusterName, ec.ClusterID, err)
 			continue
 		}
 
@@ -234,8 +234,8 @@ func (s *Syncer) fetchKubeconfig(ctx context.Context, clusterID string) (string,
 	return kubeResp.Body.KubeConfig, nil
 }
 
-func computeMetaHash(c eskCluster) string {
-	data := c.ClusterName + "|" + c.AZ + "|" + derefStr(c.Description) + "|" + c.KubeVersion + "|" + c.Status
+func computeMetaHash(c eskCluster, kubeConfig string) string {
+	data := c.ClusterName + "|" + c.AZ + "|" + derefStr(c.Description) + "|" + c.KubeVersion + "|" + c.Status + "|" + kubeConfig
 	h := sha256.Sum256([]byte(data))
 	return fmt.Sprintf("%x", h)
 }
