@@ -63,6 +63,9 @@ func replaceServer(obj map[string]interface{}, endpoint string) {
 		if err != nil {
 			continue
 		}
+		if epURL.Port() == "" {
+			epURL.Host = epURL.Hostname() + ":6443"
+		}
 		u.Host = epURL.Host
 		u.Scheme = epURL.Scheme
 		clusterData["server"] = u.String()
