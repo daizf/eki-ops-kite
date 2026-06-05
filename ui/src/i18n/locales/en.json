@@ -1055,7 +1055,8 @@
   "poolManagement": {
     "title": "Pool Management",
     "actions": {
-      "add": "Add Pool"
+      "add": "Add Pool",
+      "batchImport": "Import"
     },
     "empty": {
       "title": "No pools configured",
@@ -1098,6 +1099,31 @@
       "namePlaceholder": "Enter pool name",
       "descriptionPlaceholder": "Enter pool description (optional)",
       "proxyPlaceholder": "http://proxy.example.com:8080"
+    },
+    "batchImport": {
+      "title": "Import Pools",
+      "selectFile": "Select Excel File",
+      "downloadTemplate": "Download Template",
+      "fileFormat": "Excel File Columns",
+      "poolsPreview": "Pools to Import",
+      "empty": "Upload an Excel file containing pool configurations",
+      "parsed": "Parsed {{count}} pools from file",
+      "parsedWithInvalid": "Parsed {{count}} pools from file, {{invalid}} rows invalid",
+      "noValidData": "No valid pools found in file",
+      "parseError": "Failed to parse file",
+      "noPools": "No pools to import",
+      "import": "Import Pools",
+      "importing": "Importing...",
+      "success": "Pools imported successfully",
+      "successCount": "{{count}} pools imported",
+      "summaryImported": "{{count}} imported",
+      "summarySkipped": "{{count}} skipped (duplicate)",
+      "summaryRejected": "{{count}} rejected",
+      "error": "Failed to import pools",
+      "warning": {
+        "partialSuccess": "Import completed with warnings",
+        "rejected": "Some pools were skipped or rejected"
+      }
     }
   },
   "apikeyManagement": {

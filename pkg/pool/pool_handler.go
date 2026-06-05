@@ -2,6 +2,7 @@ package pool
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,91 @@ import (
 	"github.com/zxh326/kite/pkg/model"
 	"gorm.io/gorm"
 )
+
+type BatchPoolImportRequest struct {
+	Pools []BatchPoolImportItem `json:"pools"`
+}
+
+type BatchPoolImportItem struct {
+	PoolID        string `json:"poolId"`
+	PoolName      string `json:"poolName"`
+	Description   string `json:"description"`
+	Proxy         string `json:"proxy"`
+	ImageRegistry string `json:"imageRegistry"`
+	EskBaseURL    string `json:"eskBaseURL"`
+	KcsBaseURL    string `json:"kcsBaseURL"`
+	Enable        bool   `json:"enable"`
+}
+
+type BatchPoolImportResult struct {
+	Imported []string `json:"imported"`
+	Skipped   []string `json:"skipped"`
+	Rejected  []string `json:"rejected"`
+}
+
+func BatchImportPools(c *gin.Context) {
+	var req BatchPoolImportRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	result := BatchPoolImportResult{
+		Imported: []string{},
+		Skipped:  []string{},
+		Rejected: []string{},
+	}
+
+	existingPools, err := model.ListPools()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	existingPoolIDs := make(map[string]bool)
+	for _, pool := range existingPools {
+		existingPoolIDs[pool.PoolID] = true
+	}
+
+	for i, item := range req.Pools {
+		if item.PoolID == "" || item.PoolName == "" {
+			if item.PoolID == "" && item.PoolName == "" {
+				result.Rejected = append(result.Rejected, fmt.Sprintf("Row %d: missing poolId and poolName", i+2))
+			} else if item.PoolID == "" {
+				result.Rejected = append(result.Rejected, fmt.Sprintf("Row %d: missing poolId", i+2))
+			} else {
+				result.Rejected = append(result.Rejected, fmt.Sprintf("Row %d: missing poolName", i+2))
+			}
+			continue
+		}
+
+		if existingPoolIDs[item.PoolID] {
+			result.Skipped = append(result.Skipped, item.PoolID)
+			continue
+		}
+
+		pool := &model.Pool{
+			PoolID:        item.PoolID,
+			PoolName:      item.PoolName,
+			Description:   item.Description,
+			Proxy:         item.Proxy,
+			ImageRegistry: item.ImageRegistry,
+			EskBaseURL:    item.EskBaseURL,
+			KcsBaseURL:    item.KcsBaseURL,
+			Enable:        item.Enable,
+		}
+
+		if err := model.AddPool(pool); err != nil {
+			result.Rejected = append(result.Rejected, fmt.Sprintf("%s (%s)", item.PoolID, err.Error()))
+			continue
+		}
+
+		result.Imported = append(result.Imported, item.PoolID)
+		existingPoolIDs[item.PoolID] = true
+	}
+
+	c.JSON(http.StatusOK, result)
+}
 
 func GetPoolList(c *gin.Context) {
 	pools, err := model.ListPools()

@@ -853,7 +853,7 @@
       "prometheusUrl": "Prometheus URL",
       "prometheusUrlPlaceholder": "https://prometheus.example.com",
       "pool": "资源池",
-      "poolPlaceholder": "例如：华北-北京",
+      "poolPlaceholder": "例如：CIDC-RP-25",
       "category": "分类",
       "categoryPlaceholder": "选择一个分类",
       "enabled": "启用",
@@ -865,7 +865,8 @@
   "poolManagement": {
     "title": "资源池管理",
     "actions": {
-      "add": "添加资源池"
+      "add": "添加资源池",
+      "batchImport": "导入"
     },
     "empty": {
       "title": "暂无资源池",
@@ -908,6 +909,31 @@
       "namePlaceholder": "输入资源池名称",
       "descriptionPlaceholder": "输入资源池描述（可选）",
       "proxyPlaceholder": "http://proxy.example.com:8080"
+    },
+    "batchImport": {
+      "title": "导入资源池",
+      "selectFile": "选择 Excel 文件",
+      "downloadTemplate": "下载模板",
+      "fileFormat": "Excel 文件列名",
+      "poolsPreview": "待导入资源池",
+      "empty": "上传包含资源池配置的 Excel 文件",
+      "parsed": "从文件中解析到 {{count}} 个资源池",
+      "parsedWithInvalid": "从文件中解析到 {{count}} 个资源池，{{invalid}} 行无效",
+      "noValidData": "文件中未找到有效的资源池数据",
+      "parseError": "文件解析失败",
+      "noPools": "没有资源池可导入",
+      "import": "导入资源池",
+      "importing": "导入中...",
+      "success": "资源池导入成功",
+      "successCount": "成功导入 {{count}} 个资源池",
+      "summaryImported": "{{count}} 个已导入",
+      "summarySkipped": "{{count}} 个已跳过（重复）",
+      "summaryRejected": "{{count}} 个已拒绝",
+      "error": "资源池导入失败",
+      "warning": {
+        "partialSuccess": "导入完成，存在部分警告",
+        "rejected": "部分资源池被跳过或拒绝"
+      }
     }
   },
   "oauthManagement": {

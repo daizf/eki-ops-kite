@@ -592,3 +592,26 @@ export const deletePool = async (
 ): Promise<{ message: string }> => {
   return await apiClient.delete<{ message: string }>(`/admin/pools/${id}`)
 }
+
+export interface PoolBatchImportItem {
+  poolId: string
+  poolName: string
+  description?: string
+  proxy?: string
+  imageRegistry?: string
+  eskBaseURL?: string
+  kcsBaseURL?: string
+  enable?: boolean
+}
+
+export interface PoolBatchImportResult {
+  imported: string[]
+  skipped: string[]
+  rejected: string[]
+}
+
+export const batchImportPools = async (
+  data: { pools: PoolBatchImportItem[] }
+): Promise<PoolBatchImportResult> => {
+  return await apiClient.post<PoolBatchImportResult>('/admin/pools/batch', data)
+}

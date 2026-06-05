@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { IconDatabase, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react'
+import { IconDatabase, IconEdit, IconPlus, IconTrash, IconUpload } from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
@@ -21,6 +21,7 @@ import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialo
 
 import { Action, ActionTable } from '../action-table'
 import { PoolDialog } from './pool-dialog'
+import { PoolImportDialog } from './pool-import-dialog'
 
 export function PoolManagement() {
   const { t } = useTranslation()
@@ -29,6 +30,7 @@ export function PoolManagement() {
   const { data: pools = [], isLoading, error } = usePoolList()
 
   const [showPoolDialog, setShowPoolDialog] = useState(false)
+  const [showImportDialog, setShowImportDialog] = useState(false)
   const [editingPool, setEditingPool] = useState<Pool | null>(null)
   const [deletingPool, setDeletingPool] = useState<Pool | null>(null)
 
@@ -244,16 +246,26 @@ export function PoolManagement() {
                 {t('poolManagement.title', 'Pool Management')}
               </CardTitle>
             </div>
-            <Button
-              onClick={() => {
-                setEditingPool(null)
-                setShowPoolDialog(true)
-              }}
-              className="gap-2"
-            >
-              <IconPlus className="h-4 w-4" />
-              {t('poolManagement.actions.add', 'Add Pool')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowImportDialog(true)}
+                className="gap-2"
+              >
+                <IconUpload className="h-4 w-4" />
+                {t('poolManagement.actions.batchImport', 'Import')}
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditingPool(null)
+                  setShowPoolDialog(true)
+                }}
+                className="gap-2"
+              >
+                <IconPlus className="h-4 w-4" />
+                {t('poolManagement.actions.add', 'Add Pool')}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -295,6 +307,11 @@ export function PoolManagement() {
           'poolManagement.deleteConfirmation',
           'This action will delete the pool and cannot be undone.'
         )}
+      />
+
+      <PoolImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
       />
     </div>
   )

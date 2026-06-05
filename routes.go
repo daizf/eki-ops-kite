@@ -119,6 +119,7 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	poolAPI := adminAPI.Group("/pools")
 	poolAPI.GET("/", pool.GetPoolList)
 	poolAPI.POST("/", pool.CreatePool)
+	poolAPI.POST("/batch", pool.BatchImportPools)
 	poolAPI.PUT("/:id", pool.UpdatePool)
 	poolAPI.DELETE("/:id", pool.DeletePool)
 }
