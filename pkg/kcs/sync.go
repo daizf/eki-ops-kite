@@ -140,6 +140,7 @@ func (s *Syncer) fetchAllClusters(ctx context.Context) ([]kcsCluster, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("User_id", "888888")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
