@@ -142,7 +142,7 @@ export function ClusterSearch() {
       {/* Main Content */}
       <div className="flex-1 flex">
         {/* Left Sidebar - Cluster Panel */}
-        <aside className="w-80 border-r bg-muted/10 flex-shrink-0 overflow-y-auto">
+        <aside className="w-96 border-r bg-muted/10 flex-shrink-0 overflow-y-auto">
           <div className="p-4">
             <h2 className="text-sm font-semibold text-muted-foreground mb-4">
               {t('clusterSearch.clustersByCategory')}
