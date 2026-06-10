@@ -134,55 +134,59 @@ export function ClusterPanel({ clusters, onClusterClick, currentCluster }: Clust
               </Badge>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              {pool.categories.map((categoryGroup) => {
-                const categoryKey = `${pool.poolId}::${categoryGroup.category}`
-                return (
-                  <Collapsible
-                    key={categoryKey}
-                    open={openKeys.has(categoryKey)}
-                    onOpenChange={() => toggleKey(categoryKey)}
-                    asChild
-                  >
-                    <div className="border-t">
-                      <CollapsibleTrigger
-                        className="flex items-center justify-between w-full px-4 py-2 text-sm hover:bg-accent/50 transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2">
-                          <IconChevronRight
-                            className={cn(
-                              'h-3.5 w-3.5 transition-transform shrink-0 text-muted-foreground',
-                              openKeys.has(categoryKey) && 'rotate-90'
-                            )}
-                          />
-                          <span className="text-muted-foreground font-medium">
-                            {categoryGroup.category}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="text-xs h-5 px-1.5 shrink-0">
-                          {categoryGroup.clusters.length}
-                        </Badge>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="divide-y">
-                          {categoryGroup.clusters.slice(0, MAX_CLUSTERS_PER_CATEGORY).map((cluster) => (
-                            <ClusterItem
-                              key={cluster.id}
-                              cluster={cluster}
-                              isActive={currentCluster === cluster.clusterId}
-                              onClick={() => onClusterClick(cluster)}
+              <div className="ml-4 border-l-2 border-muted-foreground/20">
+                {pool.categories.map((categoryGroup) => {
+                  const categoryKey = `${pool.poolId}::${categoryGroup.category}`
+                  return (
+                    <Collapsible
+                      key={categoryKey}
+                      open={openKeys.has(categoryKey)}
+                      onOpenChange={() => toggleKey(categoryKey)}
+                      asChild
+                    >
+                      <div>
+                        <CollapsibleTrigger
+                          className="flex items-center justify-between w-full pl-8 pr-4 py-2 text-sm hover:bg-accent/50 transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <IconChevronRight
+                              className={cn(
+                                'h-3.5 w-3.5 transition-transform shrink-0 text-muted-foreground',
+                                openKeys.has(categoryKey) && 'rotate-90'
+                              )}
                             />
-                          ))}
-                          {categoryGroup.clusters.length > MAX_CLUSTERS_PER_CATEGORY && (
-                            <div className="px-4 py-2 text-xs text-muted-foreground text-center border-t">
-                              Showing {MAX_CLUSTERS_PER_CATEGORY} of {categoryGroup.clusters.length} clusters
+                            <span className="text-muted-foreground font-medium">
+                              {categoryGroup.category}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="text-xs h-5 px-1.5 shrink-0">
+                            {categoryGroup.clusters.length}
+                          </Badge>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="ml-4 border-l-2 border-muted-foreground/15">
+                            <div className="divide-y">
+                              {categoryGroup.clusters.slice(0, MAX_CLUSTERS_PER_CATEGORY).map((cluster) => (
+                                <ClusterItem
+                                  key={cluster.id}
+                                  cluster={cluster}
+                                  isActive={currentCluster === cluster.clusterId}
+                                  onClick={() => onClusterClick(cluster)}
+                                />
+                              ))}
+                              {categoryGroup.clusters.length > MAX_CLUSTERS_PER_CATEGORY && (
+                                <div className="pl-6 pr-4 py-2 text-xs text-muted-foreground text-center">
+                                  Showing {MAX_CLUSTERS_PER_CATEGORY} of {categoryGroup.clusters.length} clusters
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                )
-              })}
+                          </div>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
+                  )
+                })}
+              </div>
             </CollapsibleContent>
           </div>
         </Collapsible>
@@ -203,7 +207,7 @@ function ClusterItem({
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-between gap-2 w-full px-4 py-3 text-sm hover:bg-accent/50 transition-colors text-left group"
+      className="flex items-center justify-between gap-2 w-full pl-10 pr-4 py-2.5 text-sm hover:bg-accent/50 transition-colors text-left group"
     >
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
         <ClusterStatusDot status={getClusterStatus(cluster)} />
