@@ -3,7 +3,8 @@ import { IconEdit, IconServer } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
 import { Cluster } from '@/types/api'
-import { ClusterCreateRequest } from '@/lib/api'
+import { ClusterCreateRequest, usePoolList } from '@/lib/api'
+import type { Pool } from '@/types/api'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -82,11 +83,25 @@ function ClusterDialogContent({
 
   const [formData, setFormData] = useState(() => createClusterFormData(cluster))
 
+  const { data: pools = [], isLoading: isLoadingPools } = usePoolList()
+  const enabledPools = pools.filter((p: Pool) => p.enable)
+
+  const NO_POOL_VALUE = '__none__'
+  const selectPoolValue = formData.poolId || NO_POOL_VALUE
+
+  const currentPoolIsOrphan = formData.poolId
+    ? !enabledPools.some((p: Pool) => p.poolId === formData.poolId)
+    : false
+
+  const orphanPool: Pool | undefined = currentPoolIsOrphan && formData.poolId
+    ? { id: -1, poolId: formData.poolId, poolName: `${formData.poolId} (unavailable)`, enable: false, createdAt: '', updatedAt: '' }
+    : undefined
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Normalize tags before submit
     const normalizedData = {
       ...formData,
+      poolId: formData.poolId === NO_POOL_VALUE ? '' : formData.poolId,
       tags: normalizeTags(formData.tags || []),
     }
     onSubmit(normalizedData)
@@ -148,6 +163,7 @@ function ClusterDialogContent({
                 'e.g., prod-001, staging-002'
               )}
               required
+              disabled={isEditMode}
             />
           </div>
         </div>
@@ -241,15 +257,36 @@ function ClusterDialogContent({
           <Label htmlFor="cluster-poolId">
             {t('clusterManagement.dialog.pool', 'Resource Pool')}
           </Label>
-          <Input
-            id="cluster-poolId"
-            value={formData.poolId}
-            onChange={(e) => handleChange('poolId', e.target.value)}
-            placeholder={t(
-              'clusterManagement.dialog.poolPlaceholder',
-              'e.g., CIDC-RP-29, suzhou'
-            )}
-          />
+          <Select
+            value={selectPoolValue}
+            onValueChange={(value) =>
+              handleChange('poolId', value === NO_POOL_VALUE ? '' : value)
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue
+                placeholder={isLoadingPools
+                  ? t('common.messages.loading', 'Loading...')
+                  : t('clusterManagement.dialog.poolPlaceholder', 'Select a resource pool')
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_POOL_VALUE}>
+                {t('clusterManagement.dialog.noPool', 'No Pool')}
+              </SelectItem>
+              {orphanPool && (
+                <SelectItem value={orphanPool.poolId}>
+                  {orphanPool.poolName}
+                </SelectItem>
+              )}
+              {enabledPools.map((pool: Pool) => (
+                <SelectItem key={pool.poolId} value={pool.poolId}>
+                  {pool.poolName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

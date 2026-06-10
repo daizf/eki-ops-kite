@@ -113,11 +113,13 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		return
 	}
 
-	if _, err := model.GetClusterByName(req.Name); err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "cluster already exists"})
-		return
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+	existing, err := model.GetClusterByClusterID(req.ClusterID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if existing != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "cluster ID already exists"})
 		return
 	}
 
@@ -230,10 +232,6 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 
 	if req.Name != "" && req.Name != cluster.Name {
 		updates["name"] = req.Name
-	}
-
-	if req.ClusterID != "" && req.ClusterID != cluster.ClusterID {
-		updates["cluster_id"] = req.ClusterID
 	}
 
 	if req.Config != "" {
