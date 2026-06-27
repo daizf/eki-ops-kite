@@ -82,6 +82,8 @@
       "clientId": "Client ID",
       "cluster": "集群",
       "clusters": "集群",
+      "clusterCategories": "集群分类",
+      "clusterTags": "集群标签",
       "clusterIP": "Cluster IP",
       "clusterId": "集群ID",
       "pool": "资源池",
@@ -655,6 +657,10 @@
     "get": "查看",
     "actions": {
       "add": "添加角色"
+    },
+    "dialog": {
+      "allCategories": "全部分类",
+      "addCategory": "添加分类..."
     },
     "verb": {
       "get": "查看",

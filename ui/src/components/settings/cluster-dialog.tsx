@@ -26,6 +26,7 @@ import { Switch } from '@/components/ui/switch'
 import { TagInput } from '@/components/ui/tag-input'
 import { Textarea } from '@/components/ui/textarea'
 
+import { CATEGORIES } from '@/lib/constants'
 import { normalizeTags } from '@/lib/tags'
 
 interface ClusterDialogProps {
@@ -78,8 +79,6 @@ function ClusterDialogContent({
 }: Omit<ClusterDialogProps, 'open'>) {
   const { t } = useTranslation()
   const isEditMode = !!cluster
-
-  const CATEGORIES = ['ESK', 'KCS', '共享集群', '管理集群']
 
   const [formData, setFormData] = useState(() => createClusterFormData(cluster))
 

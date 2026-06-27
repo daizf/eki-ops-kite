@@ -8,10 +8,12 @@ type Role struct {
 	IsSystem    bool   `json:"isSystem" gorm:"type:boolean;not null;default:false"`
 
 	// Rules
-	Clusters   SliceString `json:"clusters" gorm:"type:text"`
-	Resources  SliceString `json:"resources" gorm:"type:text"`
-	Namespaces SliceString `json:"namespaces" gorm:"type:text"`
-	Verbs      SliceString `json:"verbs" gorm:"type:text"`
+	Clusters          SliceString `json:"clusters" gorm:"type:text"`
+	ClusterCategories SliceString `json:"clusterCategories" gorm:"type:text"`
+	ClusterTags       SliceString `json:"clusterTags" gorm:"type:text"`
+	Resources         SliceString `json:"resources" gorm:"type:text"`
+	Namespaces        SliceString `json:"namespaces" gorm:"type:text"`
+	Verbs             SliceString `json:"verbs" gorm:"type:text"`
 
 	Assignments []RoleAssignment `json:"assignments" gorm:"foreignKey:RoleID;constraint:OnDelete:CASCADE"`
 }
@@ -35,22 +37,26 @@ const (
 
 var (
 	DefaultAdminRole = Role{
-		Name:        "admin",
-		Description: "Administrator role with full access",
-		IsSystem:    true,
-		Clusters:    []string{"*"},
-		Resources:   []string{"*"},
-		Namespaces:  []string{"*"},
-		Verbs:       []string{"*"},
+		Name:              "admin",
+		Description:       "Administrator role with full access",
+		IsSystem:          true,
+		Clusters:          []string{"*"},
+		ClusterCategories: []string{"*"},
+		ClusterTags:       []string{"*"},
+		Resources:         []string{"*"},
+		Namespaces:        []string{"*"},
+		Verbs:             []string{"*"},
 	}
 	DefaultViewerRole = Role{
-		Name:        "viewer",
-		Description: "Viewer role with read-only access",
-		IsSystem:    true,
-		Clusters:    []string{"*"},
-		Resources:   []string{"*"},
-		Namespaces:  []string{"*"},
-		Verbs:       []string{"get", "log"},
+		Name:              "viewer",
+		Description:       "Viewer role with read-only access",
+		IsSystem:          true,
+		Clusters:          []string{"*"},
+		ClusterCategories: []string{"*"},
+		ClusterTags:       []string{"*"},
+		Resources:         []string{"*"},
+		Namespaces:        []string{"*"},
+		Verbs:             []string{"get", "log"},
 	}
 )
 

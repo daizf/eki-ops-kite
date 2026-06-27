@@ -76,12 +76,14 @@ type RBACConfig struct {
 }
 
 type RoleConfig struct {
-	Name        string   `yaml:"name"`
-	Description string   `yaml:"description"`
-	Clusters    []string `yaml:"clusters"`
-	Namespaces  []string `yaml:"namespaces"`
-	Resources   []string `yaml:"resources"`
-	Verbs       []string `yaml:"verbs"`
+	Name              string   `yaml:"name"`
+	Description       string   `yaml:"description"`
+	Clusters          []string `yaml:"clusters"`
+	ClusterCategories []string `yaml:"clusterCategories"`
+	ClusterTags       []string `yaml:"clusterTags"`
+	Namespaces        []string `yaml:"namespaces"`
+	Resources         []string `yaml:"resources"`
+	Verbs             []string `yaml:"verbs"`
 }
 
 type RoleMappingConfig struct {
@@ -327,31 +329,35 @@ func applyRBAC(cfg *RBACConfig) error {
 		// Upsert roles from config
 		for _, r := range cfg.Roles {
 			var existing model.Role
-			if err := tx.Where("name = ?", r.Name).First(&existing).Error; err == nil {
-				// Update existing role (likely a system role)
-				existing.Description = r.Description
-				existing.Clusters = r.Clusters
-				existing.Namespaces = r.Namespaces
-				existing.Resources = r.Resources
-				existing.Verbs = r.Verbs
-				if err := tx.Save(&existing).Error; err != nil {
-					return err
-				}
-			} else {
-				// Create new role
-				role := &model.Role{
-					Name:        r.Name,
-					Description: r.Description,
-					Clusters:    r.Clusters,
-					Namespaces:  r.Namespaces,
-					Resources:   r.Resources,
-					Verbs:       r.Verbs,
-				}
-				if err := tx.Create(role).Error; err != nil {
-					return err
-				}
+if err := tx.Where("name = ?", r.Name).First(&existing).Error; err == nil {
+			// Update existing role (likely a system role)
+			existing.Description = r.Description
+			existing.Clusters = r.Clusters
+			existing.ClusterCategories = r.ClusterCategories
+			existing.ClusterTags = r.ClusterTags
+			existing.Namespaces = r.Namespaces
+			existing.Resources = r.Resources
+			existing.Verbs = r.Verbs
+			if err := tx.Save(&existing).Error; err != nil {
+				return err
+			}
+		} else {
+			// Create new role
+			role := &model.Role{
+				Name:              r.Name,
+				Description:       r.Description,
+				Clusters:          r.Clusters,
+				ClusterCategories: r.ClusterCategories,
+				ClusterTags:       r.ClusterTags,
+				Namespaces:        r.Namespaces,
+				Resources:         r.Resources,
+				Verbs:             r.Verbs,
+			}
+			if err := tx.Create(role).Error; err != nil {
+				return err
 			}
 		}
+	}
 
 		// Apply role mappings
 		for _, m := range cfg.RoleMapping {

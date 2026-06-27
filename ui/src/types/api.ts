@@ -369,6 +369,8 @@ export interface Role {
   description?: string
   isSystem?: boolean
   clusters: string[]
+  clusterCategories?: string[]
+  clusterTags?: string[]
   namespaces: string[]
   resources: string[]
   verbs: string[]

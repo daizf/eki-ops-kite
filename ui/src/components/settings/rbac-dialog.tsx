@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Cluster, Role } from '@/types/api'
 import { useClusterList } from '@/lib/api'
+import { CATEGORIES } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,6 +15,14 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 
 import { Separator } from '../ui/separator'
@@ -37,15 +46,25 @@ export function RBACDialog({
   const [form, setForm] = useState<Partial<Role>>({
     name: '',
     description: '',
-    clusters: [],
-    namespaces: [],
-    resources: [],
-    verbs: [],
+    clusters: ['*'],
+    clusterCategories: ['*'],
+    clusterTags: ['*'],
+    namespaces: ['*'],
+    resources: ['*'],
+    verbs: ['*'],
   })
 
   useEffect(() => {
     if (role) {
-      setForm(role)
+      setForm({
+        ...role,
+        clusters: role.clusters || ['*'],
+        clusterCategories: role.clusterCategories || ['*'],
+        clusterTags: role.clusterTags || ['*'],
+        namespaces: role.namespaces || ['*'],
+        resources: role.resources || ['*'],
+        verbs: role.verbs || ['*'],
+      })
     }
   }, [role, open])
 
@@ -53,10 +72,36 @@ export function RBACDialog({
     setForm((prev) => ({ ...(prev || {}), [field]: value }))
 
   const setArrayField = (
-    field: 'clusters' | 'namespaces' | 'resources' | 'verbs',
+    field:
+      | 'clusters'
+      | 'clusterCategories'
+      | 'clusterTags'
+      | 'namespaces'
+      | 'resources'
+      | 'verbs',
     items: string[]
   ) => {
     setForm((prev) => ({ ...(prev || {}), [field]: items }))
+  }
+
+  // Categories dropdown multi-select toggle
+  const toggleCategory = (cat: string) => {
+    const current = form.clusterCategories || ['*']
+    let next: string[]
+    if (current.includes('*') && current.length === 1) {
+      // Switching from "all" to specific: start fresh with this category
+      next = [cat]
+    } else if (current.includes(cat)) {
+      next = current.filter((c) => c !== cat)
+      if (next.length === 0) next = ['*'] // Revert to all if none selected
+    } else {
+      if (cat === '*') {
+        next = ['*']
+      } else {
+        next = [...current.filter((c) => c !== '*'), cat]
+      }
+    }
+    setArrayField('clusterCategories', next)
   }
 
   function ListEditor({
@@ -226,6 +271,87 @@ export function RBACDialog({
                     ? (clusterList as Cluster[]).map((c) => c.name)
                     : []
                 }
+              />
+
+              {/* Cluster Categories — dropdown multi-select from CATEGORIES */}
+              <div className="space-y-2">
+                <Label>
+                  {t('common.fields.clusterCategories', 'Cluster Categories')}
+                </Label>
+                <Select
+                  value={
+                    (form.clusterCategories || ['*']).length === 1 &&
+                    (form.clusterCategories || ['*'])[0] === '*'
+                      ? '__all__'
+                      : '__multi__'
+                  }
+                  onValueChange={() => {}}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t('rbac.dialog.allCategories', 'All Categories')}
+                    />
+                  </SelectTrigger>
+                </Select>
+                <div className="flex flex-wrap gap-2">
+                  {(form.clusterCategories || ['*']).map((cat) =>
+                    cat === '*' ? (
+                      <Badge key="*" variant="secondary" className="text-sm">
+                        {t('rbac.dialog.allCategories', 'All')}
+                        <button
+                          type="button"
+                          className="ml-1"
+                          onClick={() => setArrayField('clusterCategories', [])}
+                        >
+                          <IconX className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ) : (
+                      <Badge key={cat} variant="secondary" className="text-sm">
+                        {cat}
+                        <button
+                          type="button"
+                          className="ml-1"
+                          onClick={() => toggleCategory(cat)}
+                        >
+                          <IconX className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    )
+                  )}
+                </div>
+                <Select
+                  onValueChange={(value) => {
+                    if (value === '__all__') {
+                      setArrayField('clusterCategories', ['*'])
+                    } else {
+                      toggleCategory(value)
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t('rbac.dialog.addCategory', 'Add a category...')}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">
+                      {t('rbac.dialog.allCategories', 'All Categories')}
+                    </SelectItem>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <ListEditor
+                label={t('common.fields.clusterTags', 'Cluster Tags')}
+                items={form.clusterTags || ['*']}
+                onChange={(items) => setArrayField('clusterTags', items)}
+                placeholder="* or tag-name"
               />
 
               <ListEditor

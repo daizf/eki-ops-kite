@@ -82,6 +82,8 @@
       "clientId": "Client ID",
       "cluster": "Cluster",
       "clusters": "Clusters",
+      "clusterCategories": "Cluster Categories",
+      "clusterTags": "Cluster Tags",
       "clusterIP": "Cluster IP",
       "clusterId": "Cluster ID",
       "pool": "Resource Pool",
@@ -645,6 +647,10 @@
     "accessDenied": "Access Denied",
     "insufficientPermissions": "You do not have sufficient permissions to perform this action",
     "allNamespaces": "All Namespaces",
+    "dialog": {
+      "allCategories": "All Categories",
+      "addCategory": "Add a category..."
+    },
     "verb": {
       "get": "Get",
       "create": "Create",

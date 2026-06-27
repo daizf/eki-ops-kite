@@ -12,12 +12,14 @@ const (
 )
 
 type Role struct {
-	Name        string   `yaml:"name" json:"name"`
-	Description string   `yaml:"description" json:"-"`
-	Clusters    []string `yaml:"clusters" json:"clusters"`
-	Resources   []string `yaml:"resources" json:"resources"`
-	Namespaces  []string `yaml:"namespaces" json:"namespaces"`
-	Verbs       []string `yaml:"verbs" json:"verbs"`
+	Name             string   `yaml:"name" json:"name"`
+	Description      string   `yaml:"description" json:"-"`
+	Clusters         []string `yaml:"clusters" json:"clusters"`
+	ClusterCategories []string `yaml:"clusterCategories" json:"clusterCategories"`
+	ClusterTags      []string `yaml:"clusterTags" json:"clusterTags"`
+	Resources        []string `yaml:"resources" json:"resources"`
+	Namespaces       []string `yaml:"namespaces" json:"namespaces"`
+	Verbs            []string `yaml:"verbs" json:"verbs"`
 }
 
 type RoleMapping struct {

@@ -87,6 +87,8 @@ func UpdateRole(c *gin.Context) {
 	role.Name = req.Name
 	role.Description = req.Description
 	role.Clusters = req.Clusters
+	role.ClusterCategories = req.ClusterCategories
+	role.ClusterTags = req.ClusterTags
 	role.Namespaces = req.Namespaces
 	role.Resources = req.Resources
 	role.Verbs = req.Verbs

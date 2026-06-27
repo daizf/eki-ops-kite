@@ -113,10 +113,12 @@ func TestCanAccessClusterAndNamespace(t *testing.T) {
 		},
 	}
 
-	if !CanAccessCluster(user, "dev-1") {
+	dev1 := &model.Cluster{Name: "dev-1"}
+	prod1 := &model.Cluster{Name: "prod-1"}
+	if !CanAccessCluster(user, dev1) {
 		t.Fatal("expected cluster access")
 	}
-	if CanAccessCluster(user, "prod-1") {
+	if CanAccessCluster(user, prod1) {
 		t.Fatal("expected cluster access to be denied")
 	}
 	if !CanAccessNamespace(user, "dev-1", "team-a") {

@@ -16,12 +16,35 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// lookupCluster returns the model.Cluster for a snapshot key. The snapshot map
+// (and the per-cluster error map) is keyed by ClusterID; if the DB record is
+// missing (e.g. a transient state), a minimal Cluster with just the name set
+// is returned so RBAC name-pattern matching still works while category/tag
+// restrictions fall back to "match any" (empty values).
+func lookupCluster(byID map[string]*model.Cluster, clusterID string) *model.Cluster {
+	if db, ok := byID[clusterID]; ok {
+		return db
+	}
+	return &model.Cluster{Name: clusterID}
+}
+
 func (cm *ClusterManager) GetClusters(c *gin.Context) {
 	clusters, errors, defaultContext := cm.snapshotState()
 	result := make([]common.ClusterInfo, 0, len(clusters))
 	user := c.MustGet("user").(model.User)
+
+	// Batch-fetch DB cluster records to perform category/tag-aware RBAC checks.
+	// The snapshot map is keyed by clusterID, so we build a lookup by ClusterID.
+	dbClusters, err := model.ListClusters()
+	clusterByID := make(map[string]*model.Cluster, len(dbClusters))
+	if err == nil {
+		for _, db := range dbClusters {
+			clusterByID[db.ClusterID] = db
+		}
+	}
+
 	for name, cluster := range clusters {
-		if !rbac.CanAccessCluster(user, name) {
+		if !rbac.CanAccessCluster(user, lookupCluster(clusterByID, name)) {
 			continue
 		}
 		result = append(result, common.ClusterInfo{
@@ -31,7 +54,7 @@ func (cm *ClusterManager) GetClusters(c *gin.Context) {
 		})
 	}
 	for name, errMsg := range errors {
-		if !rbac.CanAccessCluster(user, name) {
+		if !rbac.CanAccessCluster(user, lookupCluster(clusterByID, name)) {
 			continue
 		}
 		result = append(result, common.ClusterInfo{
@@ -58,7 +81,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 	clusterState, errorState, _ := cm.snapshotState()
 	result := make([]gin.H, 0, len(clusters))
 	for _, cluster := range clusters {
-		if !rbac.CanAccessCluster(user, cluster.Name) {
+		if !rbac.CanAccessCluster(user, cluster) {
 			continue
 		}
 		clusterInfo := gin.H{

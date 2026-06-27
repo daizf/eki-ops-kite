@@ -29,10 +29,42 @@ func CanAccess(user model.User, resource, verb, cluster, namespace string) bool 
 	return false
 }
 
-func CanAccessCluster(user model.User, name string) bool {
+func CanAccessCluster(user model.User, cluster *model.Cluster) bool {
+	if cluster == nil {
+		return false
+	}
 	roles := GetUserRoles(user)
+	tags := cluster.GetTags()
+	category := cluster.Category
 	for _, role := range roles {
-		if match(role.Clusters, name) {
+		if match(role.Clusters, cluster.Name) &&
+			matchClusterAttr(role.ClusterCategories, category) &&
+			matchClusterTags(role.ClusterTags, tags) {
+			return true
+		}
+	}
+	return false
+}
+
+// matchClusterAttr matches a cluster attribute (e.g. Category) against role
+// patterns. An empty pattern list or a "*" entry means "allow any" (this keeps
+// existing DB rows — which predate the field — backward compatible).
+func matchClusterAttr(patterns []string, val string) bool {
+	if len(patterns) == 0 || contains(patterns, "*") {
+		return true
+	}
+	return match(patterns, val)
+}
+
+// matchClusterTags matches a cluster's tag set against role tag patterns.
+// An empty pattern list or a "*" entry means "allow any". Otherwise the
+// cluster must have at least one tag that matches one of the role patterns.
+func matchClusterTags(patterns []string, clusterTags []string) bool {
+	if len(patterns) == 0 || contains(patterns, "*") {
+		return true
+	}
+	for _, tag := range clusterTags {
+		if match(patterns, tag) {
 			return true
 		}
 	}

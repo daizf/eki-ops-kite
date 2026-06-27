@@ -37,6 +37,7 @@ import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialo
 import { Action, ActionTable } from '../action-table'
 import { ClusterDialog } from './cluster-dialog'
 import { BatchImportDialog } from './batch-import-dialog'
+import { CATEGORIES } from '@/lib/constants'
 import { getTagColor } from '@/lib/tags'
 
 export function ClusterManagement() {
@@ -80,15 +81,6 @@ export function ClusterManagement() {
     })
     return Array.from(poolSet).sort()
   }, [clusters, getPoolDisplayName])
-
-  // Get all available categories for filter
-  const availableCategories = useMemo(() => {
-    const categorySet = new Set<string>()
-    clusters.forEach((cluster) => {
-      if (cluster.category) categorySet.add(cluster.category)
-    })
-    return Array.from(categorySet).sort()
-  }, [clusters])
 
   // Filter clusters by search query, pool, category, and selected tags
   const filteredClusters = useMemo(() => {
@@ -543,8 +535,7 @@ export function ClusterManagement() {
             )}
 
             {/* Category dropdown */}
-            {availableCategories.length > 0 && (
-              <Select
+            <Select
                 value={selectedCategory || '__all__'}
                 onValueChange={(value) => {
                   setSelectedCategory(value === '__all__' ? '' : value)
@@ -566,14 +557,13 @@ export function ClusterManagement() {
                       'All Categories'
                     )}
                   </SelectItem>
-                  {availableCategories.map((category) => (
+                  {CATEGORIES.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
 
             {hasActiveFilters && (
               <Button
