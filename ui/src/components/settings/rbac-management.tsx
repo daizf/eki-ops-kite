@@ -73,6 +73,32 @@ export function RBACManagement() {
         ),
       },
       {
+        id: 'clusterCategories',
+        header: t('common.fields.clusterCategories', 'Cluster Categories'),
+        cell: ({ row: { original: r } }) => (
+          <div className="text-sm text-muted-foreground">
+            {(r.clusterCategories || []).length > 0 ? (
+              (r.clusterCategories || []).join(', ')
+            ) : (
+              <span className="text-xs text-muted-foreground">-</span>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: 'clusterTags',
+        header: t('common.fields.clusterTags', 'Cluster Tags'),
+        cell: ({ row: { original: r } }) => (
+          <div className="text-sm text-muted-foreground">
+            {(r.clusterTags || []).length > 0 ? (
+              (r.clusterTags || []).join(', ')
+            ) : (
+              <span className="text-xs text-muted-foreground">-</span>
+            )}
+          </div>
+        ),
+      },
+      {
         id: 'namespaces',
         header: 'Namespaces',
         cell: ({ row: { original: r } }) => (
