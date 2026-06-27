@@ -14,6 +14,7 @@ import (
 	"github.com/zxh326/kite/pkg/model"
 	"github.com/zxh326/kite/pkg/prometheus"
 	"gorm.io/gorm"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -31,6 +32,12 @@ type ClientSet struct {
 	DiscoveredPrometheusURL string
 	config                  string
 	prometheusURL           string
+	lastVersionCheck        time.Time
+}
+
+type retryEntry struct {
+	nextAttempt time.Time
+	attempt     int
 }
 
 type ClusterManager struct {
@@ -38,10 +45,17 @@ type ClusterManager struct {
 	syncMu         sync.Mutex
 	clusters       map[string]*ClientSet
 	errors         map[string]string
+	retries        map[string]*retryEntry
 	defaultContext string
 }
 
-const clusterStartupSyncTimeout = 10 * time.Second
+const (
+	clusterStartupSyncTimeout = 10 * time.Second
+	versionCheckTimeout       = 10 * time.Second
+	versionCheckConcurrency   = 10
+	forceRebuildThreshold     = 5 * time.Minute
+	backoffMaxInterval        = 30 * time.Minute
+)
 
 func buildClientSet(cluster *model.Cluster) (*ClientSet, error) {
 	var restConfig *rest.Config
@@ -64,7 +78,11 @@ func buildClientSet(cluster *model.Cluster) (*ClientSet, error) {
 		}
 	}
 
-	cs, err := newClientSet(cluster.Name, restConfig, cluster.PrometheusURL)
+	poolName := ""
+	if cluster.Pool != nil {
+		poolName = cluster.Pool.PoolName
+	}
+	cs, err := newClientSet(cluster.Name, poolName, restConfig, cluster.PrometheusURL)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +101,7 @@ func applyProxyToRestConfig(config *rest.Config, proxy string) error {
 	return nil
 }
 
-func newClientSet(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+func newClientSet(name string, poolName string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 	cs := &ClientSet{
 		Name:          name,
 		prometheusURL: prometheusURL,
@@ -117,11 +135,12 @@ func newClientSet(name string, k8sConfig *rest.Config, prometheusURL string) (*C
 			klog.Warningf("Failed to create Prometheus client for cluster %s, some features may not work as expected, err: %v", name, err)
 		}
 	}
-	v, err := cs.K8sClient.ClientSet.Discovery().ServerVersion()
+	v, err := getServerVersionWithTimeout(cs, versionCheckTimeout)
 	if err != nil {
-		klog.Warningf("Failed to get server version for cluster %s: %v", name, err)
+		klog.Warningf("Failed to get server version for cluster %s (pool: %s): %v", name, poolName, err)
 	} else {
 		cs.Version = v.String()
+		cs.lastVersionCheck = time.Now()
 	}
 	klog.Infof("Loaded K8s client for cluster: %s, version: %s", name, cs.Version)
 	return cs, nil
@@ -284,73 +303,107 @@ func syncClusters(cm *ClusterManager, readyCh chan<- struct{}) error {
 		return err
 	}
 	dbClusterMap := make(map[string]interface{})
-	type buildResult struct {
-		cluster   *model.Cluster
-		clientSet *ClientSet
-		err       error
-	}
-	buildQueue := make([]*model.Cluster, 0)
+
+	// Snapshot current clusters + retries (one read lock)
+	cm.mu.RLock()
+	snapshot := make(map[string]*ClientSet, len(cm.clusters))
+	maps.Copy(snapshot, cm.clusters)
+	retriesSnapshot := make(map[string]*retryEntry, len(cm.retries))
+	maps.Copy(retriesSnapshot, cm.retries)
+	cm.mu.RUnlock()
+
+	// Phase 1: Parallel shouldUpdateCluster + collect buildQueue
+	var buildQueue []*model.Cluster
+	var queueMu sync.Mutex
+	sem := make(chan struct{}, versionCheckConcurrency)
+	var wg sync.WaitGroup
+	var defaultClusterID string
 	for _, cluster := range clusters {
 		dbClusterMap[cluster.ClusterID] = cluster
 		if cluster.IsDefault {
-			cm.mu.Lock()
-			cm.defaultContext = cluster.ClusterID
-			cm.mu.Unlock()
+			defaultClusterID = cluster.ClusterID
 		}
-		cm.mu.RLock()
-		current, currentExist := cm.clusters[cluster.ClusterID]
-		cm.mu.RUnlock()
-		if shouldUpdateCluster(current, cluster) {
-			if currentExist {
+		// Backoff check: skip clusters still in backoff
+		entry, hasBackoff := retriesSnapshot[cluster.ClusterID]
+		if hasBackoff && time.Now().Before(entry.nextAttempt) {
+			klog.Infof("Cluster %s skipped due to backoff (attempt %d, next: %s)",
+				cluster.Name, entry.attempt, entry.nextAttempt.Format(time.RFC3339))
+			continue
+		}
+		wg.Add(1)
+		go func(cluster *model.Cluster) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			current := snapshot[cluster.ClusterID]
+			if !shouldUpdateCluster(current, cluster) {
+				return
+			}
+			// Needs update: cleanup old ClientSet + enqueue
+			if current != nil {
 				cm.mu.Lock()
 				delete(cm.clusters, cluster.ClusterID)
 				cm.mu.Unlock()
 				current.K8sClient.Stop(cluster.ClusterID)
 			}
 			if cluster.Enable {
+				queueMu.Lock()
 				buildQueue = append(buildQueue, cluster)
+				queueMu.Unlock()
 			} else {
 				cm.mu.Lock()
 				delete(cm.errors, cluster.ClusterID)
 				cm.mu.Unlock()
 			}
-		}
+		}(cluster)
 	}
-	results := make(chan buildResult, len(buildQueue))
-	var wg sync.WaitGroup
+	if defaultClusterID != "" {
+		cm.mu.Lock()
+		cm.defaultContext = defaultClusterID
+		cm.mu.Unlock()
+	}
+	wg.Wait()
+
+	// Phase 2: Parallel buildClientSet + backoff management
+	type buildResult struct {
+		cluster   *model.Cluster
+		clientSet *ClientSet
+		err       error
+	}
+	buildResults := make(chan buildResult, len(buildQueue))
+	var buildWg sync.WaitGroup
 	for _, cluster := range buildQueue {
-		wg.Add(1)
+		buildWg.Add(1)
 		go func(cluster *model.Cluster) {
-			defer wg.Done()
+			defer buildWg.Done()
 			clientSet, err := buildClientSet(cluster)
 			if err == nil {
 				clientSet.ClusterID = cluster.ClusterID
 				clientSet.PoolID = cluster.PoolID
 			}
-			results <- buildResult{
-				cluster:   cluster,
-				clientSet: clientSet,
-				err:       err,
-			}
+			buildResults <- buildResult{cluster, clientSet, err}
 		}(cluster)
 	}
 	go func() {
-		wg.Wait()
-		close(results)
+		buildWg.Wait()
+		close(buildResults)
 	}()
-	for result := range results {
-		if result.err != nil {
-			klog.Errorf("Failed to build k8s client for cluster %s, in cluster: %t, err: %v", result.cluster.Name, result.cluster.InCluster, result.err)
-			cm.mu.Lock()
-			cm.errors[result.cluster.ClusterID] = result.err.Error()
-			cm.mu.Unlock()
+	for r := range buildResults {
+		if r.err != nil {
+			poolName := ""
+			if r.cluster.Pool != nil {
+				poolName = r.cluster.Pool.PoolName
+			}
+			klog.Errorf("Failed to build k8s client for cluster %s (pool: %s), in cluster: %t, err: %v",
+				r.cluster.Name, poolName, r.cluster.InCluster, r.err)
+			cm.recordFailure(r.cluster.ClusterID, r.cluster.Name, r.err)
 			continue
 		}
-		cm.mu.Lock()
-		delete(cm.errors, result.cluster.ClusterID)
-		cm.clusters[result.cluster.ClusterID] = result.clientSet
-		cm.mu.Unlock()
+		cm.recordSuccess(r.cluster.ClusterID, r.clientSet)
 	}
+
+	// Cleanup: remove clusters that no longer exist in DB
 	cm.mu.Lock()
 	for clusterID, clientSet := range cm.clusters {
 		if _, ok := dbClusterMap[clusterID]; !ok {
@@ -363,9 +416,41 @@ func syncClusters(cm *ClusterManager, readyCh chan<- struct{}) error {
 			delete(cm.errors, clusterID)
 		}
 	}
+	for clusterID := range cm.retries {
+		if _, ok := dbClusterMap[clusterID]; !ok {
+			delete(cm.retries, clusterID)
+		}
+	}
 	cm.mu.Unlock()
 
 	return nil
+}
+
+func (cm *ClusterManager) recordFailure(clusterID, name string, err error) {
+	cm.mu.Lock()
+	defer cm.mu.Unlock()
+	cm.errors[clusterID] = err.Error()
+	entry := cm.retries[clusterID]
+	if entry == nil {
+		entry = &retryEntry{}
+		cm.retries[clusterID] = entry
+	}
+	entry.attempt++
+	backoff := (1 << uint(entry.attempt-1)) * time.Minute
+	if backoff > backoffMaxInterval {
+		backoff = backoffMaxInterval
+	}
+	entry.nextAttempt = time.Now().Add(backoff)
+	klog.Warningf("Cluster %s build failed (attempt %d), backing off for %v until %s",
+		name, entry.attempt, backoff, entry.nextAttempt.Format(time.RFC3339))
+}
+
+func (cm *ClusterManager) recordSuccess(clusterID string, cs *ClientSet) {
+	cm.mu.Lock()
+	defer cm.mu.Unlock()
+	delete(cm.errors, clusterID)
+	delete(cm.retries, clusterID)
+	cm.clusters[clusterID] = cs
 }
 
 // shouldUpdateCluster decides whether the cached ClientSet needs to be updated
@@ -399,15 +484,45 @@ func shouldUpdateCluster(cs *ClientSet, cluster *model.Cluster) bool {
 	// k8s version change
 	// TODO: Replace direct ClientSet.Discovery() call with a small DiscoveryInterface.
 	// current code depends on *kubernetes.Clientset, which is hard to mock in tests.
-	version, err := cs.K8sClient.ClientSet.Discovery().ServerVersion()
+	version, err := getServerVersionWithTimeout(cs, versionCheckTimeout)
 	if err != nil {
-		klog.Warningf("Failed to get server version for cluster %s: %v", cluster.Name, err)
+		poolName := ""
+		if cluster.Pool != nil {
+			poolName = cluster.Pool.PoolName
+		}
+		klog.Warningf("Failed to get server version for cluster %s (pool: %s): %v", cluster.Name, poolName, err)
+		if time.Since(cs.lastVersionCheck) > forceRebuildThreshold {
+			klog.Infof("Forcing rebuild for cluster %s, last version check was %v ago", cluster.Name, time.Since(cs.lastVersionCheck))
+			return true
+		}
 	} else if version.String() != cs.Version {
 		klog.Infof("Server version changed for cluster %s, updating, old: %s, new: %s", cluster.Name, cs.Version, version.String())
+		cs.Version = version.String()
+		cs.lastVersionCheck = time.Now()
 		return true
+	} else {
+		cs.lastVersionCheck = time.Now()
 	}
 
 	return false
+}
+
+func getServerVersionWithTimeout(cs *ClientSet, timeout time.Duration) (*version.Info, error) {
+	type result struct {
+		v   *version.Info
+		err error
+	}
+	ch := make(chan result, 1)
+	go func() {
+		v, err := cs.K8sClient.ClientSet.Discovery().ServerVersion()
+		ch <- result{v, err}
+	}()
+	select {
+	case r := <-ch:
+		return r.v, r.err
+	case <-time.After(timeout):
+		return nil, fmt.Errorf("server version check timed out after %s", timeout)
+	}
 }
 
 func (cm *ClusterManager) syncClusters() error {
@@ -441,6 +556,7 @@ func NewClusterManager() (*ClusterManager, error) {
 	cm := new(ClusterManager)
 	cm.clusters = make(map[string]*ClientSet)
 	cm.errors = make(map[string]string)
+	cm.retries = make(map[string]*retryEntry)
 
 	initialReady := make(chan struct{}, 1)
 	go func() {

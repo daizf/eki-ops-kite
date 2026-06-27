@@ -1,7 +1,9 @@
 package cluster
 
 import (
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/bytedance/mockey"
 	"github.com/stretchr/testify/assert"
@@ -141,8 +143,9 @@ func Test_shouldUpdateCluster(t *testing.T) {
 				K8sClient: &kube.K8sClient{
 					ClientSet: &kubernetes.Clientset{DiscoveryClient: &discovery.DiscoveryClient{}},
 				},
-				config:        "test-config",
-				prometheusURL: "test-prometheus-url",
+				config:           "test-config",
+				prometheusURL:    "test-prometheus-url",
+				lastVersionCheck: time.Now(),
 			}
 			cluster := &model.Cluster{
 				Name:          "test",
@@ -152,6 +155,56 @@ func Test_shouldUpdateCluster(t *testing.T) {
 			}
 			got := shouldUpdateCluster(cs, cluster)
 			assert.False(t, got, "expected no update when all the same")
+		})
+	})
+
+	t.Run("server version fails, within threshold, no rebuild", func(t *testing.T) {
+		mockey.PatchConvey("mock ServerVersion fail", t, func() {
+			mockey.Mock((*discovery.DiscoveryClient).ServerVersion).
+				Return(nil, errors.New("connection refused")).Build()
+			cs := &ClientSet{
+				Name:    "test",
+				Version: "v1.34.0",
+				K8sClient: &kube.K8sClient{
+					ClientSet: &kubernetes.Clientset{DiscoveryClient: &discovery.DiscoveryClient{}},
+				},
+				config:           "test-config",
+				prometheusURL:    "test-prometheus-url",
+				lastVersionCheck: time.Now().Add(-1 * time.Minute),
+			}
+			cluster := &model.Cluster{
+				Name:          "test",
+				Enable:        true,
+				Config:        model.SecretString("test-config"),
+				PrometheusURL: "test-prometheus-url",
+			}
+			got := shouldUpdateCluster(cs, cluster)
+			assert.False(t, got, "expected no rebuild when version check fails within threshold")
+		})
+	})
+
+	t.Run("server version fails, exceeds threshold, force rebuild", func(t *testing.T) {
+		mockey.PatchConvey("mock ServerVersion fail", t, func() {
+			mockey.Mock((*discovery.DiscoveryClient).ServerVersion).
+				Return(nil, errors.New("connection refused")).Build()
+			cs := &ClientSet{
+				Name:    "test",
+				Version: "v1.34.0",
+				K8sClient: &kube.K8sClient{
+					ClientSet: &kubernetes.Clientset{DiscoveryClient: &discovery.DiscoveryClient{}},
+				},
+				config:           "test-config",
+				prometheusURL:    "test-prometheus-url",
+				lastVersionCheck: time.Now().Add(-10 * time.Minute),
+			}
+			cluster := &model.Cluster{
+				Name:          "test",
+				Enable:        true,
+				Config:        model.SecretString("test-config"),
+				PrometheusURL: "test-prometheus-url",
+			}
+			got := shouldUpdateCluster(cs, cluster)
+			assert.True(t, got, "expected force rebuild when version check fails beyond threshold")
 		})
 	})
 }

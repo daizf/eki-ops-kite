@@ -258,7 +258,7 @@ func TestGetClientSet(t *testing.T) {
 
 func TestBuildClientSet(t *testing.T) {
 	t.Run("uses in-cluster config", func(t *testing.T) {
-		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, poolName string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 			if name != "cluster-a" {
 				t.Fatalf("name = %q, want %q", name, "cluster-a")
 			}
@@ -288,7 +288,7 @@ func TestBuildClientSet(t *testing.T) {
 	})
 
 	t.Run("uses kubeconfig and sets config", func(t *testing.T) {
-		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, poolName string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 			if name != "cluster-b" {
 				t.Fatalf("name = %q, want %q", name, "cluster-b")
 			}
@@ -322,7 +322,7 @@ func TestBuildClientSet(t *testing.T) {
 
 	t.Run("applies pool proxy for non-in-cluster cluster", func(t *testing.T) {
 		var capturedConfig *rest.Config
-		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, poolName string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 			capturedConfig = k8sConfig
 			return &ClientSet{Name: name}, nil
 		}).Build()
@@ -349,7 +349,7 @@ func TestBuildClientSet(t *testing.T) {
 
 	t.Run("skips proxy when pool has no proxy", func(t *testing.T) {
 		var capturedConfig *rest.Config
-		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, poolName string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 			capturedConfig = k8sConfig
 			return &ClientSet{Name: name}, nil
 		}).Build()
@@ -376,7 +376,7 @@ func TestBuildClientSet(t *testing.T) {
 
 	t.Run("skips proxy when pool is nil", func(t *testing.T) {
 		var capturedConfig *rest.Config
-		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
+		newClientSetMock := mockey.Mock(newClientSet).To(func(name string, poolName string, k8sConfig *rest.Config, prometheusURL string) (*ClientSet, error) {
 			capturedConfig = k8sConfig
 			return &ClientSet{Name: name}, nil
 		}).Build()
