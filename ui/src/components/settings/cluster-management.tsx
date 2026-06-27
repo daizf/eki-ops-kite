@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { IconEdit, IconPlus, IconServer, IconTrash, IconUpload } from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, PaginationState } from '@tanstack/react-table'
 import { useTranslation } from 'react-i18next'
+import { Search, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Cluster } from '@/types/api'
@@ -18,6 +19,14 @@ import { ClusterStatusDot, getClusterStatus } from '@/components/cluster-status-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Tooltip,
   TooltipContent,
@@ -41,6 +50,17 @@ export function ClusterManagement() {
   const [deletingCluster, setDeletingCluster] = useState<Cluster | null>(null)
   const [showBatchImportDialog, setShowBatchImportDialog] = useState(false)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedPool, setSelectedPool] = useState<string>('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20,
+  })
+
+  const getPoolDisplayName = useCallback((cluster: Cluster) => {
+    return cluster.pool?.poolName || cluster.poolId || ''
+  }, [])
 
   // Get all available tags for filter
   const availableTags = useMemo(() => {
@@ -51,25 +71,91 @@ export function ClusterManagement() {
     return Array.from(tagSet).sort()
   }, [clusters])
 
-  // Filter clusters by selected tags
-  const filteredClusters = useMemo(() => {
-    if (selectedTags.length === 0) return clusters
-    return clusters.filter((cluster) => {
-      if (!cluster.tags || cluster.tags.length === 0) return false
-      return selectedTags.every((tag) => cluster.tags?.includes(tag))
+  // Get all available pools for filter
+  const availablePools = useMemo(() => {
+    const poolSet = new Set<string>()
+    clusters.forEach((cluster) => {
+      const poolName = getPoolDisplayName(cluster)
+      if (poolName) poolSet.add(poolName)
     })
-  }, [clusters, selectedTags])
+    return Array.from(poolSet).sort()
+  }, [clusters, getPoolDisplayName])
+
+  // Get all available categories for filter
+  const availableCategories = useMemo(() => {
+    const categorySet = new Set<string>()
+    clusters.forEach((cluster) => {
+      if (cluster.category) categorySet.add(cluster.category)
+    })
+    return Array.from(categorySet).sort()
+  }, [clusters])
+
+  // Filter clusters by search query, pool, category, and selected tags
+  const filteredClusters = useMemo(() => {
+    let result = clusters
+
+    // Text search: name, clusterId, tags
+    const query = searchQuery.trim().toLowerCase()
+    if (query) {
+      result = result.filter((cluster) => {
+        if (cluster.name.toLowerCase().includes(query)) return true
+        if (cluster.clusterId.toLowerCase().includes(query)) return true
+        if (cluster.tags?.some((tag) => tag.toLowerCase().includes(query))) {
+          return true
+        }
+        return false
+      })
+    }
+
+    // Pool dropdown filter (exact match on pool display name)
+    if (selectedPool) {
+      result = result.filter(
+        (cluster) => getPoolDisplayName(cluster) === selectedPool
+      )
+    }
+
+    // Category dropdown filter (exact match)
+    if (selectedCategory) {
+      result = result.filter((cluster) => cluster.category === selectedCategory)
+    }
+
+    // Tag filter (existing — every selected tag must be present)
+    if (selectedTags.length > 0) {
+      result = result.filter((cluster) => {
+        if (!cluster.tags || cluster.tags.length === 0) return false
+        return selectedTags.every((tag) => cluster.tags?.includes(tag))
+      })
+    }
+
+    return result
+  }, [
+    clusters,
+    searchQuery,
+    selectedPool,
+    selectedCategory,
+    selectedTags,
+    getPoolDisplayName,
+  ])
+
+  const hasActiveFilters =
+    !!searchQuery ||
+    !!selectedPool ||
+    !!selectedCategory ||
+    selectedTags.length > 0
+
+  const clearAllFilters = () => {
+    setSearchQuery('')
+    setSelectedPool('')
+    setSelectedCategory('')
+    setSelectedTags([])
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+  }
 
   // Toggle tag selection
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     )
-  }
-
-  // Clear all tag filters
-  const clearTagFilters = () => {
-    setSelectedTags([])
   }
 
   const getClusterTypeBadge = useCallback(
@@ -396,43 +482,174 @@ export function ClusterManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          {availableTags.length > 0 && (
-            <div className="flex items-center gap-4 mb-4 flex-wrap">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-muted-foreground">
-                  {t('clusterManagement.filter.label', 'Filter by tags')}:
-                </span>
-                {availableTags.slice(0, 8).map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant={selectedTags.includes(tag) ? 'default' : 'outline'}
-                    className={`cursor-pointer ${!selectedTags.includes(tag) ? getTagColor(tag) : ''}`}
-                    onClick={() => toggleTag(tag)}
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-                {availableTags.length > 8 && (
-                  <span className="text-xs text-muted-foreground">
-                    +{availableTags.length - 8} more
-                  </span>
+          {/* Search + dropdown filters (one row) + active filter count */}
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {/* Search input */}
+            <div className="relative w-full sm:w-[280px] shrink-0">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder={t(
+                  'clusterManagement.filter.searchPlaceholder',
+                  'Search by name, cluster ID or tag...'
                 )}
-              </div>
-              {selectedTags.length > 0 && (
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                }}
+                className="w-full pl-9 pr-9"
+              />
+              {searchQuery && (
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={clearTagFilters}
-                  className="h-7 text-xs"
+                  size="icon"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  aria-label={t('common.actions.clear', 'Clear')}
                 >
-                  {t('common.actions.clear', 'Clear')}
+                  <XCircle className="h-4 w-4" />
                 </Button>
+              )}
+            </div>
+
+            {/* Pool dropdown */}
+            {availablePools.length > 0 && (
+              <Select
+                value={selectedPool || '__all__'}
+                onValueChange={(value) => {
+                  setSelectedPool(value === '__all__' ? '' : value)
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                }}
+              >
+                <SelectTrigger size="sm" className="w-[180px]">
+                  <SelectValue
+                    placeholder={t(
+                      'clusterManagement.filter.allPools',
+                      'All Pools'
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">
+                    {t('clusterManagement.filter.allPools', 'All Pools')}
+                  </SelectItem>
+                  {availablePools.map((pool) => (
+                    <SelectItem key={pool} value={pool}>
+                      {pool}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Category dropdown */}
+            {availableCategories.length > 0 && (
+              <Select
+                value={selectedCategory || '__all__'}
+                onValueChange={(value) => {
+                  setSelectedCategory(value === '__all__' ? '' : value)
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                }}
+              >
+                <SelectTrigger size="sm" className="w-[180px]">
+                  <SelectValue
+                    placeholder={t(
+                      'clusterManagement.filter.allCategories',
+                      'All Categories'
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">
+                    {t(
+                      'clusterManagement.filter.allCategories',
+                      'All Categories'
+                    )}
+                  </SelectItem>
+                  {availableCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-8 text-xs"
+              >
+                {t('common.actions.clear', 'Clear')}
+              </Button>
+            )}
+
+            <div className="ml-auto text-xs text-muted-foreground">
+              {t('clusterManagement.filter.summary', {
+                shown: filteredClusters.length,
+                total: clusters.length,
+                defaultValue: 'Showing {{shown}} of {{total}} clusters',
+              })}
+            </div>
+          </div>
+
+          {/* Tag filters (existing) */}
+          {availableTags.length > 0 && (
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <span className="text-sm text-muted-foreground">
+                {t('clusterManagement.filter.label', 'Filter by tags')}:
+              </span>
+              {availableTags.slice(0, 8).map((tag) => (
+                <Badge
+                  key={tag}
+                  variant={selectedTags.includes(tag) ? 'default' : 'outline'}
+                  className={`cursor-pointer ${!selectedTags.includes(tag) ? getTagColor(tag) : ''}`}
+                  onClick={() => {
+                    toggleTag(tag)
+                    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                  }}
+                >
+                  {tag}
+                </Badge>
+              ))}
+              {availableTags.length > 8 && (
+                <span className="text-xs text-muted-foreground">
+                  +{availableTags.length - 8} more
+                </span>
               )}
             </div>
           )}
 
-          <ActionTable data={filteredClusters} columns={columns} actions={actions} />
-          {filteredClusters.length === 0 && (
+          {clusters.length > 0 ? (
+            <>
+              <ActionTable
+                data={filteredClusters}
+                columns={columns}
+                actions={actions}
+                pagination={pagination}
+                onPaginationChange={setPagination}
+              />
+              {filteredClusters.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <IconServer className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>
+                    {t(
+                      'clusterManagement.empty.noMatch',
+                      'No clusters match the current filters'
+                    )}
+                  </p>
+                  <p className="text-sm mt-1">
+                    {t(
+                      'clusterManagement.empty.adjustFilters',
+                      'Try adjusting your search or filters.'
+                    )}
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
             <div className="text-center py-8 text-muted-foreground">
               <IconServer className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>

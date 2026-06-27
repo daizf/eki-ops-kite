@@ -46,6 +46,14 @@
       "viewError": "View Error",
       "watch": "Watch"
     },
+    "of": "of",
+    "pagination": {
+      "rowsPerPage": "Rows per page",
+      "page": "Page",
+      "of": "of",
+      "previous": "Previous page",
+      "next": "Next page"
+    },
     "fields": {
       "accessModes": "Access Modes",
       "actions": "Actions",
@@ -779,7 +787,9 @@
     },
     "empty": {
       "title": "No clusters configured",
-      "description": "Add your first cluster to get started"
+      "description": "Add your first cluster to get started",
+      "noMatch": "No clusters match the current filters",
+      "adjustFilters": "Try adjusting your search or filters."
     },
     "messages": {
       "created": "Cluster created successfully",
@@ -794,9 +804,15 @@
     },
     "deleteConfirmation": "This action will only remove the current cluster's configuration in kite and will not delete any cluster resources.",
     "filter": {
+      "label": "Filter by tags",
       "byTags": "Filter by tags",
       "empty": "No clusters match the selected filters",
-      "clearFilters": "Clear"
+      "clearFilters": "Clear",
+      "searchPlaceholder": "Search by name, cluster ID or tag...",
+      "allPools": "All Pools",
+      "allCategories": "All Categories",
+      "showing": "Showing",
+      "summary": "Showing {{shown}} of {{total}} clusters"
     },
     "batchImport": {
       "title": "Batch Import Clusters",
