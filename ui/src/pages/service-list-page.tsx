@@ -20,10 +20,10 @@ const serviceSearchFilter = createSearchFilter<Service>(
   (s) => getServicePortSearchValues(s)
 )
 
+const columnHelper = createColumnHelper<Service>()
+
 export function ServiceListPage() {
   const { t } = useTranslation()
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<Service>()
 
   // Define columns for the service table
   const columns = useMemo(
@@ -104,7 +104,7 @@ export function ServiceListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

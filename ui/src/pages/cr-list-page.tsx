@@ -29,6 +29,8 @@ const searchQueryFilter = createSearchFilter<CustomResource>(
   (cr) => (cr.metadata?.labels ? Object.values(cr.metadata.labels) : undefined)
 )
 
+const columnHelper = createColumnHelper<CustomResource>()
+
 export function CRListPage() {
   const { t } = useTranslation()
   const [isYamlDialogOpen, setIsYamlDialogOpen] = useState(false)
@@ -36,7 +38,6 @@ export function CRListPage() {
   const { crd } = useParams<{ crd: string }>()
   const { data: crdData, isLoading: isLoadingCRD } = useResource('crds', crd!)
 
-  const columnHelper = createColumnHelper<CustomResource>()
   const handleViewYaml = useCallback((crd: CustomResourceDefinition) => {
     setYamlContent(yaml.dump(crd, { indent: 2 }))
     setIsYamlDialogOpen(true)
@@ -108,7 +109,7 @@ export function CRListPage() {
         }
       )
     return [...baseColumns, ...(additionalColumns ?? [])]
-  }, [columnHelper, crd, crdData?.spec.versions])
+  }, [crd, crdData?.spec.versions])
 
   if (isLoadingCRD) {
     return <div>Loading...</div>

@@ -1,7 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
-
 import { authApiClient } from '../api-client'
-import type { AuthProviderCatalog, CredentialProvider } from './admin'
+import type {
+  WebAuthnAssertionResponseJSON,
+  WebAuthnCreationOptionsJSON,
+  WebAuthnRegistrationResponseJSON,
+  WebAuthnRequestOptionsJSON,
+} from '../webauthn'
+
+export type CredentialProvider = 'password' | 'ldap'
 
 export interface AuthUser {
   id: string
@@ -9,84 +14,14 @@ export interface AuthUser {
   name: string
   avatar_url: string
   provider: string
+  mfa_enabled?: boolean
   roles?: { name: string }[]
   sidebar_preference?: string
-}
-
-export interface CurrentUserResponse {
-  user: AuthUser
-  hasGlobalSidebarPreference: boolean
-  globalSidebarPreference: string
 }
 
 export interface OAuthLoginResponse {
   auth_url: string
   provider: string
-}
-
-function normalizeAuthProviderCatalog(
-  data: Partial<AuthProviderCatalog>
-): AuthProviderCatalog {
-  if (data.credentialProviders || data.oauthProviders) {
-    return {
-      providers: data.providers || [],
-      credentialProviders: data.credentialProviders || [],
-      oauthProviders: data.oauthProviders || [],
-    }
-  }
-
-  const providers = data.providers || []
-  const credentialProviders = providers.filter(
-    (provider): provider is CredentialProvider =>
-      provider === 'password' || provider === 'ldap'
-  )
-  const oauthProviders = providers.filter(
-    (provider) => provider !== 'password' && provider !== 'ldap'
-  )
-
-  return {
-    providers,
-    credentialProviders,
-    oauthProviders,
-  }
-}
-
-export const fetchAuthProviders = async (): Promise<AuthProviderCatalog> => {
-  const data = await authApiClient.get<Partial<AuthProviderCatalog>>(
-    '/auth/providers',
-    { retryOnUnauthorized: false }
-  )
-  return normalizeAuthProviderCatalog(data)
-}
-
-export const useAuthProviders = (options?: { enabled?: boolean }) => {
-  return useQuery({
-    queryKey: ['auth', 'providers'],
-    queryFn: fetchAuthProviders,
-    enabled: options?.enabled ?? false,
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
-}
-
-export const fetchCurrentUser = async (): Promise<CurrentUserResponse> => {
-  return authApiClient.get<CurrentUserResponse>('/auth/user', {
-    retryOnUnauthorized: false,
-  })
-}
-
-export const useCurrentUser = (options?: { enabled?: boolean }) => {
-  return useQuery({
-    queryKey: ['auth', 'current-user'],
-    queryFn: fetchCurrentUser,
-    enabled: options?.enabled ?? false,
-    retry: false,
-    staleTime: 0,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
 }
 
 export const initiateOAuthLogin = async (
@@ -103,13 +38,15 @@ export const initiateOAuthLogin = async (
 export const loginWithCredentials = async (
   provider: CredentialProvider,
   username: string,
-  password: string
+  password: string,
+  mfaCode?: string
 ): Promise<void> => {
   await authApiClient.post<void>(
     `/auth/login/${provider}`,
     {
       username,
       password,
+      ...(mfaCode ? { mfa_code: mfaCode } : {}),
     },
     { retryOnUnauthorized: false }
   )
@@ -123,6 +60,108 @@ export const refreshAuthToken = async (): Promise<void> => {
 
 export const logout = async (): Promise<void> => {
   await authApiClient.post<void>('/auth/logout', undefined, {
+    retryOnUnauthorized: false,
+  })
+}
+
+export const updateCurrentUser = async (data: {
+  name: string
+}): Promise<AuthUser> => {
+  return authApiClient.put<AuthUser>('/users/me', data)
+}
+
+export const changeCurrentUserPassword = async (
+  currentPassword: string,
+  newPassword: string
+): Promise<void> => {
+  await authApiClient.post<void>('/users/me/password', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  })
+}
+
+export interface MFASetupResponse {
+  secret: string
+  otpauth_url: string
+  qr_code: string
+}
+
+export interface PasskeyCredential {
+  id: number
+  name: string
+  credential_id: string
+  createdAt: string
+  last_used_at?: string
+}
+
+export const setupCurrentUserMFA = async (
+  currentPassword: string
+): Promise<MFASetupResponse> => {
+  return authApiClient.post<MFASetupResponse>('/users/me/mfa/setup', {
+    current_password: currentPassword,
+  })
+}
+
+export const enableCurrentUserMFA = async (code: string): Promise<AuthUser> => {
+  return authApiClient.post<AuthUser>('/users/me/mfa/enable', { code })
+}
+
+export const disableCurrentUserMFA = async (
+  code: string
+): Promise<AuthUser> => {
+  return authApiClient.post<AuthUser>('/users/me/mfa/disable', { code })
+}
+
+export const listCurrentUserPasskeys = async (): Promise<
+  PasskeyCredential[]
+> => {
+  const result = await authApiClient.get<{ passkeys: PasskeyCredential[] }>(
+    '/users/me/passkeys'
+  )
+  return result.passkeys
+}
+
+export const beginCurrentUserPasskeyRegistration = async (
+  name: string,
+  currentPassword: string,
+  mfaCode?: string
+): Promise<WebAuthnCreationOptionsJSON> => {
+  return authApiClient.post<WebAuthnCreationOptionsJSON>(
+    '/users/me/passkeys/begin',
+    {
+      name,
+      current_password: currentPassword,
+      ...(mfaCode ? { mfa_code: mfaCode } : {}),
+    }
+  )
+}
+
+export const finishCurrentUserPasskeyRegistration = async (
+  credential: WebAuthnRegistrationResponseJSON
+): Promise<PasskeyCredential> => {
+  return authApiClient.post<PasskeyCredential>(
+    '/users/me/passkeys/finish',
+    credential
+  )
+}
+
+export const deleteCurrentUserPasskey = async (id: number): Promise<void> => {
+  await authApiClient.delete<void>(`/users/me/passkeys/${id}`)
+}
+
+export const beginPasskeyLogin =
+  async (): Promise<WebAuthnRequestOptionsJSON> => {
+    return authApiClient.post<WebAuthnRequestOptionsJSON>(
+      '/auth/passkey/login/begin',
+      undefined,
+      { retryOnUnauthorized: false }
+    )
+  }
+
+export const finishPasskeyLogin = async (
+  credential: WebAuthnAssertionResponseJSON
+): Promise<void> => {
+  await authApiClient.post<void>('/auth/passkey/login/finish', credential, {
     retryOnUnauthorized: false,
   })
 }

@@ -39,6 +39,13 @@ function getManualChunk(id: string) {
     return 'log-viewer'
   }
 
+  if (
+    normalizedId.includes('/node_modules/recharts/') ||
+    normalizedId.includes('/node_modules/victory-vendor/')
+  ) {
+    return 'recharts'
+  }
+
   return undefined
 }
 

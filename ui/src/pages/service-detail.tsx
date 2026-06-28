@@ -1,17 +1,19 @@
 import { useMemo } from 'react'
-import { IconExternalLink } from '@tabler/icons-react'
-import { Service, ServicePort } from 'kubernetes-types/core/v1'
+import { Service } from 'kubernetes-types/core/v1'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { updateResource, useResource } from '@/lib/api'
-import { getServiceExternalIP } from '@/lib/k8s'
-import { withSubPath } from '@/lib/subpath'
-import { Badge } from '@/components/ui/badge'
+import {
+  updateResource,
+  useResource,
+  useResources,
+  useResourcesEvents,
+  useResourcesWatch,
+} from '@/lib/api'
 import { EventTable } from '@/components/event-table'
 import { RelatedResourcesTable } from '@/components/related-resource-table'
 import { ResourceHistoryTable } from '@/components/resource-history-table'
-import { ResourceOverview } from '@/components/resource-overview'
+import { ServiceOverview } from '@/components/service-overview'
 
 import {
   ResourceDetailShell,
@@ -27,18 +29,54 @@ export function ServiceDetail(props: { name: string; namespace?: string }) {
     name,
     namespace
   )
+  const labelSelector = data?.spec?.selector
+    ? Object.entries(data.spec.selector)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(',')
+    : undefined
+  const {
+    data: relatedPods,
+    isLoading: isLoadingPods,
+    refetch: refetchPods,
+  } = useResourcesWatch('pods', namespace, {
+    labelSelector,
+    enabled: !!namespace && !!labelSelector,
+  })
+  const {
+    data: endpoints,
+    isLoading: isEndpointsLoading,
+    refetch: refetchEndpoints,
+  } = useResource('endpoints', name, namespace)
+  const serviceEndpoints = useMemo(
+    () => (endpoints ? [endpoints] : []),
+    [endpoints]
+  )
+  const endpointSlicesQuery = useResources('endpointslices', namespace, {
+    labelSelector: `kubernetes.io/service-name=${name}`,
+  })
+  const { data: serviceEvents, isLoading: isEventsLoading } =
+    useResourcesEvents('services', name, namespace)
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetch(),
+      refetchPods(),
+      refetchEndpoints(),
+      endpointSlicesQuery.refetch(),
+    ])
+  }
 
   const handleSaveYaml = async (content: Service) => {
     await updateResource('services', name, namespace, content)
-    toast.success('YAML saved successfully')
-    await refetch()
+    toast.success(t('common.messages.yamlSaved'))
+    await handleRefresh()
   }
 
   const tabs = useMemo<ResourceDetailShellTab<Service>[]>(
     () => [
       {
         value: 'related',
-        label: 'Related',
+        label: t('common.tabs.related'),
         content: (
           <RelatedResourcesTable
             resource="services"
@@ -49,14 +87,14 @@ export function ServiceDetail(props: { name: string; namespace?: string }) {
       },
       {
         value: 'events',
-        label: 'Events',
+        label: t('common.tabs.events'),
         content: (
           <EventTable resource="services" name={name} namespace={namespace} />
         ),
       },
       {
         value: 'history',
-        label: 'History',
+        label: t('common.tabs.history'),
         content: data ? (
           <ResourceHistoryTable
             resourceType="services"
@@ -67,7 +105,7 @@ export function ServiceDetail(props: { name: string; namespace?: string }) {
         ) : null,
       },
     ],
-    [data, name, namespace]
+    [data, name, namespace, t]
   )
 
   return (
@@ -79,125 +117,26 @@ export function ServiceDetail(props: { name: string; namespace?: string }) {
       data={data}
       isLoading={isLoading}
       error={isError ? error : null}
-      onRefresh={refetch}
+      onRefresh={handleRefresh}
       onSaveYaml={handleSaveYaml}
       overview={
         data ? (
-          <ResourceOverview
-            resourceType="services"
-            name={name}
+          <ServiceOverview
+            service={data}
             namespace={namespace}
-            metadata={data.metadata}
-            fields={[
-              {
-                label: t('common.fields.type'),
-                value: data.spec?.type || 'ClusterIP',
-              },
-              {
-                label: t('common.fields.clusterIP'),
-                value: data.spec?.clusterIP || '-',
-                mono: true,
-              },
-              {
-                label: t('common.fields.externalIP'),
-                value: getServiceExternalIP(data),
-                mono: true,
-              },
-              {
-                label: t('common.fields.selector'),
-                value: <ServiceSelector labels={data.spec?.selector || {}} />,
-                truncate: false,
-              },
-              {
-                label: t('common.fields.resourceVersion'),
-                value: data.metadata?.resourceVersion || '-',
-                mono: true,
-              },
-            ]}
-          >
-            <ServicePorts
-              namespace={namespace}
-              name={name}
-              ports={data.spec?.ports || []}
-            />
-          </ResourceOverview>
+            name={name}
+            pods={relatedPods}
+            isPodsLoading={isLoadingPods}
+            endpoints={serviceEndpoints}
+            isEndpointsLoading={isEndpointsLoading}
+            endpointSlices={endpointSlicesQuery.data}
+            isEndpointSlicesLoading={endpointSlicesQuery.isLoading}
+            events={serviceEvents}
+            isEventsLoading={isEventsLoading}
+          />
         ) : null
       }
       extraTabs={tabs}
     />
-  )
-}
-
-function ServiceSelector({ labels }: { labels: Record<string, string> }) {
-  const entries = Object.entries(labels)
-  if (entries.length === 0) {
-    return <span className="text-muted-foreground">-</span>
-  }
-
-  return (
-    <div className="flex min-w-0 flex-wrap gap-1">
-      {entries.map(([key, value]) => (
-        <Badge
-          key={key}
-          variant="outline"
-          className="max-w-full truncate font-mono"
-          title={`${key}=${value}`}
-        >
-          {key}={value}
-        </Badge>
-      ))}
-    </div>
-  )
-}
-
-function ServicePorts({
-  namespace,
-  name,
-  ports,
-}: {
-  namespace?: string
-  name: string
-  ports: ServicePort[]
-}) {
-  const { t } = useTranslation()
-
-  if (ports.length === 0) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        {t('common.messages.noPorts')}
-      </div>
-    )
-  }
-
-  return (
-    <div className="divide-y divide-border/70">
-      {ports.map((port, index) => (
-        <div
-          key={`${port.name || index}-${port.port}-${port.protocol}`}
-          className="grid min-w-0 grid-cols-[minmax(0,1fr)_5rem_5rem] items-center gap-2 py-2 text-sm"
-        >
-          <a
-            href={withSubPath(
-              `/api/v1/namespaces/${namespace}/services/${name}:${port.port}/proxy/`
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="app-link inline-flex min-w-0 items-center gap-1 font-mono"
-          >
-            <span className="truncate">
-              {port.name ? `${port.name}:` : ''}
-              {port.port}
-            </span>
-            <IconExternalLink className="size-3 shrink-0" />
-          </a>
-          <span className="text-center text-xs text-muted-foreground">
-            {port.protocol || 'TCP'}
-          </span>
-          <span className="text-right text-xs text-muted-foreground tabular-nums">
-            {port.targetPort ? `-> ${port.targetPort}` : '-'}
-          </span>
-        </div>
-      ))}
-    </div>
   )
 }

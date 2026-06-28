@@ -9,10 +9,9 @@ import { ResourceTable } from '@/components/resource-table'
 
 const filter = createSearchFilter<HTTPRoute>((hr) => hr.metadata?.name)
 
-export function HTTPRouteListPage() {
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<HTTPRoute>()
+const columnHelper = createColumnHelper<HTTPRoute>()
 
+export function HTTPRouteListPage() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('metadata.name', {
@@ -42,7 +41,7 @@ export function HTTPRouteListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

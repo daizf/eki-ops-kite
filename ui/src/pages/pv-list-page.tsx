@@ -17,9 +17,10 @@ const pvSearchFilter = createSearchFilter<PersistentVolume>(
   (pv) => pv.spec?.claimRef?.namespace
 )
 
+const columnHelper = createColumnHelper<PersistentVolume>()
+
 export function PVListPage() {
   const { t } = useTranslation()
-  const columnHelper = createColumnHelper<PersistentVolume>()
 
   // Define columns for the PV table
   const columns = useMemo(
@@ -122,7 +123,7 @@ export function PVListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

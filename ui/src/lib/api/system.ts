@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { apiClient } from '../api-client'
+import { apiClient, authApiClient } from '../api-client'
+import { fetchBootstrap, useBootstrap } from './bootstrap'
 import { fetchAPI } from './shared'
 
 // Initialize API types
@@ -10,17 +11,16 @@ export interface InitCheckResponse {
 }
 
 // Initialize API function
-export const fetchInitCheck = (): Promise<InitCheckResponse> => {
-  return fetchAPI<InitCheckResponse>('/init_check')
+export const fetchInitCheck = async (): Promise<InitCheckResponse> => {
+  return (await fetchBootstrap()).setup
 }
 
 export const useInitCheck = () => {
-  return useQuery({
-    queryKey: ['init-check'],
-    queryFn: fetchInitCheck,
-    staleTime: 0, // Always fresh
-    refetchInterval: 0, // No auto-refresh
-  })
+  const query = useBootstrap({ staleTime: 0 })
+  return {
+    ...query,
+    data: query.data?.setup,
+  }
 }
 
 // Version information
@@ -55,7 +55,7 @@ export interface CreateUserRequest {
 export const createSuperUser = async (
   userData: CreateUserRequest
 ): Promise<void> => {
-  await apiClient.post('/admin/users/create_super_user', userData)
+  await authApiClient.post('/auth/setup/create_super_user', userData)
 }
 
 // Cluster import for initial setup

@@ -29,6 +29,22 @@ func CanAccess(user model.User, resource, verb, cluster, namespace string) bool 
 	return false
 }
 
+// CanAccessClusterByName checks if a user can access a cluster by its name
+// (simple name-based check, no category/tag matching). For full RBAC including
+// categories and tags, use CanAccessCluster with a *model.Cluster.
+func CanAccessClusterByName(user model.User, name string) bool {
+	if name == "" {
+		return false
+	}
+	roles := GetUserRoles(user)
+	for _, role := range roles {
+		if match(role.Clusters, name) {
+			return true
+		}
+	}
+	return false
+}
+
 func CanAccessCluster(user model.User, cluster *model.Cluster) bool {
 	if cluster == nil {
 		return false

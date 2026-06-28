@@ -37,23 +37,26 @@ interface NetworkUsageChartProps {
 }
 
 const chartConfig = {
-  networkOut: {
-    label: 'Outgoing',
-    color: 'oklch(0.55 0.22 235)',
-  },
   networkIn: {
     label: 'Incoming',
     color: 'oklch(0.55 0.20 145)',
+  },
+  networkOut: {
+    label: 'Outgoing',
+    color: 'oklch(0.55 0.22 235)',
   },
 } satisfies ChartConfig
 
 const NetworkUsageChart = React.memo((prop: NetworkUsageChartProps) => {
   const { networkIn, networkOut, isLoading, error, syncId } = prop
 
-  const chartData = React.useMemo(
-    () => mergeDualSeries(networkIn, networkOut, 'networkIn', 'networkOut'),
-    [networkIn, networkOut]
-  )
+  const chartData = React.useMemo(() => {
+    const outbound = networkOut.map((point) => ({
+      ...point,
+      value: -Math.abs(point.value),
+    }))
+    return mergeDualSeries(networkIn, outbound, 'networkIn', 'networkOut')
+  }, [networkIn, networkOut])
   const sameDay = React.useMemo(() => isSameDay(chartData), [chartData])
 
   return (
@@ -74,18 +77,6 @@ const NetworkUsageChart = React.memo((prop: NetworkUsageChartProps) => {
       >
         <AreaChart data={chartData} syncId={syncId}>
           <defs>
-            <linearGradient id="fillNetworkOut" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="5%"
-                stopColor="var(--color-networkOut)"
-                stopOpacity={0.8}
-              />
-              <stop
-                offset="95%"
-                stopColor="var(--color-networkOut)"
-                stopOpacity={0.1}
-              />
-            </linearGradient>
             <linearGradient id="fillNetworkIn" x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="5%"
@@ -95,6 +86,18 @@ const NetworkUsageChart = React.memo((prop: NetworkUsageChartProps) => {
               <stop
                 offset="95%"
                 stopColor="var(--color-networkIn)"
+                stopOpacity={0.1}
+              />
+            </linearGradient>
+            <linearGradient id="fillNetworkOut" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor="var(--color-networkOut)"
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor="var(--color-networkOut)"
                 stopOpacity={0.1}
               />
             </linearGradient>
@@ -143,19 +146,19 @@ const NetworkUsageChart = React.memo((prop: NetworkUsageChartProps) => {
           />
           <Area
             isAnimationActive={false}
-            dataKey="networkOut"
+            dataKey="networkIn"
             type="monotone"
-            fill="url(#fillNetworkOut)"
-            stroke="var(--color-networkOut)"
+            fill="url(#fillNetworkIn)"
+            stroke="var(--color-networkIn)"
             strokeWidth={2}
             dot={false}
           />
           <Area
             isAnimationActive={false}
-            dataKey="networkIn"
+            dataKey="networkOut"
             type="monotone"
-            fill="url(#fillNetworkIn)"
-            stroke="var(--color-networkIn)"
+            fill="url(#fillNetworkOut)"
+            stroke="var(--color-networkOut)"
             strokeWidth={2}
             dot={false}
           />

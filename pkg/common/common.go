@@ -52,6 +52,18 @@ var (
 	// local Vite dev server cross-origin requests.
 	CORSAllowedOrigins []string
 
+	// TrustedProxies controls which direct peer IPs may provide forwarding headers.
+	// Set TRUSTED_PROXIES to override the defaults, or TRUSTED_PROXIES=none to
+	// ignore all client-supplied forwarding headers.
+	TrustedProxies = []string{
+		"127.0.0.0/8",
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+		"::1",
+		"fc00::/7",
+	}
+
 	APIKeyProvider = "api_key"
 
 	AgentPodNamespace = "kube-system"
@@ -163,4 +175,18 @@ func LoadEnvs() {
 		}
 		klog.Warningf("CORS enabled for origins: %v — disable in production", CORSAllowedOrigins)
 	}
+
+	if v := os.Getenv("TRUSTED_PROXIES"); v != "" {
+		TrustedProxies = nil
+		if !strings.EqualFold(strings.TrimSpace(v), "none") {
+			proxies := strings.Split(v, ",")
+			for _, proxy := range proxies {
+				proxy = strings.TrimSpace(proxy)
+				if proxy != "" {
+					TrustedProxies = append(TrustedProxies, proxy)
+				}
+			}
+		}
+	}
+	klog.Infof("Trusted proxies configured: %v", TrustedProxies)
 }

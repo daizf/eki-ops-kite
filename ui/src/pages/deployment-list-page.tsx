@@ -16,13 +16,12 @@ const deploymentSearchFilter = createSearchFilter<Deployment>(
   (d) => d.metadata?.namespace
 )
 
+const columnHelper = createColumnHelper<Deployment>()
+
 export function DeploymentListPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<Deployment>()
 
   // Define columns for the deployment table
   const columns = useMemo(
@@ -78,7 +77,7 @@ export function DeploymentListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   const handleCreateClick = () => {

@@ -9,10 +9,9 @@ import { ResourceTable } from '@/components/resource-table'
 
 const filter = createSearchFilter<Gateway>((gw) => gw.metadata?.name)
 
-export function GatewayListPage() {
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<Gateway>()
+const columnHelper = createColumnHelper<Gateway>()
 
+export function GatewayListPage() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('metadata.name', {
@@ -42,7 +41,7 @@ export function GatewayListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

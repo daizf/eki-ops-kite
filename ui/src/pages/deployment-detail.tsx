@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { IconReload, IconScale } from '@tabler/icons-react'
+import { IconNetwork, IconReload, IconScale } from '@tabler/icons-react'
 import { Deployment } from 'kubernetes-types/apps/v1'
-import type { Container } from 'kubernetes-types/core/v1'
+import type { Container, Service } from 'kubernetes-types/core/v1'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import {
+  createResource,
   patchResource,
   updateResource,
+  useRelatedResources,
   useResource,
   useResourcesEvents,
   useResourcesWatch,
@@ -16,6 +18,14 @@ import { getDeploymentStatus, toSimpleContainer } from '@/lib/k8s'
 import { translateError } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -23,6 +33,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ContainerInfoCard } from '@/components/container-info-card'
 import { DeploymentOverview } from '@/components/deployment-overview'
 import { EventTable } from '@/components/event-table'
@@ -39,9 +56,17 @@ import {
   type ResourceDetailShellTab,
 } from './resource-detail-shell'
 
+type ExposeServiceType = 'ClusterIP' | 'NodePort' | 'LoadBalancer'
+
 export function DeploymentDetail(props: { namespace: string; name: string }) {
   const { namespace, name } = props
   const [scaleReplicas, setScaleReplicas] = useState(1)
+  const [isExposing, setIsExposing] = useState(false)
+  const [isExposeDialogOpen, setIsExposeDialogOpen] = useState(false)
+  const [exposePort, setExposePort] = useState(80)
+  const [exposeTargetPort, setExposeTargetPort] = useState(80)
+  const [exposeServiceType, setExposeServiceType] =
+    useState<ExposeServiceType>('ClusterIP')
   const [isScalePopoverOpen, setIsScalePopoverOpen] = useState(false)
   const [isRestartPopoverOpen, setIsRestartPopoverOpen] = useState(false)
   const [refreshInterval, setRefreshInterval] = useState(0)
@@ -71,12 +96,31 @@ export function DeploymentDetail(props: { namespace: string; name: string }) {
   )
   const { data: deploymentEvents, isLoading: isEventsLoading } =
     useResourcesEvents('deployments', name, namespace)
+  const { data: relatedResources, refetch: refetchRelatedResources } =
+    useRelatedResources('deployments', name, namespace)
+
+  const hasRelatedService = useMemo(
+    () => relatedResources?.some((resource) => resource.type === 'services'),
+    [relatedResources]
+  )
+  const defaultExposePort = useMemo(() => {
+    const containerPort = deployment?.spec?.template.spec?.containers
+      ?.flatMap((container) => container.ports || [])
+      .find((port) => port.containerPort)?.containerPort
+
+    return containerPort || 80
+  }, [deployment])
 
   useEffect(() => {
     if (deployment) {
       setScaleReplicas(deployment.spec?.replicas || 1)
     }
   }, [deployment])
+
+  useEffect(() => {
+    setExposePort(defaultExposePort)
+    setExposeTargetPort(defaultExposePort)
+  }, [defaultExposePort])
 
   useEffect(() => {
     if (deployment) {
@@ -139,6 +183,68 @@ export function DeploymentDetail(props: { namespace: string; name: string }) {
       toast.error(translateError(err, t))
     }
   }, [t, deployment, name, namespace, scaleReplicas])
+
+  const handleExpose = useCallback(async () => {
+    if (!deployment) return
+
+    const selector = deployment.spec?.selector?.matchLabels || {}
+    if (Object.keys(selector).length === 0) {
+      toast.error(t('deployments.exposeNoSelector'))
+      return
+    }
+
+    if (
+      exposePort < 1 ||
+      exposePort > 65535 ||
+      exposeTargetPort < 1 ||
+      exposeTargetPort > 65535
+    ) {
+      toast.error(t('deployments.exposeInvalidPort'))
+      return
+    }
+
+    const service: Service = {
+      apiVersion: 'v1',
+      kind: 'Service',
+      metadata: {
+        name,
+        namespace,
+        labels: deployment.metadata?.labels,
+      },
+      spec: {
+        type: exposeServiceType,
+        selector,
+        ports: [
+          {
+            port: exposePort,
+            protocol: 'TCP',
+            targetPort: exposeTargetPort,
+          },
+        ],
+      },
+    }
+
+    setIsExposing(true)
+    try {
+      await createResource('services', namespace, service)
+      toast.success(t('deployments.exposed', { service: name }))
+      setIsExposeDialogOpen(false)
+      await refetchRelatedResources()
+    } catch (err) {
+      toast.error(translateError(err, t))
+    } finally {
+      setIsExposing(false)
+    }
+  }, [
+    deployment,
+    exposePort,
+    exposeServiceType,
+    exposeTargetPort,
+    name,
+    namespace,
+    refetchRelatedResources,
+    t,
+  ])
 
   const handleContainerUpdate = useCallback(
     async (updatedContainer: Container, init: boolean) => {
@@ -384,6 +490,17 @@ export function DeploymentDetail(props: { namespace: string; name: string }) {
       }
       headerActions={
         <>
+          {relatedResources && !hasRelatedService ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExposeDialogOpen(true)}
+              disabled={isExposing}
+            >
+              <IconNetwork className="w-4 h-4" />
+              {t('common.actions.expose')}
+            </Button>
+          ) : null}
           <Popover
             open={isScalePopoverOpen}
             onOpenChange={setIsScalePopoverOpen}
@@ -489,6 +606,96 @@ export function DeploymentDetail(props: { namespace: string; name: string }) {
               </div>
             </PopoverContent>
           </Popover>
+          <Dialog
+            open={isExposeDialogOpen}
+            onOpenChange={setIsExposeDialogOpen}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t('deployments.exposeTitle')}</DialogTitle>
+                <DialogDescription>
+                  {t('deployments.exposeDescription')}
+                </DialogDescription>
+              </DialogHeader>
+              <form
+                className="space-y-4"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  handleExpose()
+                }}
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="service-type">
+                    {t('deployments.serviceType')}
+                  </Label>
+                  <Select
+                    value={exposeServiceType}
+                    onValueChange={(value) =>
+                      setExposeServiceType(value as ExposeServiceType)
+                    }
+                  >
+                    <SelectTrigger id="service-type" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ClusterIP">ClusterIP</SelectItem>
+                      <SelectItem value="NodePort">NodePort</SelectItem>
+                      <SelectItem value="LoadBalancer">LoadBalancer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="service-port">
+                      {t('deployments.servicePort')}
+                    </Label>
+                    <Input
+                      id="service-port"
+                      type="number"
+                      min="1"
+                      max="65535"
+                      value={exposePort}
+                      onChange={(event) =>
+                        setExposePort(
+                          Number.parseInt(event.target.value, 10) || 0
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="target-port">
+                      {t('deployments.targetPort')}
+                    </Label>
+                    <Input
+                      id="target-port"
+                      type="number"
+                      min="1"
+                      max="65535"
+                      value={exposeTargetPort}
+                      onChange={(event) =>
+                        setExposeTargetPort(
+                          Number.parseInt(event.target.value, 10) || 0
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsExposeDialogOpen(false)}
+                  >
+                    {t('common.actions.cancel')}
+                  </Button>
+                  <Button type="submit" disabled={isExposing}>
+                    <IconNetwork className="w-4 h-4 mr-2" />
+                    {t('common.actions.expose')}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </>
       }
       preYamlTabs={extraTabs.filter((tab) =>

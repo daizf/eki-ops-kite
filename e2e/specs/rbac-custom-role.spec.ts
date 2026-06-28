@@ -57,13 +57,13 @@ test('custom role grants namespaces and denies nodes', async ({
     .getByPlaceholder('* or pods,deployments')
     .press('Enter')
 
-  const verbsInput = roleDialog.getByPlaceholder('* or get,list,create')
+  const verbsInput = roleDialog.getByPlaceholder(/get.*create/)
   await verbsInput.fill('get')
   await verbsInput.press('Enter')
   await verbsInput.fill('list')
   await verbsInput.press('Enter')
 
-  await roleDialog.getByRole('button', { name: 'Create' }).click()
+  await roleDialog.getByRole('button', { name: 'Create', exact: true }).click()
 
   const roleRow = page.getByRole('row').filter({ hasText: roleName })
   await expect(roleRow).toBeVisible()
@@ -74,7 +74,9 @@ test('custom role grants namespaces and denies nodes', async ({
   const assignDialog = page.getByRole('dialog', { name: `Assign Role - ${roleName}` })
   await expect(assignDialog).toBeVisible()
 
-  await assignDialog.getByPlaceholder('username or group name').fill(username)
+  await assignDialog.getByRole('combobox').filter({ hasText: 'Select user' }).click()
+  await page.getByPlaceholder('Search users...').fill(username)
+  await page.getByRole('option', { name: username }).click()
   await assignDialog.getByRole('button', { name: 'Assign' }).click()
   await assignDialog.getByRole('button', { name: 'Cancel' }).click()
   await expect(assignDialog).toBeHidden()
@@ -87,7 +89,7 @@ test('custom role grants namespaces and denies nodes', async ({
 
   await userPage.goto('/login')
   await userPage.getByLabel('Username').fill(username)
-  await userPage.getByLabel('Password').fill(password)
+  await userPage.getByLabel('Password', { exact: true }).fill(password)
   await userPage.getByRole('button', { name: 'Sign In with Password' }).click()
   await userPage.waitForURL((url) => url.pathname === '/')
 

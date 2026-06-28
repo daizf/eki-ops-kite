@@ -121,11 +121,10 @@ const nodeSearchFilter = createSearchFilter<NodeWithMetrics>(
   (n) => getNodeIP(n)
 )
 
+const columnHelper = createColumnHelper<NodeWithMetrics>()
+
 export function NodeListPage() {
   const { t } = useTranslation()
-
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<NodeWithMetrics>()
 
   // Define columns for the node table
   const columns = useMemo(
@@ -265,7 +264,7 @@ export function NodeListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

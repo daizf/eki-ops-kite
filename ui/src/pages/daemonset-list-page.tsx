@@ -15,10 +15,10 @@ const daemonSetSearchFilter = createSearchFilter<DaemonSet>(
   (d) => d.metadata?.namespace
 )
 
+const columnHelper = createColumnHelper<DaemonSet>()
+
 export function DaemonSetListPage() {
   const { t } = useTranslation()
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<DaemonSet>()
 
   // Define columns for the daemonset table
   const columns = useMemo(
@@ -96,7 +96,7 @@ export function DaemonSetListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

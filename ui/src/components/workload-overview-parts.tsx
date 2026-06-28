@@ -57,7 +57,7 @@ export function WorkloadInfoBlock({
 }) {
   return (
     <div className={cn('min-w-0', className)}>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xs font-medium text-foreground">{label}</div>
       <div
         className={cn(
           'mt-1 min-w-0 text-sm text-foreground/70 tabular-nums',
@@ -93,7 +93,7 @@ export function WorkloadInfoRow({
         compact ? 'grid-cols-[3rem_minmax(0,1fr)]' : labelWidthClass
       )}
     >
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium text-foreground">{label}</span>
       <span
         className={cn(
           'min-w-0 text-foreground/70 tabular-nums',
@@ -116,46 +116,38 @@ export function ContainerImagesList({
     return <span className="text-muted-foreground">-</span>
   }
 
-  if (containers.length > 1) {
-    return (
-      <div className="grid min-w-0 gap-1">
-        {containers.map((container, index) => {
-          const image = container.image || '-'
-          return (
-            <div
-              key={`${container.name}-${image}-${index}`}
-              className="grid min-w-0 grid-cols-[11rem_minmax(0,1fr)] items-center gap-2 text-xs"
-            >
-              <Badge
-                variant="secondary"
-                className="w-full justify-start truncate font-mono font-normal"
-                title={container.name}
-              >
-                {container.name}
-              </Badge>
-              <span
-                className="min-w-0 truncate font-mono text-muted-foreground"
-                title={image}
-              >
-                {image}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  const image = containers[0]?.image || '-'
   return (
-    <div className="flex min-w-0 flex-wrap gap-1">
-      <Badge
-        variant="outline"
-        className="max-w-full justify-start truncate font-mono"
-        title={image}
-      >
-        {image}
-      </Badge>
+    <div className="grid min-w-0 gap-1">
+      {containers.map((container, index) => {
+        const image = container.image || '-'
+        const imagePullPolicy = container.imagePullPolicy || '-'
+        return (
+          <div
+            key={`${container.name}-${image}-${index}`}
+            className="grid min-w-0 grid-cols-[minmax(6rem,11rem)_minmax(0,1fr)_7rem] items-center gap-2 text-xs"
+          >
+            <Badge
+              variant="secondary"
+              className="w-full justify-start truncate font-mono font-normal"
+              title={container.name}
+            >
+              {container.name}
+            </Badge>
+            <span
+              className="min-w-0 truncate font-mono text-muted-foreground"
+              title={image}
+            >
+              {image}
+            </span>
+            <span
+              className="min-w-0 truncate text-right font-mono text-muted-foreground"
+              title={`imagePullPolicy: ${imagePullPolicy}`}
+            >
+              {imagePullPolicy}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }

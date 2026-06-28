@@ -22,9 +22,10 @@ const cronJobSearchFilter = createSearchFilter<CronJob>(
   (cj) => cj.metadata?.namespace
 )
 
+const columnHelper = createColumnHelper<CronJob>()
+
 export function CronJobListPage() {
   const { t } = useTranslation()
-  const columnHelper = createColumnHelper<CronJob>()
 
   const columns = useMemo(
     () => [
@@ -99,7 +100,7 @@ export function CronJobListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

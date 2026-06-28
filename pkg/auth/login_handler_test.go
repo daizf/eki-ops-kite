@@ -10,6 +10,25 @@ import (
 	"github.com/zxh326/kite/pkg/common"
 )
 
+func TestCredentialLoginLimiterBlocksLoopbackClientIP(t *testing.T) {
+	limiter := &credentialLoginAttemptLimiter{
+		attempts: map[string]credentialLoginAttemptState{},
+	}
+
+	clientIP := "127.0.0.1"
+	for i := 0; i < credentialLoginMaxFailures; i++ {
+		if limiter.recordFailure(clientIP) {
+			t.Fatalf("recordFailure() blocked after %d failures, want not blocked yet", i+1)
+		}
+	}
+	if !limiter.recordFailure(clientIP) {
+		t.Fatalf("recordFailure() did not block loopback client IP")
+	}
+	if !limiter.isBlocked(clientIP) {
+		t.Fatalf("isBlocked() = false, want true for loopback client IP")
+	}
+}
+
 func TestSetCookieSecure(t *testing.T) {
 	originalHost := common.Host
 	t.Cleanup(func() {

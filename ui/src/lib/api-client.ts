@@ -71,7 +71,7 @@ class ApiClient {
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError)
           window.location.href = withSubPath('/login')
-          throw new Error('Authentication failed')
+          throw new Error('Authentication failed', { cause: refreshError })
         }
       }
 

@@ -21,7 +21,10 @@ export function SimpleListPage<T extends keyof ResourceTypeMap>({
   resourceType,
 }: ResourceTableProps) {
   const { t } = useTranslation()
-  const columnHelper = createColumnHelper<ResourceTypeMap[T]>()
+  const columnHelper = useMemo(
+    () => createColumnHelper<ResourceTypeMap[T]>(),
+    []
+  )
   const resourceDefinition = resourceType
     ? getResourceDefinition(resourceType)
     : undefined

@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { IconRobot, IconSettings, IconTerminal2 } from '@tabler/icons-react'
+import {
+  IconMessage,
+  IconRobot,
+  IconSettings,
+  IconTerminal2,
+} from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -22,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 
 const DEFAULT_MODEL = 'gpt-4o-mini'
 const DEFAULT_ANTHROPIC_MODEL = 'claude-sonnet-4-5'
@@ -42,6 +48,7 @@ interface GeneralSettingsFormData {
   enableAnalytics: boolean
   enableVersionCheck: boolean
   watermarkEnabled: boolean
+  loginPrompt: string
 }
 
 export function GeneralManagement() {
@@ -62,6 +69,7 @@ export function GeneralManagement() {
     enableAnalytics: true,
     enableVersionCheck: true,
     watermarkEnabled: false,
+    loginPrompt: '',
   })
 
   useEffect(() => {
@@ -80,6 +88,7 @@ export function GeneralManagement() {
       enableAnalytics: data.enableAnalytics ?? false,
       enableVersionCheck: data.enableVersionCheck ?? true,
       watermarkEnabled: data.watermarkEnabled ?? false,
+      loginPrompt: data.loginPrompt || '',
     })
   }, [data])
 
@@ -90,7 +99,8 @@ export function GeneralManagement() {
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'general-setting' ||
-          query.queryKey[0] === 'ai-status',
+          query.queryKey[0] === 'ai-status' ||
+          query.queryKey[0] === 'bootstrap',
       })
       toast.success(
         t('generalManagement.messages.updated', 'General settings updated')
@@ -158,6 +168,7 @@ export function GeneralManagement() {
       enableAnalytics: formData.enableAnalytics,
       enableVersionCheck: formData.enableVersionCheck,
       watermarkEnabled: formData.watermarkEnabled,
+      loginPrompt: formData.loginPrompt.trim(),
     }
     if (formData.aiApiKey.trim()) {
       payload.aiApiKey = formData.aiApiKey.trim()
@@ -478,6 +489,41 @@ export function GeneralManagement() {
               onCheckedChange={(checked) =>
                 setFormData((prev) => ({ ...prev, watermarkEnabled: checked }))
               }
+            />
+          </div>
+        </div>
+
+        <div className="rounded-lg border p-3">
+          <div className="space-y-1">
+            <Label className="flex items-center gap-2 text-sm font-medium">
+              <IconMessage className="h-4 w-4" />
+              {t('generalManagement.loginPrompt.title', 'Login Prompt')}
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {t(
+                'generalManagement.loginPrompt.description',
+                'Show a custom message on the login page.'
+              )}
+            </p>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            <Label htmlFor="general-login-prompt">
+              {t('generalManagement.loginPrompt.form.message', 'Message')}
+            </Label>
+            <Textarea
+              id="general-login-prompt"
+              value={formData.loginPrompt}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  loginPrompt: e.target.value,
+                }))
+              }
+              placeholder={t(
+                'generalManagement.loginPrompt.form.placeholder',
+                'Leave empty to hide the login prompt'
+              )}
             />
           </div>
         </div>

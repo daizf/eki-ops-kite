@@ -6,19 +6,16 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
 } from 'react'
 
-import type { AuthProviderCatalog, CredentialProvider } from '@/lib/api'
+import type { BootstrapCapabilities, CredentialProvider } from '@/lib/api'
 import {
   loginWithCredentials as authenticateWithCredentials,
   initiateOAuthLogin,
   logout as logoutUser,
   refreshAuthToken,
-  useAuthProviders,
-  useCurrentUser,
+  useBootstrap,
   type AuthUser,
-  type CurrentUserResponse,
 } from '@/lib/api'
 import { withSubPath } from '@/lib/subpath'
 
@@ -35,11 +32,16 @@ interface AuthContextType {
   globalSidebarPreference: string
   credentialProviders: CredentialProvider[]
   oauthProviders: string[]
+  loginPrompt: string
+  mfaEnabled: boolean
+  passkeyLoginEnabled: boolean
+  capabilities: BootstrapCapabilities
   login: (provider?: string) => Promise<void>
   loginWithCredentials: (
     provider: CredentialProvider,
     username: string,
-    password: string
+    password: string,
+    mfaCode?: string
   ) => Promise<void>
   logout: () => Promise<void>
   checkAuth: () => Promise<void>
@@ -47,6 +49,11 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+const defaultCapabilities: BootstrapCapabilities = {
+  aiEnabled: false,
+  kubectlEnabled: true,
+}
 
 export function useAuth() {
   const context = useContext(AuthContext)
@@ -75,88 +82,16 @@ function normalizeUser(user: AuthUser): User {
   }
 }
 
-function applyAuthProviderCatalog(
-  catalog: AuthProviderCatalog,
-  setCredentialProviders: (providers: CredentialProvider[]) => void,
-  setOAuthProviders: (providers: string[]) => void
-) {
-  setCredentialProviders(catalog.credentialProviders)
-  setOAuthProviders(catalog.oauthProviders)
-}
-
-function applyCurrentUser(
-  response: CurrentUserResponse | null,
-  setUser: (user: User | null) => void,
-  setGlobalSidebarPreference: (value: string) => void
-) {
-  if (!response) {
-    setUser(null)
-    setGlobalSidebarPreference('')
-    return
-  }
-
-  setGlobalSidebarPreference(String(response.globalSidebarPreference || ''))
-  setUser(normalizeUser(response.user))
-}
-
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [globalSidebarPreference, setGlobalSidebarPreference] = useState('')
-  const [credentialProviders, setCredentialProviders] = useState<
-    CredentialProvider[]
-  >([])
-  const [oauthProviders, setOAuthProviders] = useState<string[]>([])
-
-  const { refetch: refetchAuthProviders } = useAuthProviders({
-    enabled: false,
-  })
-  const { refetch: refetchCurrentUser } = useCurrentUser({
-    enabled: false,
-  })
+  const {
+    data: bootstrap,
+    isLoading,
+    refetch: refetchBootstrap,
+  } = useBootstrap()
 
   const checkAuth = useCallback(async () => {
-    const result = await refetchCurrentUser()
-    applyCurrentUser(result.data ?? null, setUser, setGlobalSidebarPreference)
-  }, [refetchCurrentUser])
-
-  useEffect(() => {
-    let cancelled = false
-
-    const bootstrap = async () => {
-      setIsLoading(true)
-
-      const [providersResult, userResult] = await Promise.all([
-        refetchAuthProviders(),
-        refetchCurrentUser(),
-      ])
-
-      if (cancelled) {
-        return
-      }
-
-      if (providersResult.data) {
-        applyAuthProviderCatalog(
-          providersResult.data,
-          setCredentialProviders,
-          setOAuthProviders
-        )
-      }
-
-      applyCurrentUser(
-        userResult.data ?? null,
-        setUser,
-        setGlobalSidebarPreference
-      )
-      setIsLoading(false)
-    }
-
-    void bootstrap()
-
-    return () => {
-      cancelled = true
-    }
-  }, [refetchAuthProviders, refetchCurrentUser])
+    await refetchBootstrap()
+  }, [refetchBootstrap])
 
   const login = useCallback(async (provider: string = 'github') => {
     const { auth_url } = await initiateOAuthLogin(provider)
@@ -167,9 +102,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     async (
       provider: CredentialProvider,
       username: string,
-      password: string
+      password: string,
+      mfaCode?: string
     ) => {
-      await authenticateWithCredentials(provider, username, password)
+      await authenticateWithCredentials(provider, username, password, mfaCode)
       await checkAuth()
     },
     [checkAuth]
@@ -177,19 +113,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(async () => {
     await logoutUser()
-    setUser(null)
+    await refetchBootstrap()
     window.location.href = withSubPath('/login')
-  }, [])
+  }, [refetchBootstrap])
 
   const refreshToken = useCallback(async () => {
     try {
       await refreshAuthToken()
     } catch (error) {
       console.error('Token refresh failed:', error)
-      setUser(null)
+      await refetchBootstrap()
       window.location.href = withSubPath('/login')
     }
-  }, [])
+  }, [refetchBootstrap])
+
+  const user = useMemo(
+    () => (bootstrap?.user ? normalizeUser(bootstrap.user) : null),
+    [bootstrap?.user]
+  )
 
   useEffect(() => {
     if (!user) return
@@ -213,36 +154,55 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => clearInterval(refreshInterval)
   }, [user, refreshToken])
 
-  const hasGlobalSidebarPreference = globalSidebarPreference.trim() !== ''
-
-  const value = useMemo(
-    () => ({
-      user,
-      isLoading,
-      hasGlobalSidebarPreference,
-      globalSidebarPreference,
-      credentialProviders,
-      oauthProviders,
-      login,
-      loginWithCredentials,
-      logout,
-      checkAuth,
-      refreshToken,
-    }),
-    [
-      user,
-      isLoading,
-      hasGlobalSidebarPreference,
-      globalSidebarPreference,
-      credentialProviders,
-      oauthProviders,
-      login,
-      loginWithCredentials,
-      logout,
-      checkAuth,
-      refreshToken,
-    ]
+  const globalSidebarPreference = String(
+    bootstrap?.globalSidebarPreference || ''
   )
+  const hasGlobalSidebarPreference =
+    bootstrap?.hasGlobalSidebarPreference ??
+    globalSidebarPreference.trim() !== ''
+  const loginPrompt = bootstrap?.auth.loginPrompt || ''
+  const mfaEnabled = bootstrap?.auth.mfaEnabled ?? true
+  const passkeyLoginEnabled = bootstrap?.auth.passkeyLoginEnabled ?? false
+  const capabilities = bootstrap?.capabilities ?? defaultCapabilities
+
+  const value = useMemo(() => {
+    const credentialProviders = bootstrap?.auth.credentialProviders ?? []
+    const oauthProviders = bootstrap?.auth.oauthProviders ?? []
+
+    return {
+      user,
+      isLoading,
+      hasGlobalSidebarPreference,
+      globalSidebarPreference,
+      credentialProviders,
+      oauthProviders,
+      loginPrompt,
+      mfaEnabled,
+      passkeyLoginEnabled,
+      capabilities,
+      login,
+      loginWithCredentials,
+      logout,
+      checkAuth,
+      refreshToken,
+    }
+  }, [
+    user,
+    isLoading,
+    hasGlobalSidebarPreference,
+    globalSidebarPreference,
+    bootstrap?.auth.credentialProviders,
+    bootstrap?.auth.oauthProviders,
+    loginPrompt,
+    mfaEnabled,
+    passkeyLoginEnabled,
+    capabilities,
+    login,
+    loginWithCredentials,
+    logout,
+    checkAuth,
+    refreshToken,
+  ])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

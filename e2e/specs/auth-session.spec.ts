@@ -29,7 +29,7 @@ test.describe('password login', () => {
     ).toBeVisible()
 
     await page.getByLabel('Username').fill(adminUser.username)
-    await page.getByLabel('Password').fill(adminUser.password)
+    await page.getByLabel('Password', { exact: true }).fill(adminUser.password)
     await page.getByRole('button', { name: 'Sign In with Password' }).click()
 
     await page.waitForURL((url) => url.pathname === '/')

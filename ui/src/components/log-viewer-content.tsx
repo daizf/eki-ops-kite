@@ -407,6 +407,12 @@ export function LogViewer({
 
   // Stop previous stream when critical parameters change
   useEffect(() => {
+    // Clear the editor BEFORE the new stream starts. We deliberately
+    // clear here (in response to a real parameter change) instead of on
+    // every WebSocket onopen, so that the historical tail buffer delivered
+    // by the server immediately after connect is preserved.
+    cleanLog()
+
     // Show reconnecting state when parameters change
     setIsReconnecting(true)
 
@@ -425,6 +431,7 @@ export function LogViewer({
     timestamps,
     previous,
     isLoading,
+    cleanLog,
   ])
 
   // Hide reconnecting state when loading completes
@@ -518,11 +525,11 @@ export function LogViewer({
 
   return (
     <Card
-      className={`h-full flex flex-col py-4 gap-0 ${isFullscreen ? 'fixed inset-0 z-50 m-0 rounded-none' : ''} ${wordWrap ? 'whitespace-pre-wrap' : 'whitespace-pre'} `}
+      className={`h-full min-h-0 flex flex-col py-4 gap-0 ${isFullscreen ? 'fixed inset-0 z-50 m-0 rounded-none' : ''} ${wordWrap ? 'whitespace-pre-wrap' : 'whitespace-pre'} `}
     >
       <style>{ANSI_CSS}</style>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <CardTitle className="text-lg">Logs</CardTitle>
             <CardDescription>
@@ -545,8 +552,8 @@ export function LogViewer({
               </div>
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 md:w-auto md:justify-end">
+            <div className="relative min-w-0 flex-1 basis-40 md:w-48 md:flex-none md:basis-auto">
               <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={'Filter logs...'}
@@ -808,19 +815,12 @@ export function LogViewer({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 p-0 relative">
+      <CardContent className="min-h-0 flex-1 p-0 relative">
         <MonacoEditor
-          height={isFullscreen ? 'calc(100dvh - 60px)' : 'calc(100dvh - 255px)'}
+          height="100%"
           theme={`log-theme-${logTheme}`}
           loading={
-            <div
-              className="flex h-full items-center justify-center"
-              style={{
-                height: isFullscreen
-                  ? 'calc(100dvh - 60px)'
-                  : 'calc(100dvh - 255px)',
-              }}
-            >
+            <div className="flex h-full items-center justify-center">
               <div className="text-center opacity-60">Loading editor...</div>
             </div>
           }

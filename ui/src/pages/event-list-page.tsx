@@ -18,9 +18,10 @@ const eventSearchFilter = createSearchFilter<Event>(
   (e) => e.involvedObject?.kind
 )
 
+const columnHelper = createColumnHelper<Event>()
+
 export function EventListPage() {
   const { t } = useTranslation()
-  const columnHelper = createColumnHelper<Event>()
 
   const columns = useMemo(
     () => [
@@ -113,7 +114,7 @@ export function EventListPage() {
         }
       ),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

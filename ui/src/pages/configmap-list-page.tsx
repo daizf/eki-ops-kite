@@ -14,10 +14,9 @@ const configMapSearchFilter = createSearchFilter<ConfigMap>(
   (cm) => Object.keys(cm.binaryData || {})
 )
 
-export function ConfigMapListPage() {
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<ConfigMap>()
+const columnHelper = createColumnHelper<ConfigMap>()
 
+export function ConfigMapListPage() {
   // Define columns for the configmap table
   const columns = useMemo(
     () => [
@@ -64,7 +63,7 @@ export function ConfigMapListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

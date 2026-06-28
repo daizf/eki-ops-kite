@@ -23,10 +23,10 @@ const podSearchFilter = createSearchFilter<Pod>(
   (p) => p.status?.podIP
 )
 
+const columnHelper = createColumnHelper<PodWithMetrics>()
+
 export function PodListPage() {
   const { t } = useTranslation()
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<PodWithMetrics>()
 
   // Define columns for the pod table - moved outside render cycle for better performance
   const columns = useMemo(
@@ -57,7 +57,7 @@ export function PodListPage() {
           )
         },
       }),
-      columnHelper.accessor((row) => row.status?.phase, {
+      columnHelper.accessor((row) => getPodStatus(row).reason, {
         header: t('common.fields.status'),
         enableColumnFilter: true,
         cell: ({ row }) => {
@@ -143,7 +143,7 @@ export function PodListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

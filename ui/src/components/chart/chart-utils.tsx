@@ -58,7 +58,7 @@ export function mergeDualSeries(
     combined.set(time, {
       timestamp: point.timestamp,
       time,
-      [key1]: Math.max(0, point.value),
+      [key1]: point.value,
     })
   })
 
@@ -68,7 +68,7 @@ export function mergeDualSeries(
       timestamp: point.timestamp,
       time,
     }
-    ;(existing as Record<string, unknown>)[key2] = Math.max(0, point.value)
+    ;(existing as Record<string, unknown>)[key2] = point.value
     combined.set(time, existing)
   })
 

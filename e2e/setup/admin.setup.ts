@@ -26,14 +26,6 @@ test('bootstrap a reusable admin session', async ({ page }) => {
   await page.getByLabel(/^Kubeconfig File \*$/).fill(kubeconfig)
   await page.getByRole('button', { name: 'Import Clusters' }).click()
 
-  await page.waitForURL('**/login')
-  await expect(
-    page.getByRole('button', { name: 'Sign In with Password' })
-  ).toBeVisible()
-  await page.getByLabel('Username').fill(adminUser.username)
-  await page.getByLabel('Password').fill(adminUser.password)
-  await page.getByRole('button', { name: 'Sign In with Password' }).click()
-
   await page.waitForURL((url) => url.pathname === '/')
   await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible()
 

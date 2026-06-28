@@ -520,10 +520,13 @@ export const useLogsWebSocket = (
 
   const handleOpen = useCallback(() => {
     console.debug('WebSocket connection opened')
-    if (options?.onClear) {
-      options.onClear()
-    }
-  }, [options])
+    // Intentionally do NOT call options.onClear here.
+    // The historical log buffer (tailLines) is delivered by the server right
+    // after the WebSocket opens. Clearing on every onopen races with that
+    // delivery and wipes out the tail history (especially on reconnects).
+    // The component is responsible for explicitly clearing the editor when
+    // the user changes pod / container / tailLines parameters.
+  }, [])
 
   const handleClose = useCallback(() => {
     console.debug('WebSocket connection closed')
@@ -544,7 +547,6 @@ export const useLogsWebSocket = (
     },
     {
       enabled: options?.enabled !== false,
-      pingInterval: 20000, // 20 seconds for logs
       reconnectOnClose: true,
       maxReconnectAttempts: 3,
       reconnectInterval: 5000,

@@ -17,10 +17,10 @@ const pvcSearchFilter = createSearchFilter<PersistentVolumeClaim>(
   (pvc) => pvc.status?.phase
 )
 
+const columnHelper = createColumnHelper<PersistentVolumeClaim>()
+
 export function PVCListPage() {
   const { t } = useTranslation()
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<PersistentVolumeClaim>()
 
   // Define columns for the pvc table
   const columns = useMemo(
@@ -117,7 +117,7 @@ export function PVCListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

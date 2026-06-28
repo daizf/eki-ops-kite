@@ -10,10 +10,9 @@ import { ResourceTable } from '@/components/resource-table'
 
 const filter = createSearchFilter<Ingress>((ns) => ns.metadata?.name)
 
-export function IngressListPage() {
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<Ingress>()
+const columnHelper = createColumnHelper<Ingress>()
 
+export function IngressListPage() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('metadata.name', {
@@ -67,7 +66,7 @@ export function IngressListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

@@ -10,10 +10,10 @@ import { ResourceTable } from '@/components/resource-table'
 
 const filter = createSearchFilter<Namespace>((ns) => ns.metadata?.name)
 
+const columnHelper = createColumnHelper<Namespace>()
+
 export function NamespaceListPage() {
   const { t } = useTranslation()
-  // Definecolumn helper outside of any hooks
-  const columnHelper = createColumnHelper<Namespace>()
 
   const columns = useMemo(
     () => [
@@ -38,7 +38,7 @@ export function NamespaceListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

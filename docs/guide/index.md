@@ -1,6 +1,6 @@
 # What is Kite?
 
-Kite is a lightweight, modern Kubernetes dashboard that unifies real-time observability, multi-cluster and resource management, enterprise-grade user governance (OAuth, RBAC, and audit logs), and AI agents in one workspace. Not just a tool, but more like a platform.
+Kite is a lightweight, modern Kubernetes dashboard that unifies real-time observability, multi-cluster and resource management, enterprise-grade user governance (OAuth, MFA, passkeys, RBAC, and audit logs), and AI agents in one workspace. Not just a tool, but more like a platform.
 
 ![Dashboard Overview](/screenshots/overview.png)
 
@@ -43,6 +43,8 @@ Kite is a lightweight, modern Kubernetes dashboard that unifies real-time observ
 ### Security
 
 - OAuth integration
+- MFA for password users
+- Passkey login
 - Role-based access control
 - User management and role allocation
 
@@ -51,7 +53,7 @@ Kite is a lightweight, modern Kubernetes dashboard that unifies real-time observ
 Headlamp and Kubernetes Dashboard are strong cluster operation tools focused on resource inspection and control. Kite includes those dashboard capabilities, but is designed as a team platform:
 
 - Unified workspace for observability, multi-cluster operations, governance, and AI assistance
-- Built-in team governance with OAuth, RBAC, user-role mapping, and audit logs
+- Built-in team governance with OAuth, MFA, passkeys, RBAC, user-role mapping, and audit logs
 - Operational workflows beyond resource views: web terminal, built-in kubectl console, and kube proxy
 - One system for operators, developers, and admins, instead of stitching separate tools
 

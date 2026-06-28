@@ -53,6 +53,10 @@ vi.mock('@/lib/current-cluster', () => ({
   getCurrentCluster: () => null,
 }))
 
+vi.mock('@/hooks/use-cluster', () => ({
+  useCluster: () => ({ currentCluster: 'test-cluster' }),
+}))
+
 // fakeRows is defined inside the factory via vi.hoisted so it is available
 // when vi.mock is hoisted before variable declarations
 const { fakeRows } = vi.hoisted(() => {

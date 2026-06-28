@@ -20,7 +20,7 @@ _一个现代 Kubernetes Dashboard_
 
 </div>
 
-Kite是一款轻量级、现代化的Kubernetes仪表板工具，它将实时可观测性、多集群管理和资源管理功能，以及企业级用户管理功能（如OAuth、RBAC和审计日志功能），以及AI代理功能整合到一个工作空间中。它不仅仅是一个工具，而更像是一个平台。
+Kite是一款轻量级、现代化的Kubernetes仪表板工具，它将实时可观测性、多集群管理和资源管理功能，以及企业级用户管理功能（如OAuth、MFA、Passkey、RBAC和审计日志功能），以及AI代理功能整合到一个工作空间中。它不仅仅是一个工具，而更像是一个平台。
 
 <img width="1586" height="1167" alt="image" src="https://github.com/user-attachments/assets/a88a63b7-5b71-444d-8d98-66f147a68ef7" />
 
@@ -49,6 +49,7 @@ Kite是一款轻量级、现代化的Kubernetes仪表板工具，它将实时可
 - 支持创建、更新、删除、扩缩容和重启操作
 - 支持 CRD（Custom Resource Definitions）
 - 基于 Docker 和容器镜像仓库 API 的镜像标签快速选择器
+- 支持 Helm Chart 发现、安装、升级、回滚和 Release 管理
 - 可自定义侧边栏并添加 CRD 快捷入口
 - 通过 Kube Proxy 直接访问 Pod/Service（无需 `kubectl port-forward`）
 
@@ -63,6 +64,8 @@ Kite是一款轻量级、现代化的Kubernetes仪表板工具，它将实时可
 ### 安全
 
 - OAuth 集成
+- 密码用户 MFA
+- Passkey 登录
 - 基于角色的访问控制
 - 用户管理和角色分配
 

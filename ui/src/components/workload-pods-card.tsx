@@ -1,21 +1,12 @@
 import { useState, type ReactNode } from 'react'
-import { IconExternalLink } from '@tabler/icons-react'
 import { Pod } from 'kubernetes-types/core/v1'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { getPodStatus } from '@/lib/k8s'
-import { withSubPath } from '@/lib/subpath'
 import { cn, formatDate, getAge } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -24,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { ResourceIframeDialogContent } from '@/components/resource-iframe-dialog-content'
 
 type TranslationFn = ReturnType<typeof useTranslation>['t']
 
@@ -153,28 +145,7 @@ function WorkloadPodRow({ pod }: { pod: Pod }) {
                     {podName}
                   </button>
                 </DialogTrigger>
-                <DialogContent className="!h-[calc(100dvh-1rem)] !max-w-[calc(100vw-1rem)] flex min-h-0 flex-col gap-0 p-0 md:!h-[80%] md:!max-w-[60%]">
-                  <DialogHeader className="flex flex-row items-center justify-between border-b px-4 py-3 pr-14">
-                    <DialogTitle>Pod</DialogTitle>
-                    <a
-                      href={withSubPath(path)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        aria-label="Open resource in new tab"
-                      >
-                        <IconExternalLink size={12} />
-                      </Button>
-                    </a>
-                  </DialogHeader>
-                  <iframe
-                    src={`${withSubPath(path)}?iframe=true`}
-                    className="min-h-0 w-full flex-grow border-none"
-                  />
-                </DialogContent>
+                <ResourceIframeDialogContent title="Pod" path={path} />
               </Dialog>
             )
           ) : (

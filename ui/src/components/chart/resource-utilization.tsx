@@ -55,7 +55,7 @@ const ResourceUtilizationChart = React.memo(
         combinedData.set(timestamp, {
           timestamp: point.timestamp,
           time: timestamp,
-          cpu: Math.max(0, Math.min(100, point.value)), // Clamp between 0-100
+          cpu: point.value,
         })
       })
 
@@ -66,7 +66,7 @@ const ResourceUtilizationChart = React.memo(
           timestamp: point.timestamp,
           time: timestamp,
         }
-        existing.memory = Math.max(0, Math.min(100, point.value)) // Clamp between 0-100
+        existing.memory = point.value
         combinedData.set(timestamp, existing)
       })
 
@@ -183,7 +183,10 @@ const ResourceUtilizationChart = React.memo(
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                domain={[0, 100]}
+                domain={[
+                  (dataMin: number) => Math.min(0, dataMin),
+                  (dataMax: number) => Math.max(100, dataMax),
+                ]}
                 tickFormatter={(value) => `${value}%`}
               />
               <ChartTooltip

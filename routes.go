@@ -4,47 +4,61 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
+	promclient "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zxh326/kite/pkg/ai"
+	"github.com/zxh326/kite/pkg/apikeys"
+	"github.com/zxh326/kite/pkg/audit"
 	"github.com/zxh326/kite/pkg/auth"
 	"github.com/zxh326/kite/pkg/cluster"
-	"github.com/zxh326/kite/pkg/handlers"
-	"github.com/zxh326/kite/pkg/handlers/resources"
+	"github.com/zxh326/kite/pkg/helm"
+	"github.com/zxh326/kite/pkg/images"
+	"github.com/zxh326/kite/pkg/metrics"
 	"github.com/zxh326/kite/pkg/middleware"
 	"github.com/zxh326/kite/pkg/pool"
+	"github.com/zxh326/kite/pkg/proxy"
 	"github.com/zxh326/kite/pkg/rbac"
+	"github.com/zxh326/kite/pkg/resources"
+	"github.com/zxh326/kite/pkg/search"
+	"github.com/zxh326/kite/pkg/settings"
+	"github.com/zxh326/kite/pkg/system"
+	"github.com/zxh326/kite/pkg/templates"
+	"github.com/zxh326/kite/pkg/terminal"
+	"github.com/zxh326/kite/pkg/users"
 	"github.com/zxh326/kite/pkg/version"
 	ctrlmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 func setupAPIRouter(r *gin.RouterGroup, cm *cluster.ClusterManager) {
 	authHandler := auth.NewAuthHandler()
+	helmChartsHandler := helm.NewHelmChartHandler()
 
 	registerBaseRoutes(r)
+	r.GET("/api/v1/bootstrap", authHandler.Bootstrap)
 	registerAuthRoutes(r, authHandler)
 	registerUserRoutes(r, authHandler)
-	registerAdminRoutes(r, authHandler, cm)
-	registerProtectedRoutes(r, authHandler, cm)
+	registerAdminRoutes(r, authHandler, cm, helmChartsHandler)
+	registerProtectedRoutes(r, authHandler, cm, helmChartsHandler)
 }
 
 func registerBaseRoutes(r *gin.RouterGroup) {
-	r.GET("/metrics", gin.WrapH(promhttp.HandlerFor(prometheus.Gatherers{
-		prometheus.DefaultGatherer,
+	r.GET("/metrics", gin.WrapH(promhttp.HandlerFor(promclient.Gatherers{
+		promclient.DefaultGatherer,
 		ctrlmetrics.Registry,
 	}, promhttp.HandlerOpts{})))
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
-	r.GET("/api/v1/init_check", handlers.InitCheck)
 	r.GET("/api/v1/version", version.GetVersion)
 }
 
 func registerAuthRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler) {
 	authGroup := r.Group("/api/auth")
-	authGroup.GET("/providers", authHandler.GetProviders)
+	authGroup.POST("/setup/create_super_user", authHandler.CreateSuperUser)
 	authGroup.POST("/login/password", authHandler.PasswordLogin)
 	authGroup.POST("/login/ldap", authHandler.LDAPLogin)
+	authGroup.POST("/passkey/login/begin", authHandler.PasskeyLoginBegin)
+	authGroup.POST("/passkey/login/finish", authHandler.PasskeyLoginFinish)
 	authGroup.GET("/login", authHandler.Login)
 	authGroup.GET("/callback", authHandler.Callback)
 	authGroup.POST("/logout", authHandler.Logout)
@@ -54,16 +68,23 @@ func registerAuthRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler) {
 
 func registerUserRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler) {
 	userGroup := r.Group("/api/users")
-	userGroup.POST("/sidebar_preference", authHandler.RequireAuth(), handlers.UpdateSidebarPreference)
+	userGroup.PUT("/me", authHandler.RequireAuth(), users.UpdateCurrentUser)
+	userGroup.POST("/me/password", authHandler.RequireAuth(), users.ChangeCurrentUserPassword)
+	userGroup.POST("/me/mfa/setup", authHandler.RequireAuth(), users.SetupCurrentUserMFA)
+	userGroup.POST("/me/mfa/enable", authHandler.RequireAuth(), users.EnableCurrentUserMFA)
+	userGroup.POST("/me/mfa/disable", authHandler.RequireAuth(), users.DisableCurrentUserMFA)
+	userGroup.GET("/me/passkeys", authHandler.RequireAuth(), users.ListCurrentUserPasskeys)
+	userGroup.POST("/me/passkeys/begin", authHandler.RequireAuth(), users.BeginCurrentUserPasskeyRegistration)
+	userGroup.POST("/me/passkeys/finish", authHandler.RequireAuth(), users.FinishCurrentUserPasskeyRegistration)
+	userGroup.DELETE("/me/passkeys/:id", authHandler.RequireAuth(), users.DeleteCurrentUserPasskey)
+	userGroup.POST("/sidebar_preference", authHandler.RequireAuth(), users.UpdateSidebarPreference)
 }
 
-func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *cluster.ClusterManager) {
+func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *cluster.ClusterManager, helmChartsHandler *helm.HelmChartHandler) {
 	adminAPI := r.Group("/api/v1/admin")
-	adminAPI.POST("/users/create_super_user", handlers.CreateSuperUser)
-	adminAPI.POST("/clusters/import", cm.ImportClustersFromKubeconfig)
 	adminAPI.Use(authHandler.RequireAuth(), authHandler.RequireAdmin())
 
-	adminAPI.GET("/audit-logs", handlers.ListAuditLogs)
+	adminAPI.GET("/audit-logs", audit.ListAuditLogs)
 
 	oauthProviderAPI := adminAPI.Group("/oauth-providers")
 	oauthProviderAPI.GET("/", authHandler.ListOAuthProviders)
@@ -79,6 +100,7 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	clusterAPI := adminAPI.Group("/clusters")
 	clusterAPI.GET("/", cm.GetClusterList)
 	clusterAPI.POST("/", cm.CreateCluster)
+	clusterAPI.POST("/import", cm.ImportClustersFromKubeconfig)
 	clusterAPI.PUT("/:id", cm.UpdateCluster)
 	clusterAPI.DELETE("/:id", cm.DeleteCluster)
 	clusterAPI.POST("/batch", cm.BatchImportClusters)
@@ -93,28 +115,28 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	rbacAPI.DELETE("/:id/assign", rbac.UnassignRole)
 
 	userAPI := adminAPI.Group("/users")
-	userAPI.GET("/", handlers.ListUsers)
-	userAPI.POST("/", handlers.CreatePasswordUser)
-	userAPI.PUT("/:id", handlers.UpdateUser)
-	userAPI.DELETE("/:id", handlers.DeleteUser)
-	userAPI.POST("/:id/reset_password", handlers.ResetPassword)
-	userAPI.POST("/:id/enable", handlers.SetUserEnabled)
-	adminAPI.POST("/sidebar_preference/global", handlers.UpdateGlobalSidebarPreference)
-	adminAPI.DELETE("/sidebar_preference/global", handlers.ClearGlobalSidebarPreference)
+	userAPI.GET("/", users.ListUsers)
+	userAPI.POST("/", users.CreatePasswordUser)
+	userAPI.PUT("/:id", users.UpdateUser)
+	userAPI.DELETE("/:id", users.DeleteUser)
+	userAPI.POST("/:id/reset_password", users.ResetPassword)
+	userAPI.POST("/:id/enable", users.SetUserEnabled)
+	adminAPI.POST("/sidebar_preference/global", users.UpdateGlobalSidebarPreference)
+	adminAPI.DELETE("/sidebar_preference/global", users.ClearGlobalSidebarPreference)
 
 	apiKeyAPI := adminAPI.Group("/apikeys")
-	apiKeyAPI.GET("/", handlers.ListAPIKeys)
-	apiKeyAPI.POST("/", handlers.CreateAPIKey)
-	apiKeyAPI.DELETE("/:id", handlers.DeleteAPIKey)
+	apiKeyAPI.GET("/", apikeys.ListAPIKeys)
+	apiKeyAPI.POST("/", apikeys.CreateAPIKey)
+	apiKeyAPI.DELETE("/:id", apikeys.DeleteAPIKey)
 
 	generalSettingAPI := adminAPI.Group("/general-setting")
-	generalSettingAPI.GET("/", ai.HandleGetGeneralSetting)
-	generalSettingAPI.PUT("/", ai.HandleUpdateGeneralSetting)
+	generalSettingAPI.GET("/", settings.HandleGetGeneralSetting)
+	generalSettingAPI.PUT("/", settings.HandleUpdateGeneralSetting)
 
 	templateAPI := adminAPI.Group("/templates")
-	templateAPI.POST("/", handlers.CreateTemplate)
-	templateAPI.PUT("/:id", handlers.UpdateTemplate)
-	templateAPI.DELETE("/:id", handlers.DeleteTemplate)
+	templateAPI.POST("/", templates.CreateTemplate)
+	templateAPI.PUT("/:id", templates.UpdateTemplate)
+	templateAPI.DELETE("/:id", templates.DeleteTemplate)
 
 	poolAPI := adminAPI.Group("/pools")
 	poolAPI.GET("/", pool.GetPoolList)
@@ -122,44 +144,47 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	poolAPI.POST("/batch", pool.BatchImportPools)
 	poolAPI.PUT("/:id", pool.UpdatePool)
 	poolAPI.DELETE("/:id", pool.DeletePool)
+
+	helmChartsHandler.RegisterAdminRoutes(adminAPI)
 }
 
-func registerProtectedRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *cluster.ClusterManager) {
+func registerProtectedRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *cluster.ClusterManager, helmChartsHandler *helm.HelmChartHandler) {
 	api := r.Group("/api/v1")
 	api.GET("/clusters", authHandler.RequireAuth(), cm.GetClusterList)
 	api.Use(authHandler.RequireAuth(), middleware.ClusterMiddleware(cm))
 
-	api.GET("/overview", handlers.GetOverview)
+	api.GET("/overview", system.GetOverview)
 
-	promHandler := handlers.NewPromHandler()
-	api.GET("/prometheus/resource-usage-history", promHandler.GetResourceUsageHistory)
-	api.GET("/prometheus/pods/:namespace/:podName/metrics", promHandler.GetPodMetrics)
+	metricsHandler := metrics.NewHandler()
+	api.GET("/prometheus/resource-usage-history", metricsHandler.GetResourceUsageHistory)
+	api.GET("/prometheus/pods/:namespace/:podName/metrics", metricsHandler.GetPodMetrics)
 
-	logsHandler := handlers.NewLogsHandler()
+	logsHandler := resources.NewLogsHandler()
 	api.GET("/logs/:namespace/:podName/ws", logsHandler.HandleLogsWebSocket)
 
-	terminalHandler := handlers.NewTerminalHandler()
+	terminalHandler := terminal.NewTerminalHandler()
 	api.GET("/terminal/:namespace/:podName/ws", terminalHandler.HandleTerminalWebSocket)
 
-	nodeTerminalHandler := handlers.NewNodeTerminalHandler()
+	nodeTerminalHandler := terminal.NewNodeTerminalHandler()
 	api.GET("/node-terminal/:nodeName/ws", nodeTerminalHandler.HandleNodeTerminalWebSocket)
 
-	kubectlTerminalHandler := handlers.NewKubectlTerminalHandler()
+	kubectlTerminalHandler := terminal.NewKubectlTerminalHandler()
 	api.GET("/kubectl-terminal/ws", kubectlTerminalHandler.HandleKubectlTerminalWebSocket)
 
-	searchHandler := handlers.NewSearchHandler()
+	searchHandler := search.NewSearchHandler(resources.SearchFuncs())
 	api.GET("/search", searchHandler.GlobalSearch)
 
-	resourceApplyHandler := handlers.NewResourceApplyHandler()
+	resourceApplyHandler := resources.NewResourceApplyHandler()
 	api.POST("/resources/apply", resourceApplyHandler.ApplyResource)
 
-	api.GET("/image/tags", handlers.GetImageTags)
-	api.GET("/templates", handlers.ListTemplates)
+	api.GET("/image/tags", images.GetImageTags)
+	api.GET("/templates", templates.ListTemplates)
 
-	proxyHandler := handlers.NewProxyHandler()
+	helmChartsHandler.RegisterRoutes(api)
+
+	proxyHandler := proxy.NewProxyHandler()
 	proxyHandler.RegisterRoutes(api)
 
-	api.GET("/ai/status", ai.HandleAIStatus)
 	api.GET("/watermark", ai.HandleGetWatermarkConfig)
 	api.POST("/ai/chat", ai.HandleChat)
 	api.POST("/ai/execute/continue", ai.HandleExecuteContinue)

@@ -77,7 +77,7 @@ func TestQueryRange(t *testing.T) {
 }
 
 func TestFillMissingDataPoints(t *testing.T) {
-	if got := FillMissingDataPoints(time.Minute, time.Second, nil); got != nil {
+	if got := FillMissingDataPoints(time.Now().Add(-time.Minute), time.Second, nil); got != nil {
 		t.Fatalf("FillMissingDataPoints() nil = %#v, want nil", got)
 	}
 
@@ -91,7 +91,7 @@ func TestFillMissingDataPoints(t *testing.T) {
 		},
 	}
 
-	got := FillMissingDataPoints(timeRange, step, existing)
+	got := FillMissingDataPoints(now.Add(-timeRange), step, existing)
 	if len(got) != 3 {
 		t.Fatalf("FillMissingDataPoints() len = %d, want 3", len(got))
 	}
@@ -109,7 +109,7 @@ func TestGetResourceUsageHistory(t *testing.T) {
 	client := &Client{client: api}
 
 	cpuQuery := `sum(rate(container_cpu_usage_seconds_total{container!="POD",container!="",node="node-a"}[1m])) / sum(kube_node_status_allocatable{resource="cpu",node="node-a"}) * 100`
-	memoryQuery := `sum(container_memory_usage_bytes{container!="POD",container!="",node="node-a"}) / sum(kube_node_status_allocatable{resource="memory",node="node-a"}) * 100`
+	memoryQuery := `sum(container_memory_working_set_bytes{container!="POD",container!="",node="node-a"}) / sum(kube_node_status_allocatable{resource="memory",node="node-a"}) * 100`
 	networkInQuery := `sum(rate(container_network_receive_bytes_total{node="node-a"}[1m]))`
 	networkOutQuery := `sum(rate(container_network_transmit_bytes_total{node="node-a"}[1m]))`
 	for _, query := range []string{cpuQuery, memoryQuery, networkInQuery, networkOutQuery} {
@@ -151,7 +151,7 @@ func TestGetPodMetrics(t *testing.T) {
 
 	queries := []string{
 		`sum(rate(container_cpu_usage_seconds_total{container!="POD",container!="",pod=~"web.*",container="api",namespace="default"}[1m]))`,
-		`sum(container_memory_usage_bytes{container!="POD",container!="",pod=~"web.*",container="api",namespace="default"}) / 1024 / 1024`,
+		`sum(container_memory_working_set_bytes{container!="POD",container!="",pod=~"web.*",container="api",namespace="default"}) / 1024 / 1024`,
 		`sum(rate(container_network_receive_bytes_total{pod=~"web.*",container="api",namespace="default"}[1m]))`,
 		`sum(rate(container_network_transmit_bytes_total{pod=~"web.*",container="api",namespace="default"}[1m]))`,
 		`sum(rate(container_fs_reads_bytes_total{container!="POD",container!="",pod=~"web.*",container="api",namespace="default"}[1m]))`,

@@ -88,7 +88,7 @@ function CreateResourceDialogContent({
   }
 
   return (
-    <DialogContent className="!max-w-4xl sm:!max-w-4xl max-h-[80vh] flex flex-col">
+    <DialogContent className="flex max-h-[80vh] flex-col overflow-hidden !max-w-4xl sm:!max-w-4xl">
       <DialogHeader>
         <DialogTitle>Create Resource</DialogTitle>
         <DialogDescription>
@@ -97,7 +97,7 @@ function CreateResourceDialogContent({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="flex-1 space-y-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
         <div className="space-y-2">
           <Label htmlFor="template">Template</Label>
           <Select

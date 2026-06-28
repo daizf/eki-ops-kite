@@ -12,7 +12,7 @@
       "copy": "Copy",
       "collapse": "Collapse",
       "cordon": "Cordon",
-      "createGroup": "Create New CRD Group",
+      "createGroup": "Create New Group",
       "create": "Create",
       "customizeSidebar": "Customize Sidebar",
       "delete": "Delete",
@@ -23,7 +23,9 @@
       "edit": "Edit",
       "enable": "Enable",
       "expand": "Expand",
+      "expose": "Expose",
       "filter": "Filter",
+      "hide": "Hide",
       "jumpToBottom": "Jump to bottom",
       "moveDown": "Move down",
       "moveUp": "Move up",
@@ -36,8 +38,12 @@
       "retry": "Retry",
       "save": "Save",
       "saveChanges": "Save Changes",
+      "saving": "Saving...",
       "scale": "Scale",
       "search": "Search",
+      "show": "Show",
+      "assigning": "Assigning...",
+      "removing": "Removing...",
       "taint": "Taint",
       "uncordon": "Uncordon",
       "update": "Update",
@@ -273,13 +279,14 @@
       "noItemsFound": "No {{resource}} found",
       "noOwner": "No owner",
       "noPods": "No pods found",
+      "noUsersFound": "No users found",
       "noPorts": "No ports defined",
       "notAssigned": "Not assigned",
       "notCreated": "Not created",
       "notReady": "Not Ready",
       "notStarted": "Not started",
       "passwordLoginDescription": "Allow users to sign in with a username and password.",
-      "passwordLoginWarningDescription": "Verify that your LDAP or OAuth provider is working before saving. Without a working alternative login method, you will be locked out and can only recover by resetting the database.",
+      "passwordLoginWarningDescription": "Verify that your LDAP、OAuth Provider、Passkey provider is working before saving. Without a working alternative login method, you will be locked out and can only recover by resetting the database.",
       "passwordLoginWarningTitle": "Warning: You may lose access!",
       "passwordReset": "Password reset",
       "somethingWentWrong": "Something went wrong",
@@ -314,6 +321,7 @@
       "allOperations": "All operations",
       "allRoles": "All roles",
       "allUsers": "All users",
+      "all": "All",
       "emptyTemplate": "Empty Template",
       "no": "No",
       "none": "None",
@@ -331,6 +339,7 @@
       "searchResourceName": "Search resource name...",
       "searchUsers": "Search users...",
       "selectTemplate": "Select a template",
+      "selectUser": "Select user",
       "subject": "username or group name",
       "tokenUrl": "https://provider.com/oauth/token",
       "userInfoUrl": "https://provider.com/oauth/userinfo",
@@ -342,7 +351,7 @@
     "description": "Search across all Kubernetes resources",
     "placeholder": "Search resources...",
     "searching": "Searching...",
-    "emptyHint": "Type at least 3 characters to search or see favorites below...",
+    "emptyHint": "Start typing to search or see favorites below...",
     "favorites": "Favorites",
     "resources": "Resources",
     "noResults": "No results found",
@@ -359,7 +368,8 @@
       "config": "config",
       "other": "other",
       "security": "Security",
-      "workloads": "Workloads"
+      "workloads": "Workloads",
+      "application": "Application"
     },
     "short": {
       "pvcs": "PVCs",
@@ -371,6 +381,8 @@
     "layout.minimal": "Minimal",
     "pinnedItems": "Pinned Items",
     "pinned": "Pinned",
+    "dragItem": "Drag item",
+    "groupNamePlaceholder": "Group name",
     "menuGroups": "Menu Groups",
     "resetToDefault": "Reset to Default",
     "setAsGlobal": "Set as global sidebar",
@@ -413,7 +425,50 @@
     "rolebindings": "Role Bindings",
     "clusterroles": "Cluster Roles",
     "clusterrolebindings": "Cluster Role Bindings",
-    "horizontalpodautoscalers": "HPA"
+    "horizontalpodautoscalers": "HPA",
+    "endpoints": "Endpoints",
+    "endpointslices": "EndpointSlices",
+    "podtemplates": "PodTemplates",
+    "replicationcontrollers": "ReplicationControllers",
+    "limitranges": "LimitRanges",
+    "resourcequotas": "ResourceQuotas",
+    "componentstatuses": "ComponentStatuses",
+    "controllerrevisions": "ControllerRevisions",
+    "ingressclasses": "IngressClasses",
+    "ipaddresses": "IPAddresses",
+    "servicecidrs": "ServiceCIDRs",
+    "volumeattachments": "VolumeAttachments",
+    "csidrivers": "CSIDrivers",
+    "csinodes": "CSINodes",
+    "csistoragecapacities": "CSIStorageCapacities",
+    "volumeattributesclasses": "VolumeAttributesClasses",
+    "certificatesigningrequests": "CertificateSigningRequests",
+    "clustertrustbundles": "ClusterTrustBundles",
+    "podcertificaterequests": "PodCertificateRequests",
+    "leases": "Leases",
+    "leasecandidates": "LeaseCandidates",
+    "runtimeclasses": "RuntimeClasses",
+    "priorityclasses": "PriorityClasses",
+    "workloads": "Workloads",
+    "podgroups": "PodGroups",
+    "flowschemas": "FlowSchemas",
+    "prioritylevelconfigurations": "PriorityLevelConfigurations",
+    "validatingadmissionpolicies": "ValidatingAdmissionPolicies",
+    "validatingadmissionpolicybindings": "ValidatingAdmissionPolicyBindings",
+    "validatingwebhookconfigurations": "ValidatingWebhookConfigurations",
+    "mutatingwebhookconfigurations": "MutatingWebhookConfigurations",
+    "mutatingadmissionpolicies": "MutatingAdmissionPolicies",
+    "mutatingadmissionpolicybindings": "MutatingAdmissionPolicyBindings",
+    "resourceslices": "ResourceSlices",
+    "resourceclaims": "ResourceClaims",
+    "deviceclasses": "DeviceClasses",
+    "resourceclaimtemplates": "ResourceClaimTemplates",
+    "devicetaintrules": "DeviceTaintRules",
+    "resourcepoolstatusrequests": "ResourcePoolStatusRequests",
+    "storageversions": "StorageVersions",
+    "storageversionmigrations": "StorageVersionMigrations",
+    "helmReleases": "Helm Release",
+    "helmCharts": "App Catalog"
   },
   "overview": {
     "title": "Overview",
@@ -451,7 +506,15 @@
     "lastState": "last: {{state}}"
   },
   "deployments": {
-    "title": "Deployments"
+    "title": "Deployments",
+    "exposed": "Service {{service}} created",
+    "exposeTitle": "Expose Deployment",
+    "exposeDescription": "Create a Service for this Deployment.",
+    "serviceType": "Service Type",
+    "servicePort": "Service Port",
+    "targetPort": "Target Port",
+    "exposeInvalidPort": "Port must be between 1 and 65535",
+    "exposeNoSelector": "No Deployment selector labels found to expose"
   },
   "daemonsets": {
     "title": "DaemonSets"
@@ -561,6 +624,7 @@
     "signingIn": "Signing in...",
     "signInWithPassword": "Sign In with Password",
     "signInWithLdap": "Sign In with LDAP",
+    "signInWithPasskey": "Sign in with a passkey",
     "tabs": {
       "ldap": "LDAP"
     },
@@ -594,6 +658,7 @@
       "generalError": "An unexpected error occurred during authentication.",
       "contactSupport": "Please try again or contact support if the issue persists.",
       "invalidCredentials": "Invalid username or password",
+      "invalidMfaCode": "Invalid MFA code",
       "unknownError": "An unknown error occurred",
       "userDisabled": "User Disabled",
       "userDisabledMessage": "Your user account has been disabled. Please contact your administrator for more information.",
@@ -651,6 +716,12 @@
       "allCategories": "All Categories",
       "addCategory": "Add a category..."
     },
+    "anyUser": "Any user",
+    "confirmRemoveOwnRoleTitle": "Remove your role?",
+    "deleteOwnRoleWarning": "This role is assigned to your current user. Deleting it may affect your permissions.",
+    "permissionPreviewTitle": "Permission Preview",
+    "permissionPreview": "Allows {{verbs}} on {{resources}} in namespaces {{namespaces}} on clusters {{clusters}}.",
+    "resourceHint": "Use plural resource names. Type to filter suggestions. For CRDs and custom resources, enter the CRD name from the URL, for example widgets.example.com.",
     "verb": {
       "get": "Get",
       "create": "Create",
@@ -718,6 +789,14 @@
         "enableWatermark": "Enable watermark"
       }
     },
+    "loginPrompt": {
+      "title": "Login Prompt",
+      "description": "Show a custom message on the login page.",
+      "form": {
+        "message": "Message",
+        "placeholder": "Leave empty to hide the login prompt"
+      }
+    },
     "errors": {
       "modelRequired": "Model is required",
       "apiKeyRequired": "API Key is required when AI Agent is enabled",
@@ -730,6 +809,14 @@
   },
   "authenticationManagement": {
     "title": "Authentication",
+    "mfa": {
+      "title": "MFA",
+      "description": "Allow users to configure authenticator app MFA."
+    },
+    "passkey": {
+      "title": "Passkey Login",
+      "description": "Allow users to register passkeys and sign in with a passkey."
+    },
     "ldap": {
       "title": "LDAP",
       "description": "Enable LDAP username/password login and sync groups into RBAC.",
@@ -1171,5 +1258,130 @@
     "forceDelete": "Force delete (set grace period to 0)",
     "finalizerNote": "If finalizers exist and resource is not deleted after 3 seconds, finalizers will be removed automatically",
     "deleting": "Deleting..."
+  },
+  "helmCharts": {
+    "actions": {
+      "addRepository": "Add Repository",
+      "deleteRepository": "Delete Repository",
+      "install": "Install"
+    },
+    "fields": {
+      "repository": "Repository",
+      "deprecated": "Deprecated",
+      "sources": "Sources",
+      "keywords": "Keywords",
+      "versions": "Versions",
+      "defaultValues": "Default values",
+      "customValues": "Custom values",
+      "updatedAt": "Updated"
+    },
+    "filters": {
+      "allRepositories": "All repositories",
+      "artifactHub": "Artifact Hub",
+      "repositories": "Repositories",
+      "verifiedPublisher": "Verified publisher"
+    },
+    "messages": {
+      "addRepositoryDescription": "Add a Helm repository to make its charts available.",
+      "repositoryAdded": "Repository added",
+      "repositoryDeleted": "Repository deleted",
+      "deleteRepositoryDescription": "This only removes the managed chart source from Kite. It does not delete remote charts or installed Helm releases.",
+      "noCharts": "No charts found",
+      "noReadme": "No README found",
+      "noValues": "No values found",
+      "noTemplates": "No templates found",
+      "noVersions": "No versions found",
+      "noChartUrl": "Chart package URL is missing.",
+      "invalidValues": "Values must be a YAML object.",
+      "artifactHubTrafficNotice": "Security notice: Kite contacts <artifactHub>Artifact Hub</artifactHub> when searching or viewing chart information from this source. Kite only displays third-party data and is not responsible for its content.",
+      "installed": "Helm release installed"
+    },
+    "placeholders": {
+      "search": "Search charts..."
+    }
+  },
+  "helm": {
+    "actions": {
+      "backToValues": "Back",
+      "dryRun": "Dry Run",
+      "upgrade": "Upgrade",
+      "rollback": "Rollback",
+      "autoUpgrade": "Auto upgrade"
+    },
+    "fields": {
+      "chart": "Chart",
+      "version": "Version",
+      "appVersion": "App Version",
+      "publishedAt": "Published",
+      "kubeVersion": "Kubernetes Version",
+      "releaseName": "Release Name",
+      "createNamespace": "Create namespace",
+      "dryRunPreview": "Dry run preview",
+      "ignoreLabelsAnnotationsChanges": "Ignore labels/annotations changes (diff only)",
+      "forceConflicts": "force-conflicts",
+      "wait": "wait",
+      "rollbackOnFailure": "Rollback on failure",
+      "firstDeployed": "First Deployed",
+      "lastDeployed": "Last Deployed",
+      "autoUpgrade": "Auto upgrade",
+      "chartRepository": "Chart repository",
+      "upgradeSettings": "Upgrade settings",
+      "status": "Status",
+      "schedule": "Schedule",
+      "scheduleInterval": "Interval",
+      "scheduleDaily": "Daily",
+      "intervalMinutes": "Interval (minutes)",
+      "scheduleTime": "Time",
+      "timeoutMinutes": "Timeout (minutes)",
+      "lastChecked": "Last checked",
+      "lastUpgraded": "Last upgraded",
+      "lastError": "Last error"
+    },
+    "diff": {
+      "added": "Added",
+      "deleted": "Deleted",
+      "changed": "Changed",
+      "unchanged": "Unchanged"
+    },
+    "tabs": {
+      "manifest": "Manifest",
+      "values": "Values",
+      "notes": "Notes"
+    },
+    "messages": {
+      "noResources": "No resources found",
+      "noDryRunResources": "No resources rendered by dry run.",
+      "noHistory": "No history found",
+      "rollbackStarted": "Rollback requested",
+      "rollbackConfirmTitle": "Rollback release?",
+      "rollbackConfirmDescription": "Rollback {{namespace}}/{{name}} to revision {{revision}}.",
+      "chartNotFound": "Chart not found in managed Helm repositories or Artifact Hub.",
+      "chartSourceManagedRepository": "Using managed chart repository {{repository}}.",
+      "chartSourceArtifactHubVerified": "Using Artifact Hub chart from {{repository}} (verified publisher).",
+      "chartSourceArtifactHubVerifiedShort": "Artifact Hub (verified)",
+      "chartSourceArtifactHub": "Using Artifact Hub chart from {{repository}}.",
+      "chartDetailsLink": "Chart details",
+      "chartSourceCurrentRelease": "Using the chart stored in the current release.",
+      "chartSourceSelectChart": "Select a chart to use a different chart package. Defaults to the current chart.",
+      "newVersionAvailable": "New {{version}}",
+      "loadingChart": "Loading chart...",
+      "loadingVersions": "Loading versions...",
+      "loadingChartPackage": "Loading chart package...",
+      "loadingValues": "Loading values...",
+      "autoUpgradeSaved": "Auto upgrade saved",
+      "autoUpgradeDescription": "Upgrade when a newer chart version is available.",
+      "autoUpgradeChartDescription": "Chart source for version checks.",
+      "autoUpgradeScheduleDescription": "When to check for updates.",
+      "autoUpgradeIntervalDescription": "Check frequency.",
+      "autoUpgradeScheduleTimeDescription": "Check once per day.",
+      "autoUpgradeTimeoutDescription": "Upgrade wait limit.",
+      "invalidAutoUpgradeInterval": "Interval must be at least 1 minute.",
+      "invalidAutoUpgradeScheduleTime": "Enter a valid time.",
+      "invalidAutoUpgradeTimeout": "Timeout must be at least 1 minute.",
+      "autoUpgradeChartRequired": "Select a chart for auto upgrade."
+    },
+    "placeholders": {
+      "selectChart": "Select a chart..."
+    }
   }
 }

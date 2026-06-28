@@ -35,7 +35,7 @@ features:
     details: Real-time metrics, live logs, pod/node web terminal, and built-in kubectl console
   - icon: 🔐
     title: Security
-    details: OAuth integration, RBAC, user management, role mapping, and audit logs
+    details: OAuth integration, MFA, passkey login, RBAC, user management, role mapping, and audit logs
   - icon: 🤖
     title: AI Assistant
     details: Built-in AI assistant to speed up cluster operations and troubleshooting

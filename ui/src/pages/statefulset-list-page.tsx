@@ -16,10 +16,10 @@ const statefulSetSearchFilter = createSearchFilter<StatefulSet>(
   (s) => s.spec?.serviceName
 )
 
+const columnHelper = createColumnHelper<StatefulSet>()
+
 export function StatefulSetListPage() {
   const { t } = useTranslation()
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<StatefulSet>()
 
   // Define columns for the statefulset table
   const columns = useMemo(
@@ -99,7 +99,7 @@ export function StatefulSetListPage() {
         },
       }),
     ],
-    [columnHelper, t]
+    [t]
   )
 
   return (

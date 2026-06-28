@@ -102,12 +102,28 @@ export function Terminal({
     lastUpdate: Date.now(),
   })
   const speedUpdateTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const pingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const { t } = useTranslation()
 
-  // Initialize pod/container state on props change
+  // Keep user selection unless the current pod is no longer available.
   useEffect(() => {
-    setSelectedPod(podName || pods?.[0]?.metadata?.name || '')
+    if (podName) {
+      setSelectedPod(podName)
+      return
+    }
+
+    if (!pods) {
+      return
+    }
+
+    setSelectedPod((current) => {
+      if (pods.length === 0) {
+        return ''
+      }
+      if (current && pods.some((pod) => pod.metadata?.name === current)) {
+        return current
+      }
+      return pods[0]?.metadata?.name || ''
+    })
   }, [podName, pods])
 
   useEffect(() => {
@@ -359,15 +375,6 @@ export function Terminal({
         }
       }, 500)
 
-      if (pingTimerRef.current) clearInterval(pingTimerRef.current)
-      pingTimerRef.current = setInterval(() => {
-        if (websocket.readyState === WebSocket.OPEN) {
-          const pingMessage = JSON.stringify({ type: 'ping' })
-          websocket.send(pingMessage)
-          updateNetworkStats(new Blob([pingMessage]).size, true)
-        }
-      }, 30000)
-
       terminal.writeln(
         `\x1b[32mConnected to ${type === 'kubectl' ? 'kubectl' : type} terminal!\x1b[0m`
       )
@@ -396,9 +403,6 @@ export function Terminal({
             )
             setIsConnected(false)
             break
-          case 'pong':
-            // Ignore pong messages from server
-            break
         }
       } catch (err) {
         console.error('Failed to parse WebSocket message:', err)
@@ -417,10 +421,6 @@ export function Terminal({
       if (speedUpdateTimerRef.current) {
         clearInterval(speedUpdateTimerRef.current)
         speedUpdateTimerRef.current = null
-      }
-      if (pingTimerRef.current) {
-        clearInterval(pingTimerRef.current)
-        pingTimerRef.current = null
       }
       if (event.code !== 1000) {
         terminal.writeln('\x1b[31mConnection closed unexpectedly\x1b[0m')
@@ -487,7 +487,6 @@ export function Terminal({
       websocket.close()
       if (speedUpdateTimerRef.current)
         clearInterval(speedUpdateTimerRef.current)
-      if (pingTimerRef.current) clearInterval(pingTimerRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -531,11 +530,11 @@ export function Terminal({
 
   return (
     <Card
-      className={`flex flex-col gap-0 py-2 ${isFullscreen ? 'fixed inset-0 z-50 h-[100dvh]' : 'h-[calc(100dvh-180px)]'}`}
+      className={`flex flex-col gap-0 py-2 ${isFullscreen ? 'fixed inset-0 z-50 h-[100dvh]' : 'h-full min-h-0'}`}
     >
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <IconTerminal className="h-5 w-5" />
               Terminal
@@ -552,7 +551,7 @@ export function Terminal({
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 md:w-auto md:justify-end">
             {/* Container Selector */}
             {containers.length > 1 && (
               <ContainerSelector

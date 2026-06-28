@@ -394,6 +394,9 @@ export interface GeneralSetting {
   enableVersionCheck: boolean
   passwordLoginDisabled: boolean
   watermarkEnabled: boolean
+  enableMFA: boolean
+  enablePasskeyLogin: boolean
+  loginPrompt: string
 }
 
 export interface GeneralSettingUpdateRequest {
@@ -410,15 +413,12 @@ export interface GeneralSettingUpdateRequest {
   enableVersionCheck?: boolean
   passwordLoginDisabled?: boolean
   watermarkEnabled?: boolean
+  enableMFA?: boolean
+  enablePasskeyLogin?: boolean
+  loginPrompt?: string
 }
 
-export type CredentialProvider = 'password' | 'ldap'
 
-export interface AuthProviderCatalog {
-  providers: string[]
-  credentialProviders: CredentialProvider[]
-  oauthProviders: string[]
-}
 
 export interface LDAPSetting {
   enabled: boolean

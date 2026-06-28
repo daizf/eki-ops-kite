@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Cluster, Role } from '@/types/api'
 import { useClusterList } from '@/lib/api'
 import { CATEGORIES } from '@/lib/constants'
+import { resourceCatalog } from '@/lib/resource-catalog'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -32,6 +33,148 @@ interface RBACDialogProps {
   onOpenChange: (open: boolean) => void
   role?: Role | null
   onSubmit: (data: Partial<Role>) => void
+  isSubmitting?: boolean
+}
+
+type ArrayRoleField = 'clusters' | 'clusterTags' | 'namespaces' | 'resources' | 'verbs'
+
+const emptyRoleForm = (): Partial<Role> => ({
+  name: '',
+  description: '',
+  clusters: [],
+  namespaces: [],
+  resources: [],
+  verbs: [],
+})
+
+const roleToForm = (role?: Role | null): Partial<Role> => {
+  if (!role) return emptyRoleForm()
+
+  return {
+    name: role.name,
+    description: role.description || '',
+    clusters: role.clusters || [],
+    namespaces: role.namespaces || [],
+    resources: role.resources || [],
+    verbs: role.verbs || [],
+  }
+}
+
+const RESOURCE_SUGGESTIONS = [
+  '*',
+  ...resourceCatalog
+    .filter((resource) => resource.type !== 'crs')
+    .map((resource) => resource.type),
+]
+
+const VERB_SUGGESTIONS = [
+  '*',
+  'get',
+  'create',
+  'update',
+  'delete',
+  'log',
+  'exec',
+]
+
+function ListEditor({
+  label,
+  items,
+  onChange,
+  input,
+  onInputChange,
+  placeholder,
+  hint,
+  suggestions,
+}: {
+  label: string
+  items: string[]
+  onChange: (items: string[]) => void
+  input: string
+  onInputChange: (value: string) => void
+  placeholder?: string
+  hint?: string
+  suggestions?: string[]
+}) {
+  const inputFilter = input.split(',').at(-1)?.trim().toLowerCase() || ''
+  const quickSuggestions =
+    suggestions
+      ?.filter((s) => !items.includes(s))
+      .filter((s) => !inputFilter || s.toLowerCase().includes(inputFilter))
+      .slice(0, 12) || []
+
+  const addValues = (values: string[]) => {
+    const nextValues = values.map((value) => value.trim()).filter(Boolean)
+    if (nextValues.length === 0) return
+
+    onChange(Array.from(new Set([...items, ...nextValues])))
+    onInputChange('')
+  }
+
+  const add = () => {
+    addValues(input.split(','))
+  }
+
+  const remove = (val: string) => {
+    onChange(items.filter((i) => i !== val))
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {hint && (
+        <p className="text-pretty text-xs text-muted-foreground">{hint}</p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {items.map((it) => (
+          <div
+            key={it}
+            className="inline-flex max-w-full items-center gap-2 rounded-full border px-2 py-1 text-sm"
+          >
+            <span className="min-w-0 truncate select-none" title={it}>
+              {it}
+            </span>
+            <button
+              type="button"
+              aria-label={`remove ${it}`}
+              onClick={() => remove(it)}
+              className="inline-flex shrink-0 items-center justify-center"
+            >
+              <IconX className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+      <Input
+        value={input}
+        placeholder={placeholder}
+        onChange={(e) => onInputChange(e.target.value)}
+        required={items.length === 0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            add()
+          }
+        }}
+      />
+      {quickSuggestions.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {quickSuggestions.map((s) => (
+            <Button
+              key={s}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => addValues([s])}
+            >
+              {s}
+            </Button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function RBACDialog({
@@ -39,49 +182,55 @@ export function RBACDialog({
   onOpenChange,
   role,
   onSubmit,
+  isSubmitting,
 }: RBACDialogProps) {
   const { t } = useTranslation()
   const isEdit = !!role
 
   const [form, setForm] = useState<Partial<Role>>({
-    name: '',
-    description: '',
-    clusters: ['*'],
+    ...emptyRoleForm(),
     clusterCategories: ['*'],
     clusterTags: ['*'],
-    namespaces: ['*'],
-    resources: ['*'],
-    verbs: ['*'],
+  })
+  const [drafts, setDrafts] = useState<Record<ArrayRoleField, string>>({
+    clusters: '',
+    clusterTags: '',
+    namespaces: '',
+    resources: '',
+    verbs: '',
   })
 
   useEffect(() => {
-    if (role) {
-      setForm({
-        ...role,
-        clusters: role.clusters || ['*'],
-        clusterCategories: role.clusterCategories || ['*'],
-        clusterTags: role.clusterTags || ['*'],
-        namespaces: role.namespaces || ['*'],
-        resources: role.resources || ['*'],
-        verbs: role.verbs || ['*'],
-      })
-    }
+    if (!open) return
+    setForm({
+      ...roleToForm(role),
+      clusterCategories: role?.clusterCategories || ['*'],
+      clusterTags: role?.clusterTags || ['*'],
+    })
+    setDrafts({ clusters: '', clusterTags: '', namespaces: '', resources: '', verbs: '' })
   }, [role, open])
 
   const handleChange = (field: keyof Role, value: string) =>
     setForm((prev) => ({ ...(prev || {}), [field]: value }))
 
-  const setArrayField = (
-    field:
-      | 'clusters'
-      | 'clusterCategories'
-      | 'clusterTags'
-      | 'namespaces'
-      | 'resources'
-      | 'verbs',
-    items: string[]
-  ) => {
+  const setArrayField = (field: string, items: string[]) => {
     setForm((prev) => ({ ...(prev || {}), [field]: items }))
+  }
+
+  const setDraft = (field: ArrayRoleField, value: string) => {
+    setDrafts((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const withDraftValues = (field: ArrayRoleField) => {
+    const items = form[field] || []
+    const draftItems = drafts[field].split(',').map((value) => value.trim())
+    return Array.from(new Set([...items, ...draftItems])).filter(Boolean)
+  }
+
+  const formatValues = (values: string[]) => {
+    if (values.length === 0) return '-'
+    if (values.includes('*')) return t('common.values.all', 'All')
+    return values.join(', ')
   }
 
   // Categories dropdown multi-select toggle
@@ -89,11 +238,10 @@ export function RBACDialog({
     const current = form.clusterCategories || ['*']
     let next: string[]
     if (current.includes('*') && current.length === 1) {
-      // Switching from "all" to specific: start fresh with this category
       next = [cat]
     } else if (current.includes(cat)) {
       next = current.filter((c) => c !== cat)
-      if (next.length === 0) next = ['*'] // Revert to all if none selected
+      if (next.length === 0) next = ['*']
     } else {
       if (cat === '*') {
         next = ['*']
@@ -104,113 +252,27 @@ export function RBACDialog({
     setArrayField('clusterCategories', next)
   }
 
-  function ListEditor({
-    label,
-    items,
-    onChange,
-    placeholder,
-    suggestions,
-  }: {
-    label: string
-    items: string[]
-    onChange: (items: string[]) => void
-    placeholder?: string
-    suggestions?: string[]
-  }) {
-    const [input, setInput] = useState('')
-    const [focused, setFocused] = useState(false)
-
-    const add = () => {
-      const v = input.trim()
-      if (!v) return
-      const next = Array.from(new Set([...items, v]))
-      onChange(next)
-      setInput('')
-    }
-
-    const remove = (val: string) => {
-      onChange(items.filter((i) => i !== val))
-    }
-
-    return (
-      <div className="space-y-2">
-        <Label>{label}</Label>
-        <div className="flex flex-wrap gap-2">
-          {items.map((it) => (
-            <div
-              key={it}
-              className="inline-flex items-center gap-2 rounded-full border px-2 py-1 text-sm"
-            >
-              <span className="select-none">{it}</span>
-              <button
-                type="button"
-                aria-label={`remove ${it}`}
-                onClick={() => remove(it)}
-                className="inline-flex items-center justify-center"
-              >
-                <IconX className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="relative">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              placeholder={placeholder}
-              onChange={(e) => setInput(e.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => {
-                // Delay hiding suggestions to allow suggestion click to register
-                setTimeout(() => setFocused(false), 150)
-              }}
-              required={items.length === 0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  add()
-                }
-              }}
-            />
-          </div>
-
-          {/* Dropdown suggestions (if provided) */}
-          {focused && suggestions && suggestions.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full bg-popover border rounded shadow max-h-60 overflow-auto">
-              {suggestions
-                .filter((s) =>
-                  s.toLowerCase().includes(input.trim().toLowerCase())
-                )
-                .filter((s) => !items.includes(s))
-                .slice(0, 50)
-                .map((s) => (
-                  <div
-                    key={s}
-                    className="px-3 py-2 cursor-pointer hover:bg-accent text-sm"
-                    onMouseDown={(e) => {
-                      // prevent input blur before click
-                      e.preventDefault()
-                      const next = Array.from(new Set([...items, s]))
-                      onChange(next)
-                      setInput('')
-                    }}
-                  >
-                    <span>{s}</span>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
-    )
+  const preview = {
+    clusters: withDraftValues('clusters'),
+    namespaces: withDraftValues('namespaces'),
+    resources: withDraftValues('resources'),
+    verbs: withDraftValues('verbs'),
   }
 
-  // Fetch cluster list for suggestions when editing clusters
   const { data: clusterList = [] } = useClusterList()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(form)
+    onSubmit({
+      name: form.name?.trim() || '',
+      description: form.description || '',
+      clusters: withDraftValues('clusters'),
+      clusterCategories: form.clusterCategories || ['*'],
+      clusterTags: form.clusterTags || ['*'],
+      namespaces: withDraftValues('namespaces'),
+      resources: withDraftValues('resources'),
+      verbs: withDraftValues('verbs'),
+    })
   }
 
   return (
@@ -265,11 +327,13 @@ export function RBACDialog({
                 label={t('common.fields.clusters', 'Clusters')}
                 items={form.clusters || ['*']}
                 onChange={(items) => setArrayField('clusters', items)}
+                input={drafts.clusters}
+                onInputChange={(value) => setDraft('clusters', value)}
                 placeholder="* or cluster-name"
                 suggestions={
                   Array.isArray(clusterList)
-                    ? (clusterList as Cluster[]).map((c) => c.name)
-                    : []
+                    ? ['*', ...(clusterList as Cluster[]).map((c) => c.name)]
+                    : ['*']
                 }
               />
 
@@ -351,6 +415,8 @@ export function RBACDialog({
                 label={t('common.fields.clusterTags', 'Cluster Tags')}
                 items={form.clusterTags || ['*']}
                 onChange={(items) => setArrayField('clusterTags', items)}
+                input={drafts.clusterTags}
+                onInputChange={(value) => setDraft('clusterTags', value)}
                 placeholder="* or tag-name"
               />
 
@@ -358,30 +424,52 @@ export function RBACDialog({
                 label={t('common.fields.namespaces', 'Namespaces')}
                 items={form.namespaces || ['*']}
                 onChange={(items) => setArrayField('namespaces', items)}
+                input={drafts.namespaces}
+                onInputChange={(value) => setDraft('namespaces', value)}
                 placeholder="* or namespace"
+                suggestions={['*']}
               />
 
               <ListEditor
                 label={t('common.fields.resources', 'Resources')}
                 items={form.resources || ['*']}
                 onChange={(items) => setArrayField('resources', items)}
-                placeholder="* or pods,deployments"
+                input={drafts.resources}
+                onInputChange={(value) => setDraft('resources', value)}
+                placeholder="* or pods,deployments,namespaces"
+                hint={t(
+                  'rbac.resourceHint',
+                  'Use plural resource names. Type to filter suggestions. For CRDs and custom resources, enter the CRD name from the URL, for example widgets.example.com.'
+                )}
+                suggestions={RESOURCE_SUGGESTIONS}
               />
 
               <ListEditor
-                label={t('common.fields.verbs', 'Verbs')}
+                label={`${t('common.fields.actions', 'Actions')} / ${t('common.fields.verbs', 'Verbs')}`}
                 items={form.verbs || ['*']}
                 onChange={(items) => setArrayField('verbs', items)}
-                placeholder="* or get,list,create"
-                suggestions={[
-                  'get',
-                  'update',
-                  'create',
-                  'delete',
-                  'log',
-                  'exec',
-                ]}
+                input={drafts.verbs}
+                onInputChange={(value) => setDraft('verbs', value)}
+                placeholder="* or get,create,update,delete,log,exec"
+                suggestions={VERB_SUGGESTIONS}
               />
+            </div>
+            <div className="rounded-md border bg-muted/40 p-3 text-sm">
+              <div className="mb-1 font-medium">
+                {t('rbac.permissionPreviewTitle', 'Permission Preview')}
+              </div>
+              <p className="text-pretty text-muted-foreground">
+                {t(
+                  'rbac.permissionPreview',
+                  'Allows {{verbs}} on {{resources}} in namespaces {{namespaces}} on clusters {{clusters}}.',
+                  {
+                    verbs: formatValues(preview.verbs),
+                    resources: formatValues(preview.resources),
+                    namespaces: formatValues(preview.namespaces),
+                    clusters: formatValues(preview.clusters),
+                  }
+                )}
+              </p>
             </div>
           </div>
           <DialogFooter>
@@ -389,13 +477,16 @@ export function RBACDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
             >
               {t('common.actions.cancel', 'Cancel')}
             </Button>
-            <Button type="submit">
-              {isEdit
-                ? t('common.actions.save', 'Save')
-                : t('common.actions.create', 'Create')}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? t('common.actions.saving', 'Saving...')
+                : isEdit
+                  ? t('common.actions.save', 'Save')
+                  : t('common.actions.create', 'Create')}
             </Button>
           </DialogFooter>
         </form>

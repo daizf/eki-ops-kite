@@ -1,6 +1,6 @@
 # 什么是 Kite？
 
-Kite 是一个轻量级、现代化的 Kubernetes Dashboard，将实时可观测性、多集群与资源管理、企业级用户治理（OAuth、RBAC 和审计日志）以及 AI Agent 集成到同一个工作空间中。它不只是一个工具，更像一个平台。
+Kite 是一个轻量级、现代化的 Kubernetes Dashboard，将实时可观测性、多集群与资源管理、企业级用户治理（OAuth、MFA、Passkey、RBAC 和审计日志）以及 AI Agent 集成到同一个工作空间中。它不只是一个工具，更像一个平台。
 
 ![Dashboard Overview](/screenshots/overview.png)
 
@@ -22,7 +22,7 @@ Kite 是一个轻量级、现代化的 Kubernetes Dashboard，将实时可观测
 
 ### 资源管理
 
-- 全面覆盖：Pods、Deployments、Services、ConfigMaps、Secrets、PVs、PVCs、Nodes 等
+- 全面覆盖：Pods、Deployments、Services、ConfigMaps、Secrets、PVs、PVCs、Nodes、Helm Releases 等
 - 基于 Monaco 编辑器的实时 YAML 编辑（语法高亮和校验）
 - 提供容器、卷、事件和状态等详细视图
 - 资源关系展示（例如 Deployment -> Pods）
@@ -43,6 +43,8 @@ Kite 是一个轻量级、现代化的 Kubernetes Dashboard，将实时可观测
 ### 安全
 
 - OAuth 集成
+- 密码用户 MFA
+- Passkey 登录
 - 基于角色的访问控制
 - 用户管理和角色分配
 
@@ -51,7 +53,7 @@ Kite 是一个轻量级、现代化的 Kubernetes Dashboard，将实时可观测
 Headlamp 和 Kubernetes Dashboard 都是优秀的集群操作工具，核心侧重在资源查看与控制。Kite 具备这些 Dashboard 能力，但定位是面向团队协作的运维平台：
 
 - 在同一个工作空间整合可观测性、多集群运维、治理能力与 AI 助手
-- 内置团队治理能力：OAuth、RBAC、用户角色映射与审计日志
+- 内置团队治理能力：OAuth、MFA、Passkey、RBAC、用户角色映射与审计日志
 - 不止资源视图，还覆盖运维工作流：Web 终端、内置 kubectl 控制台、Kube Proxy
 - 让运维、开发和管理员在同一套系统中协作，而不是拼接多个工具
 

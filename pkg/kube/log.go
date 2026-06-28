@@ -6,10 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"sync"
 
-	"golang.org/x/net/websocket"
+	"github.com/zxh326/kite/pkg/wsutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )
@@ -21,7 +20,7 @@ type PodLogStream struct {
 }
 
 type BatchLogHandler struct {
-	conn      *websocket.Conn
+	conn      *wsutil.Conn
 	mu        sync.RWMutex
 	pods      map[string]*PodLogStream // key: namespace/name; guarded by mu
 	k8sClient *K8sClient
@@ -30,7 +29,7 @@ type BatchLogHandler struct {
 	cancel    context.CancelFunc
 }
 
-func NewBatchLogHandler(conn *websocket.Conn, client *K8sClient, opts *corev1.PodLogOptions) *BatchLogHandler {
+func NewBatchLogHandler(conn *wsutil.Conn, client *K8sClient, opts *corev1.PodLogOptions) *BatchLogHandler {
 	ctx, cancel := context.WithCancel(context.Background())
 	l := &BatchLogHandler{
 		conn:      conn,
@@ -70,7 +69,7 @@ func (l *BatchLogHandler) startPodLogStream(podStream *PodLogStream) {
 	req := l.k8sClient.ClientSet.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, l.opts)
 	podLogs, err := req.Stream(podCtx)
 	if err != nil {
-		_ = sendErrorMessage(l.conn, fmt.Sprintf("Failed to get pod logs for %s: %v", pod.Name, err))
+		_ = wsutil.SendError(l.conn, fmt.Sprintf("Failed to get pod logs for %s: %v", pod.Name, err))
 		return
 	}
 	defer func() {
@@ -91,7 +90,7 @@ func (l *BatchLogHandler) startPodLogStream(podStream *PodLogStream) {
 			line = fmt.Sprintf("[%s]: %s", pod.Name, line)
 		}
 
-		return sendMessage(l.conn, "log", line)
+		return wsutil.SendMessage(l.conn, "log", line)
 	}
 
 	lw := writerFunc(func(p []byte) (int, error) {
@@ -126,38 +125,29 @@ func (l *BatchLogHandler) startPodLogStream(podStream *PodLogStream) {
 		err = sendLogLine(pendingLine.String())
 	}
 	if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, context.Canceled) {
-		_ = sendErrorMessage(l.conn, fmt.Sprintf("Failed to stream pod logs for %s: %v", pod.Name, err))
+		_ = wsutil.SendError(l.conn, fmt.Sprintf("Failed to stream pod logs for %s: %v", pod.Name, err))
 	}
 
-	_ = sendMessage(l.conn, "close", fmt.Sprintf("{\"status\":\"closed\",\"pod\":\"%s\"}", pod.Name))
+	_ = wsutil.SendMessage(l.conn, "close", fmt.Sprintf("{\"status\":\"closed\",\"pod\":\"%s\"}", pod.Name))
 }
 
 func (l *BatchLogHandler) heartbeat(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			klog.Info("Heartbeat stopping due to context cancellation")
+			klog.V(1).Info("Heartbeat stopping due to context cancellation")
 			return
 		case <-l.ctx.Done():
-			klog.Info("Heartbeat stopping due to internal context cancellation")
+			klog.V(1).Info("Heartbeat stopping due to internal context cancellation")
 			return
 		default:
-			var temp []byte
-			err := websocket.Message.Receive(l.conn, &temp)
+			_, _, err := l.conn.ReadMessage()
 			if err != nil {
 				if !errors.Is(err, io.EOF) {
 					klog.Errorf("WebSocket connection error in heartbeat, cancelling internal context: %v", err)
 				}
 				l.cancel() // Cancel internal context when connection is lost
 				return
-			}
-			if strings.Contains(string(temp), "ping") {
-				err = sendMessage(l.conn, "pong", "pong")
-				if err != nil {
-					klog.Infof("Failed to send pong, cancelling internal context: %v", err)
-					l.cancel() // Cancel internal context when send fails
-					return
-				}
 			}
 		}
 	}
@@ -183,7 +173,7 @@ func (l *BatchLogHandler) AddPod(pod corev1.Pod) {
 	// Start streaming for this pod
 	go l.startPodLogStream(podStream)
 
-	_ = sendMessage(l.conn, "pod_added", fmt.Sprintf("{\"pod\":\"%s\",\"namespace\":\"%s\"}",
+	_ = wsutil.SendMessage(l.conn, "pod_added", fmt.Sprintf("{\"pod\":\"%s\",\"namespace\":\"%s\"}",
 		pod.Name, pod.Namespace))
 }
 
@@ -206,7 +196,7 @@ func (l *BatchLogHandler) RemovePod(pod corev1.Pod) {
 
 	go func() {
 		<-podStream.Done
-		_ = sendMessage(l.conn, "pod_removed", fmt.Sprintf("{\"pod\":\"%s\",\"namespace\":\"%s\"}",
+		_ = wsutil.SendMessage(l.conn, "pod_removed", fmt.Sprintf("{\"pod\":\"%s\",\"namespace\":\"%s\"}",
 			pod.Name, pod.Namespace))
 	}()
 }
@@ -229,24 +219,4 @@ type writerFunc func([]byte) (int, error)
 
 func (wf writerFunc) Write(p []byte) (int, error) {
 	return wf(p)
-}
-
-type LogsMessage struct {
-	Type string `json:"type"` // "log", "error", "connected", "close"
-	Data string `json:"data"`
-}
-
-func sendMessage(ws *websocket.Conn, msgType, data string) error {
-	msg := LogsMessage{
-		Type: msgType,
-		Data: data,
-	}
-	if err := websocket.JSON.Send(ws, msg); err != nil {
-		return err
-	}
-	return nil
-}
-
-func sendErrorMessage(ws *websocket.Conn, errMsg string) error {
-	return sendMessage(ws, "error", errMsg)
 }

@@ -13,10 +13,9 @@ const jobSearchFilter = createSearchFilter<Job>(
   (j) => j.metadata?.namespace
 )
 
-export function JobListPage() {
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<Job>()
+const columnHelper = createColumnHelper<Job>()
 
+export function JobListPage() {
   // Define columns for the job table
   const columns = useMemo(
     () => [
@@ -104,7 +103,7 @@ export function JobListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

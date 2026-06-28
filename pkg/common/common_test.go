@@ -22,6 +22,7 @@ func TestLoadEnvs(t *testing.T) {
 		EnableVersionCheck   bool
 		Base                 string
 		CORSAllowedOrigins   []string
+		TrustedProxies       []string
 	}{
 		JwtSecret:            JwtSecret,
 		Port:                 Port,
@@ -38,6 +39,7 @@ func TestLoadEnvs(t *testing.T) {
 		EnableVersionCheck:   EnableVersionCheck,
 		Base:                 Base,
 		CORSAllowedOrigins:   append([]string(nil), CORSAllowedOrigins...),
+		TrustedProxies:       append([]string(nil), TrustedProxies...),
 	}
 	defer func() {
 		JwtSecret = old.JwtSecret
@@ -55,7 +57,11 @@ func TestLoadEnvs(t *testing.T) {
 		EnableVersionCheck = old.EnableVersionCheck
 		Base = old.Base
 		CORSAllowedOrigins = append([]string(nil), old.CORSAllowedOrigins...)
+		TrustedProxies = append([]string(nil), old.TrustedProxies...)
 	}()
+
+	CORSAllowedOrigins = nil
+	TrustedProxies = nil
 
 	t.Setenv("JWT_SECRET", "test-jwt-secret")
 	t.Setenv("PORT", "9090")
@@ -72,6 +78,7 @@ func TestLoadEnvs(t *testing.T) {
 	t.Setenv("DISABLE_VERSION_CHECK", "true")
 	t.Setenv("KITE_BASE", "kite/")
 	t.Setenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173, https://example.com ,,")
+	t.Setenv("TRUSTED_PROXIES", "10.42.0.0/16, 192.0.2.10 ,, ")
 
 	LoadEnvs()
 
@@ -121,6 +128,11 @@ func TestLoadEnvs(t *testing.T) {
 	wantOrigins := []string{"http://localhost:5173", "https://example.com"}
 	if !reflect.DeepEqual(CORSAllowedOrigins, wantOrigins) {
 		t.Fatalf("CORSAllowedOrigins = %#v, want %#v", CORSAllowedOrigins, wantOrigins)
+	}
+
+	wantTrustedProxies := []string{"10.42.0.0/16", "192.0.2.10"}
+	if !reflect.DeepEqual(TrustedProxies, wantTrustedProxies) {
+		t.Fatalf("TrustedProxies = %#v, want %#v", TrustedProxies, wantTrustedProxies)
 	}
 }
 

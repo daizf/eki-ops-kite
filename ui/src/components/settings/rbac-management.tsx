@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useAuth } from '@/contexts/auth-context'
 import {
   IconEdit,
   IconPlus,
@@ -30,6 +31,7 @@ import { RBACDialog } from './rbac-dialog'
 
 export function RBACManagement() {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
   const { data: roles = [], isLoading, error } = useRoleList()
@@ -39,6 +41,8 @@ export function RBACManagement() {
   const [deletingRole, setDeletingRole] = useState<Role | null>(null)
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [assigningRole, setAssigningRole] = useState<Role | null>(null)
+  const [isAssigning, setIsAssigning] = useState(false)
+  const [isUnassigning, setIsUnassigning] = useState(false)
 
   const columns = useMemo<ColumnDef<Role>[]>(
     () => [
@@ -46,13 +50,18 @@ export function RBACManagement() {
         id: 'name',
         header: t('common.fields.name', 'Name'),
         cell: ({ row: { original: r } }) => (
-          <div>
-            <div className="flex items-center">
-              <span className="font-medium">{r.name}</span>{' '}
+          <div className="max-w-56">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate font-medium" title={r.name}>
+                {r.name}
+              </span>
               {r.isSystem && <Badge variant="secondary">System</Badge>}
             </div>
             {r.description && (
-              <div className="text-sm text-muted-foreground">
+              <div
+                className="truncate text-sm text-muted-foreground"
+                title={r.description}
+              >
                 {r.description}
               </div>
             )}
@@ -63,7 +72,10 @@ export function RBACManagement() {
         id: 'clusters',
         header: 'Clusters',
         cell: ({ row: { original: r } }) => (
-          <div className="text-sm text-muted-foreground">
+          <div
+            className="max-w-44 truncate text-sm text-muted-foreground"
+            title={r.clusters.join(', ')}
+          >
             {r.clusters.length > 0 ? (
               r.clusters.join(', ')
             ) : (
@@ -102,7 +114,10 @@ export function RBACManagement() {
         id: 'namespaces',
         header: 'Namespaces',
         cell: ({ row: { original: r } }) => (
-          <div className="text-sm text-muted-foreground">
+          <div
+            className="max-w-44 truncate text-sm text-muted-foreground"
+            title={r.namespaces.join(', ')}
+          >
             {r.namespaces.length > 0 ? (
               r.namespaces.join(', ')
             ) : (
@@ -116,7 +131,10 @@ export function RBACManagement() {
         id: 'Resources',
         header: 'Resources',
         cell: ({ row: { original: r } }) => (
-          <div className="text-sm text-muted-foreground">
+          <div
+            className="max-w-44 truncate text-sm text-muted-foreground"
+            title={r.resources.join(', ')}
+          >
             {r.resources.length > 0 ? (
               r.resources.join(', ')
             ) : (
@@ -129,7 +147,10 @@ export function RBACManagement() {
         id: 'verbs',
         header: 'Verbs',
         cell: ({ row: { original: r } }) => (
-          <div className="text-sm text-muted-foreground">
+          <div
+            className="max-w-44 truncate text-sm text-muted-foreground"
+            title={r.verbs.join(', ')}
+          >
             {r.verbs.length > 0 ? (
               r.verbs.join(', ')
             ) : (
@@ -148,9 +169,14 @@ export function RBACManagement() {
             r.assignments?.filter((a) => a.subjectType === 'group') || []
           const maxShow = 2
           return (
-            <div className="flex flex-wrap gap-1 text-xs max-w-[200px]">
+            <div className="flex max-w-56 flex-wrap gap-1 overflow-hidden text-xs">
               {users.slice(0, maxShow).map((a) => (
-                <Badge key={a.id} variant="secondary" className="text-xs">
+                <Badge
+                  key={a.id}
+                  variant="secondary"
+                  className="max-w-52 truncate text-xs"
+                  title={`user: ${a.subject}`}
+                >
                   user: {a.subject}
                 </Badge>
               ))}
@@ -160,7 +186,12 @@ export function RBACManagement() {
                 </Badge>
               )}
               {groups.slice(0, maxShow).map((a) => (
-                <Badge key={a.id} variant="secondary" className="text-xs">
+                <Badge
+                  key={a.id}
+                  variant="secondary"
+                  className="max-w-52 truncate text-xs"
+                  title={`group: ${a.subject}`}
+                >
                   group: {a.subject}
                 </Badge>
               ))}
@@ -292,6 +323,7 @@ export function RBACManagement() {
   })
 
   const handleSubmitRole = (data: Partial<Role>) => {
+    if (createMutation.isPending || updateMutation.isPending) return
     if (editingRole) {
       updateMutation.mutate({ id: editingRole.id, data })
     } else {
@@ -300,7 +332,7 @@ export function RBACManagement() {
   }
 
   const handleDeleteRole = () => {
-    if (!deletingRole) return
+    if (!deletingRole || deleteMutation.isPending) return
     deleteMutation.mutate(deletingRole.id)
   }
 
@@ -309,6 +341,8 @@ export function RBACManagement() {
     subjectType: 'user' | 'group',
     subject: string
   ) => {
+    if (isAssigning) return
+    setIsAssigning(true)
     try {
       await assignRole(roleId, { subjectType, subject })
       await queryClient.invalidateQueries({ queryKey: ['role-list'] })
@@ -328,6 +362,8 @@ export function RBACManagement() {
         (err as Error).message ||
           t('common.messages.failedToAssign', 'Failed to assign')
       )
+    } finally {
+      setIsAssigning(false)
     }
   }
 
@@ -336,6 +372,8 @@ export function RBACManagement() {
     subjectType: 'user' | 'group',
     subject: string
   ) => {
+    if (isUnassigning) return
+    setIsUnassigning(true)
     try {
       await unassignRole(roleId, subjectType, subject)
       await queryClient.invalidateQueries({ queryKey: ['role-list'] })
@@ -354,8 +392,20 @@ export function RBACManagement() {
         (err as Error).message ||
           t('common.messages.failedToUnassign', 'Failed to unassign')
       )
+    } finally {
+      setIsUnassigning(false)
     }
   }
+
+  const deleteRoleAdditionalNote = deletingRole?.assignments?.some(
+    (assignment) =>
+      assignment.subjectType === 'user' && assignment.subject === user?.username
+  )
+    ? t(
+        'rbac.deleteOwnRoleWarning',
+        'This role is assigned to your current user. Deleting it may affect your permissions.'
+      )
+    : undefined
 
   if (isLoading) {
     return (
@@ -433,6 +483,7 @@ export function RBACManagement() {
         }}
         role={editingRole}
         onSubmit={handleSubmitRole}
+        isSubmitting={createMutation.isPending || updateMutation.isPending}
       />
 
       <RBACAssignmentDialog
@@ -444,6 +495,8 @@ export function RBACManagement() {
         role={assigningRole}
         onAssign={handleAssign}
         onUnassign={handleUnassign}
+        isAssigning={isAssigning}
+        isUnassigning={isUnassigning}
       />
 
       <DeleteConfirmationDialog
@@ -452,6 +505,8 @@ export function RBACManagement() {
         onConfirm={handleDeleteRole}
         resourceName={deletingRole?.name || ''}
         resourceType="role"
+        isDeleting={deleteMutation.isPending}
+        additionalNote={deleteRoleAdditionalNote}
       />
     </div>
   )

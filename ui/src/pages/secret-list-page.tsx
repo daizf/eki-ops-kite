@@ -15,10 +15,9 @@ const secretSearchFilter = createSearchFilter<Secret>(
   (s) => Object.keys(s.data || {})
 )
 
-export function SecretListPage() {
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<Secret>()
+const columnHelper = createColumnHelper<Secret>()
 
+export function SecretListPage() {
   // Define columns for the secret table
   const columns = useMemo(
     () => [
@@ -72,7 +71,7 @@ export function SecretListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

@@ -15,8 +15,10 @@ vi.mock('./auth-context', () => ({
 }))
 
 const workloadsGroupId = 'sidebar-groups-workloads'
+const applicationGroupId = 'sidebar-groups-application'
 const trafficGroupId = 'sidebar-groups-traffic'
 const workloadsPodsItemId = 'sidebar-groups-workloads--pods'
+const otherGroupId = 'sidebar-groups-other'
 const customGroupId = 'custom-my-group'
 const customGroupItemId = 'custom-my-group-widgets-example-com'
 
@@ -44,6 +46,7 @@ function SidebarConfigConsumer() {
     (group) => group.id === workloadsGroupId
   )
   const customGroup = config.groups.find((group) => group.id === customGroupId)
+  const otherGroup = config.groups.find((group) => group.id === otherGroupId)
 
   return (
     <div>
@@ -66,6 +69,9 @@ function SidebarConfigConsumer() {
       </div>
       <div data-testid="custom-items">
         {customGroup?.items.map((item) => item.id).join(',') ?? ''}
+      </div>
+      <div data-testid="other-items">
+        {otherGroup?.items.map((item) => item.id).join(',') ?? ''}
       </div>
 
       <button type="button" onClick={() => toggleItemPin(workloadsPodsItemId)}>
@@ -174,7 +180,9 @@ describe('SidebarConfigProvider', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('pinned-items')).toBeEmptyDOMElement()
-      expect(screen.getByTestId('hidden-items')).toBeEmptyDOMElement()
+      expect(screen.getByTestId('hidden-items')).not.toHaveTextContent(
+        workloadsPodsItemId
+      )
     })
   })
 
@@ -203,6 +211,7 @@ describe('SidebarConfigProvider', () => {
 
     expect(screen.getByTestId('group-order')).toHaveTextContent(
       [
+        applicationGroupId,
         workloadsGroupId,
         trafficGroupId,
         'sidebar-groups-storage',
@@ -217,6 +226,7 @@ describe('SidebarConfigProvider', () => {
       expect(screen.getByTestId('group-order')).toHaveTextContent(
         [
           workloadsGroupId,
+          applicationGroupId,
           trafficGroupId,
           'sidebar-groups-storage',
           'sidebar-groups-config',
@@ -230,8 +240,9 @@ describe('SidebarConfigProvider', () => {
     await waitFor(() =>
       expect(screen.getByTestId('group-order')).toHaveTextContent(
         [
-          trafficGroupId,
+          applicationGroupId,
           workloadsGroupId,
+          trafficGroupId,
           'sidebar-groups-storage',
           'sidebar-groups-config',
           'sidebar-groups-security',
@@ -244,6 +255,7 @@ describe('SidebarConfigProvider', () => {
     await waitFor(() =>
       expect(screen.getByTestId('group-order')).toHaveTextContent(
         [
+          applicationGroupId,
           trafficGroupId,
           workloadsGroupId,
           'sidebar-groups-storage',
@@ -298,7 +310,7 @@ describe('SidebarConfigProvider', () => {
     })
   })
 
-  it('removes a custom group and clears item state tied to it', async () => {
+  it('removes a custom group and returns its items to other', async () => {
     await renderProvider()
 
     fireEvent.click(screen.getByRole('button', { name: 'create custom group' }))
@@ -326,10 +338,13 @@ describe('SidebarConfigProvider', () => {
     await waitFor(() => {
       expect(screen.getByTestId('custom-groups')).toBeEmptyDOMElement()
       expect(screen.getByTestId('custom-items')).toBeEmptyDOMElement()
-      expect(screen.getByTestId('pinned-items')).not.toHaveTextContent(
+      expect(screen.getByTestId('other-items')).toHaveTextContent(
         customGroupItemId
       )
-      expect(screen.getByTestId('hidden-items')).not.toHaveTextContent(
+      expect(screen.getByTestId('pinned-items')).toHaveTextContent(
+        customGroupItemId
+      )
+      expect(screen.getByTestId('hidden-items')).toHaveTextContent(
         customGroupItemId
       )
     })

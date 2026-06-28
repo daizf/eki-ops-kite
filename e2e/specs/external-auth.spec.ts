@@ -104,11 +104,15 @@ async function configureLDAPViaUI(page: Page) {
   await page.goto('/settings?tab=oauth')
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
 
-  const ldapSection = page
+  const ldapCard = page
+    .locator('[data-slot="card"]')
+    .filter({ has: page.getByText(/^LDAP$/) })
+    .first()
+  const ldapSection = ldapCard
     .locator('div.rounded-lg.border')
     .filter({ has: page.getByText(/^LDAP$/) })
     .first()
-  const ldapSwitch = ldapSection.getByRole('switch')
+  const ldapSwitch = ldapSection.getByRole('switch').first()
   if ((await ldapSwitch.getAttribute('data-state')) !== 'checked') {
     await ldapSwitch.click()
   }
@@ -123,7 +127,7 @@ async function configureLDAPViaUI(page: Page) {
   await page.getByLabel('Group Base DN').fill('ou=groups,dc=kite,dc=test')
   await page.getByLabel('Group Filter').fill('(member=%s)')
   await page.getByLabel('Group Name Attribute').fill('cn')
-  await page.getByRole('button', { name: 'Save' }).click()
+  await ldapCard.getByRole('button', { name: 'Save' }).click()
 
   await expect(page.getByText('Authentication settings updated')).toBeVisible()
 }
@@ -160,7 +164,7 @@ async function configureUsernameClaimOAuthViaUI(page: Page) {
     .filter({ hasText: usernameClaimOAuthProvider.name })
 
   if (await providerRow.count()) {
-    await providerRow.getByRole('button', { name: '•••' }).click()
+    await providerRow.getByRole('button', { name: 'Actions' }).click()
     await page.getByRole('menuitem', { name: 'Edit' }).click()
 
     const dialog = page.getByRole('dialog', { name: 'Edit OAuth Provider' })
@@ -211,7 +215,7 @@ async function configureRestrictedOAuthViaUI(page: Page) {
     .filter({ hasText: restrictedOAuthProvider.name })
 
   if (await providerRow.count()) {
-    await providerRow.getByRole('button', { name: '•••' }).click()
+    await providerRow.getByRole('button', { name: 'Actions' }).click()
     await page.getByRole('menuitem', { name: 'Edit' }).click()
 
     const dialog = page.getByRole('dialog', { name: 'Edit OAuth Provider' })
@@ -257,7 +261,7 @@ async function configureCustomGroupClaimOAuthViaUI(page: Page) {
     .filter({ hasText: customGroupClaimOAuthProvider.name })
 
   if (await providerRow.count()) {
-    await providerRow.getByRole('button', { name: '•••' }).click()
+    await providerRow.getByRole('button', { name: 'Actions' }).click()
     await page.getByRole('menuitem', { name: 'Edit' }).click()
 
     const dialog = page.getByRole('dialog', { name: 'Edit OAuth Provider' })
@@ -311,14 +315,14 @@ async function assignViewerRoleViaUI(page: Page, groupName: string) {
   const viewerRow = page.getByRole('row').filter({ hasText: 'viewer' })
   await expect(viewerRow).toBeVisible()
 
-  await viewerRow.getByRole('button', { name: '•••' }).click()
+  await viewerRow.getByRole('button', { name: 'Actions' }).click()
   await page.getByRole('menuitem', { name: 'Assign' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Assign Role - viewer' })
   await expect(dialog).toBeVisible()
 
   if (!(await dialog.getByText(groupName).count())) {
-    await dialog.getByRole('combobox').click()
+    await dialog.getByRole('combobox').filter({ hasText: /^User$/ }).click()
     await page.getByRole('option', { name: 'OIDC Group' }).click()
     await dialog.getByPlaceholder('username or group name').fill(groupName)
     await dialog.getByRole('button', { name: 'Assign' }).click()
@@ -364,7 +368,7 @@ test.describe('external auth', () => {
       await expect(page.getByRole('tab', { name: 'LDAP' })).toBeVisible()
       await page.getByRole('tab', { name: 'LDAP' }).click()
       await page.getByLabel('Username').fill(ldapUser.username)
-      await page.getByLabel('Password').fill(ldapUser.password)
+      await page.getByLabel('Password', { exact: true }).fill(ldapUser.password)
       await page.getByRole('button', { name: 'Sign In with LDAP' }).click()
 
       await expectSignedInUser(page, ldapUser.username, ldapUser.provider)
@@ -388,7 +392,7 @@ test.describe('external auth', () => {
         page.getByRole('heading', { name: 'Log in to Your Account' })
       ).toBeVisible()
       await page.getByLabel('Username').fill(oauthUser.username)
-      await page.getByLabel('Password').fill(oauthUser.password)
+      await page.getByLabel('Password', { exact: true }).fill(oauthUser.password)
       await page.getByRole('button', { name: 'Login' }).click()
 
       await expectSignedInUser(page, oauthUser.username, oauthUser.provider)
@@ -420,7 +424,7 @@ test.describe('external auth', () => {
         page.getByRole('heading', { name: 'Log in to Your Account' })
       ).toBeVisible()
       await page.getByLabel('Username').fill(oauthUser.username)
-      await page.getByLabel('Password').fill(oauthUser.password)
+      await page.getByLabel('Password', { exact: true }).fill(oauthUser.password)
       await page.getByRole('button', { name: 'Login' }).click()
 
       await expectSignedInUser(
@@ -448,7 +452,7 @@ test.describe('external auth', () => {
       await expect(page.getByRole('tab', { name: 'LDAP' })).toBeVisible()
       await page.getByRole('tab', { name: 'LDAP' }).click()
       await page.getByLabel('Username').fill(ldapUser.username)
-      await page.getByLabel('Password').fill('wrong-password')
+      await page.getByLabel('Password', { exact: true }).fill('wrong-password')
       await page.getByRole('button', { name: 'Sign In with LDAP' }).click()
 
       await expect(page).toHaveURL(/\/login/)
@@ -475,7 +479,9 @@ test.describe('external auth', () => {
         page.getByRole('heading', { name: 'Log in to Your Account' })
       ).toBeVisible()
       await page.getByLabel('Username').fill(oauthUserWithoutGroup.username)
-      await page.getByLabel('Password').fill(oauthUserWithoutGroup.password)
+      await page
+        .getByLabel('Password', { exact: true })
+        .fill(oauthUserWithoutGroup.password)
       await page.getByRole('button', { name: 'Login' }).click()
 
       await expect(page).toHaveURL(/\/login\?/)
@@ -509,7 +515,7 @@ test.describe('external auth', () => {
         page.getByRole('heading', { name: 'Log in to Your Account' })
       ).toBeVisible()
       await page.getByLabel('Username').fill(oauthUser.username)
-      await page.getByLabel('Password').fill(oauthUser.password)
+      await page.getByLabel('Password', { exact: true }).fill(oauthUser.password)
       await page.getByRole('button', { name: 'Login' }).click()
 
       await expectSignedInUser(
@@ -545,7 +551,7 @@ test.describe('external auth', () => {
         page.getByRole('heading', { name: 'Log in to Your Account' })
       ).toBeVisible()
       await page.getByLabel('Username').fill(oauthUser.username)
-      await page.getByLabel('Password').fill(oauthUser.password)
+      await page.getByLabel('Password', { exact: true }).fill(oauthUser.password)
       await page.getByRole('button', { name: 'Login' }).click()
 
       await expectSignedInUser(
@@ -581,7 +587,9 @@ test.describe('external auth', () => {
         page.getByRole('heading', { name: 'Log in to Your Account' })
       ).toBeVisible()
       await page.getByLabel('Username').fill(oauthUserWithoutGroup.username)
-      await page.getByLabel('Password').fill(oauthUserWithoutGroup.password)
+      await page
+        .getByLabel('Password', { exact: true })
+        .fill(oauthUserWithoutGroup.password)
       await page.getByRole('button', { name: 'Login' }).click()
 
       await expect(page).toHaveURL(/\/login\?/)

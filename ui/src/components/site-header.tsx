@@ -6,7 +6,6 @@ import { Plus, Settings, TerminalSquare } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
-import { useGeneralSetting } from '@/lib/api'
 import type { Cluster } from '@/types/api'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
@@ -24,15 +23,12 @@ export function SiteHeader() {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, capabilities } = useAuth()
   const { clusters, currentCluster } = useClusterContext()
   const { toggleTerminal, isOpen } = useTerminal()
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const isAdmin = user?.isAdmin() ?? false
-  const { data: generalSetting } = useGeneralSetting({
-    enabled: isAdmin,
-  })
-  const kubectlEnabled = generalSetting?.kubectlEnabled ?? true
+  const kubectlEnabled = capabilities.kubectlEnabled
 
   const clusterInfo = clusters.find((c: Cluster) => c.clusterId === currentCluster)
 

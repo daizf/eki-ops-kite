@@ -132,6 +132,7 @@ export function ResourceTableToolbar<T>({
               selectedNamespace={selectedNamespace}
               handleNamespaceChange={handleNamespaceChange}
               showAll={true}
+              multiple={true}
             />
           )}
           {filterableColumns.map((column) => {
@@ -140,6 +141,13 @@ export function ResourceTableToolbar<T>({
             }
             const uniqueValues = column.getFacetedUniqueValues()
             const filterValue = column.getFilterValue() as string
+            const optionValues = Array.from(uniqueValues.keys()).filter(Boolean)
+            if (
+              filterValue &&
+              !optionValues.some((value) => String(value) === filterValue)
+            ) {
+              optionValues.push(filterValue)
+            }
 
             return (
               <Select
@@ -161,15 +169,13 @@ export function ResourceTableToolbar<T>({
                       ? columnDef.header
                       : 'Values'}
                   </SelectItem>
-                  {Array.from(uniqueValues.keys())
-                    .sort()
-                    .map((value) =>
-                      value ? (
-                        <SelectItem key={String(value)} value={String(value)}>
-                          {String(value)} ({uniqueValues.get(value)})
-                        </SelectItem>
-                      ) : null
-                    )}
+                  {optionValues
+                    .sort((a, b) => String(a).localeCompare(String(b)))
+                    .map((value) => (
+                      <SelectItem key={String(value)} value={String(value)}>
+                        {String(value)} ({uniqueValues.get(value) || 0})
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             )

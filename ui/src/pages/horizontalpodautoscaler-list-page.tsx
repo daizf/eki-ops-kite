@@ -55,9 +55,10 @@ const horizontalPodAutoscalerSearchFilter =
     (hpa) => getHpaTargetInfo(hpa)
   )
 
+const columnHelper = createColumnHelper<HorizontalPodAutoscaler>()
+
 export function HorizontalPodAutoscalerListPage() {
   const { t } = useTranslation()
-  const columnHelper = createColumnHelper<HorizontalPodAutoscaler>()
 
   const columns = useMemo(
     () => [
@@ -112,7 +113,7 @@ export function HorizontalPodAutoscalerListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

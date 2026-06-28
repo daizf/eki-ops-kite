@@ -1,19 +1,21 @@
 const CURRENT_CLUSTER_STORAGE_KEY = 'current-cluster'
-const CURRENT_CLUSTER_HEADER_KEY = 'x-cluster-id'
-const CLEAR_COOKIE_EXPIRES = 'Thu, 01 Jan 1970 00:00:00 GMT'
+const CURRENT_CLUSTER_HEADER_KEY = 'x-cluster-name'
 
 export function getCurrentCluster() {
-  return localStorage.getItem(CURRENT_CLUSTER_STORAGE_KEY)
+  return (
+    sessionStorage.getItem(CURRENT_CLUSTER_STORAGE_KEY) ||
+    localStorage.getItem(CURRENT_CLUSTER_STORAGE_KEY)
+  )
 }
 
 export function setCurrentCluster(clusterName: string) {
+  sessionStorage.setItem(CURRENT_CLUSTER_STORAGE_KEY, clusterName)
   localStorage.setItem(CURRENT_CLUSTER_STORAGE_KEY, clusterName)
-  document.cookie = `${CURRENT_CLUSTER_HEADER_KEY}=${clusterName}; path=/`
 }
 
 export function clearCurrentCluster() {
+  sessionStorage.removeItem(CURRENT_CLUSTER_STORAGE_KEY)
   localStorage.removeItem(CURRENT_CLUSTER_STORAGE_KEY)
-  document.cookie = `${CURRENT_CLUSTER_HEADER_KEY}=; path=/; expires=${CLEAR_COOKIE_EXPIRES}`
 }
 
 export function appendCurrentClusterParam(params: URLSearchParams) {
@@ -26,7 +28,7 @@ export function appendCurrentClusterParam(params: URLSearchParams) {
 export function appendCurrentClusterHeader(headers: Record<string, string>) {
   const currentCluster = getCurrentCluster()
   if (currentCluster) {
-    headers[CURRENT_CLUSTER_HEADER_KEY] = currentCluster
+    headers[CURRENT_CLUSTER_HEADER_KEY] = encodeURIComponent(currentCluster)
   }
 }
 

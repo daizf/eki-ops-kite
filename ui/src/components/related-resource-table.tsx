@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { IconExternalLink, IconLoader } from '@tabler/icons-react'
+import { IconLoader } from '@tabler/icons-react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { RelatedResources, ResourceType } from '@/types/api'
@@ -9,18 +9,11 @@ import {
   getResourceDetailPath,
   getResourceMetadata,
 } from '@/lib/resource-catalog'
-import { withSubPath } from '@/lib/subpath'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
+import { ResourceIframeDialogContent } from '@/components/resource-iframe-dialog-content'
 
 import { Column, SimpleTable } from './simple-table'
 import { Badge } from './ui/badge'
-import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
 export function RelatedResourcesTable(props: {
@@ -115,24 +108,10 @@ function RelatedResourceCell({ rs }: { rs: RelatedResources }) {
       <DialogTrigger asChild>
         <div className="font-medium app-link cursor-pointer">{rs.name}</div>
       </DialogTrigger>
-      <DialogContent className="!h-[calc(100dvh-1rem)] !max-w-[calc(100vw-1rem)] flex min-h-0 flex-col gap-0 p-0 md:!h-[80%] md:!max-w-[60%]">
-        <DialogHeader className="flex flex-row items-center justify-between border-b px-4 py-3 pr-14">
-          <DialogTitle>{metadata?.singularLabel || rs.type}</DialogTitle>
-          <a href={withSubPath(path)} target="_blank" rel="noopener noreferrer">
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Open resource in new tab"
-            >
-              <IconExternalLink size={12} />
-            </Button>
-          </a>
-        </DialogHeader>
-        <iframe
-          src={`${withSubPath(path)}?iframe=true`}
-          className="min-h-0 w-full flex-grow border-none"
-        />
-      </DialogContent>
+      <ResourceIframeDialogContent
+        title={metadata?.singularLabel || rs.type}
+        path={path}
+      />
     </Dialog>
   )
 }

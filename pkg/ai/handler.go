@@ -10,20 +10,6 @@ import (
 	"github.com/zxh326/kite/pkg/model"
 )
 
-// HandleAIStatus returns whether AI features are enabled.
-func HandleAIStatus(c *gin.Context) {
-	cfg, err := LoadRuntimeConfig()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to load AI config: %v", err)})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"enabled":  cfg.Enabled,
-		"provider": cfg.Provider,
-		"model":    cfg.Model,
-	})
-}
-
 // HandleChat handles the SSE streaming chat endpoint.
 func HandleChat(c *gin.Context) {
 	cfg, err := LoadRuntimeConfig()
@@ -345,7 +331,6 @@ func HandleUpdateGeneralSetting(c *gin.Context) {
 		"watermarkEnabled":      updated.WatermarkEnabled,
 	})
 }
-
 func getClusterClientSet(c *gin.Context) (*cluster.ClientSet, bool) {
 	cs, exists := c.Get("cluster")
 	if !exists {

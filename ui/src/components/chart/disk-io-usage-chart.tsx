@@ -50,10 +50,13 @@ const chartConfig = {
 const DiskIOUsageChart = React.memo((prop: DiskIOUsageChartProps) => {
   const { diskRead, diskWrite, isLoading, error, syncId } = prop
 
-  const chartData = React.useMemo(
-    () => mergeDualSeries(diskRead, diskWrite, 'diskRead', 'diskWrite'),
-    [diskRead, diskWrite]
-  )
+  const chartData = React.useMemo(() => {
+    const writes = diskWrite.map((point) => ({
+      ...point,
+      value: -Math.abs(point.value),
+    }))
+    return mergeDualSeries(diskRead, writes, 'diskRead', 'diskWrite')
+  }, [diskRead, diskWrite])
   const sameDay = React.useMemo(() => isSameDay(chartData), [chartData])
 
   return (

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Logo from '@/assets/icon.svg'
+import { useAuth } from '@/contexts/auth-context'
 import {
   IconCheck,
   IconLoader,
@@ -7,7 +8,7 @@ import {
   IconUser,
 } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { createSuperUser, importClusters, useInitCheck } from '@/lib/api'
@@ -98,7 +99,9 @@ function InitStep({
 
 export function InitializationPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { data: initCheck, isLoading, refetch } = useInitCheck()
+  const { checkAuth, user, isLoading: isAuthLoading } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -142,6 +145,18 @@ export function InitializationPage() {
   const step = initCheck?.step || 0
   const actualCurrentStep = Math.max(1, step + 1)
 
+  if (step > 0 && isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (step > 0 && !user) {
+    return <Navigate to="/login" replace />
+  }
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -159,6 +174,13 @@ export function InitializationPage() {
         name: name || undefined,
       })
       toast.success(t('initialization.step1.createSuccess'))
+      try {
+        await checkAuth()
+      } catch {
+        await refetch()
+        navigate('/login', { replace: true })
+        return
+      }
       await refetch()
     } catch (err) {
       setError(

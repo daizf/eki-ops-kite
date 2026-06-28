@@ -15,10 +15,9 @@ const searchQueryFilter = createSearchFilter<CustomResourceDefinition>(
   (crd) => crd.spec?.versions?.map((v: { name: string }) => v.name)
 )
 
-export function CRDListPage() {
-  // Define column helper outside of any hooks
-  const columnHelper = createColumnHelper<CustomResourceDefinition>()
+const columnHelper = createColumnHelper<CustomResourceDefinition>()
 
+export function CRDListPage() {
   // Define columns for the CRD table
   const columns = useMemo(
     () => [
@@ -104,7 +103,7 @@ export function CRDListPage() {
         },
       }),
     ],
-    [columnHelper]
+    []
   )
 
   return (

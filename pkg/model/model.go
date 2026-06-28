@@ -114,6 +114,7 @@ func InitDB() {
 	models := []interface{}{
 		User{},
 		Pool{},
+		PasskeyCredential{},
 		Cluster{},
 		GeneralSetting{},
 		LDAPSetting{},
@@ -124,6 +125,8 @@ func InitDB() {
 		ResourceTemplate{},
 		PendingSession{},
 		SyncLock{},
+		HelmRepository{},
+		ScheduledTask{},
 	}
 	for _, model := range models {
 		err = DB.AutoMigrate(model)
@@ -131,7 +134,6 @@ func InitDB() {
 			panic("failed to migrate database: " + err.Error())
 		}
 	}
-
 	sqldb, err := DB.DB()
 	if err == nil {
 		sqldb.SetMaxOpenConns(common.DBMaxOpenConns)
