@@ -711,6 +711,13 @@
         "enableVersionCheck": "Enable version check"
       }
     },
+    "watermark": {
+      "title": "Watermark",
+      "description": "Display a diagonal watermark overlay showing the logged-in user and current time across all pages.",
+      "form": {
+        "enableWatermark": "Enable watermark"
+      }
+    },
     "errors": {
       "modelRequired": "Model is required",
       "apiKeyRequired": "API Key is required when AI Agent is enabled",

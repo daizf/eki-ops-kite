@@ -41,6 +41,7 @@ interface GeneralSettingsFormData {
   nodeTerminalImage: string
   enableAnalytics: boolean
   enableVersionCheck: boolean
+  watermarkEnabled: boolean
 }
 
 export function GeneralManagement() {
@@ -60,6 +61,7 @@ export function GeneralManagement() {
     nodeTerminalImage: DEFAULT_NODE_TERMINAL_IMAGE,
     enableAnalytics: true,
     enableVersionCheck: true,
+    watermarkEnabled: false,
   })
 
   useEffect(() => {
@@ -77,6 +79,7 @@ export function GeneralManagement() {
       nodeTerminalImage: data.nodeTerminalImage || DEFAULT_NODE_TERMINAL_IMAGE,
       enableAnalytics: data.enableAnalytics ?? false,
       enableVersionCheck: data.enableVersionCheck ?? true,
+      watermarkEnabled: data.watermarkEnabled ?? false,
     })
   }, [data])
 
@@ -154,6 +157,7 @@ export function GeneralManagement() {
         formData.nodeTerminalImage.trim() || DEFAULT_NODE_TERMINAL_IMAGE,
       enableAnalytics: formData.enableAnalytics,
       enableVersionCheck: formData.enableVersionCheck,
+      watermarkEnabled: formData.watermarkEnabled,
     }
     if (formData.aiApiKey.trim()) {
       payload.aiApiKey = formData.aiApiKey.trim()
@@ -443,6 +447,36 @@ export function GeneralManagement() {
                   ...prev,
                   enableVersionCheck: checked,
                 }))
+              }
+            />
+          </div>
+        </div>
+
+        <div className="rounded-lg border">
+          <div className="p-3">
+            <Label className="text-sm font-medium">
+              {t('generalManagement.watermark.title', 'Watermark')}
+            </Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t(
+                'generalManagement.watermark.description',
+                'Display a diagonal watermark overlay showing the logged-in user and current time across all pages.'
+              )}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between border-t p-3">
+            <Label htmlFor="general-watermark-enabled" className="text-sm">
+              {t(
+                'generalManagement.watermark.form.enableWatermark',
+                'Enable watermark'
+              )}
+            </Label>
+            <Switch
+              id="general-watermark-enabled"
+              checked={formData.watermarkEnabled}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, watermarkEnabled: checked }))
               }
             />
           </div>

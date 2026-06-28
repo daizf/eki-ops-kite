@@ -188,6 +188,17 @@ func HandleInputContinue(c *gin.Context) {
 	sendEvent(SSEEvent{Event: "done", Data: map[string]string{}})
 }
 
+func HandleGetWatermarkConfig(c *gin.Context) {
+	setting, err := model.GetGeneralSetting()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to load watermark config: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"watermarkEnabled": setting.WatermarkEnabled,
+	})
+}
+
 func HandleGetGeneralSetting(c *gin.Context) {
 	setting, err := model.GetGeneralSetting()
 	if err != nil {
@@ -209,6 +220,7 @@ func HandleGetGeneralSetting(c *gin.Context) {
 		"enableAnalytics":       setting.EnableAnalytics,
 		"enableVersionCheck":    setting.EnableVersionCheck,
 		"passwordLoginDisabled": setting.PasswordLoginDisabled,
+		"watermarkEnabled":      setting.WatermarkEnabled,
 	})
 }
 
@@ -225,6 +237,7 @@ type UpdateGeneralSettingRequest struct {
 	EnableAnalytics       bool    `json:"enableAnalytics"`
 	EnableVersionCheck    bool    `json:"enableVersionCheck"`
 	PasswordLoginDisabled *bool   `json:"passwordLoginDisabled"`
+	WatermarkEnabled      bool    `json:"watermarkEnabled"`
 }
 
 func HandleUpdateGeneralSetting(c *gin.Context) {
@@ -299,6 +312,7 @@ func HandleUpdateGeneralSetting(c *gin.Context) {
 		"node_terminal_image":  nodeTerminalImage,
 		"enable_analytics":     req.EnableAnalytics,
 		"enable_version_check": req.EnableVersionCheck,
+		"watermark_enabled":    req.WatermarkEnabled,
 	}
 	if req.PasswordLoginDisabled != nil {
 		updates["password_login_disabled"] = *req.PasswordLoginDisabled
@@ -328,6 +342,7 @@ func HandleUpdateGeneralSetting(c *gin.Context) {
 		"enableAnalytics":       updated.EnableAnalytics,
 		"enableVersionCheck":    updated.EnableVersionCheck,
 		"passwordLoginDisabled": updated.PasswordLoginDisabled,
+		"watermarkEnabled":      updated.WatermarkEnabled,
 	})
 }
 

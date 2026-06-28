@@ -393,6 +393,7 @@ export interface GeneralSetting {
   enableAnalytics: boolean
   enableVersionCheck: boolean
   passwordLoginDisabled: boolean
+  watermarkEnabled: boolean
 }
 
 export interface GeneralSettingUpdateRequest {
@@ -408,6 +409,7 @@ export interface GeneralSettingUpdateRequest {
   enableAnalytics?: boolean
   enableVersionCheck?: boolean
   passwordLoginDisabled?: boolean
+  watermarkEnabled?: boolean
 }
 
 export type CredentialProvider = 'password' | 'ldap'

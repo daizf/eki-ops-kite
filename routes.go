@@ -160,6 +160,7 @@ func registerProtectedRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, 
 	proxyHandler.RegisterRoutes(api)
 
 	api.GET("/ai/status", ai.HandleAIStatus)
+	api.GET("/watermark", ai.HandleGetWatermarkConfig)
 	api.POST("/ai/chat", ai.HandleChat)
 	api.POST("/ai/execute/continue", ai.HandleExecuteContinue)
 	api.POST("/ai/input/continue", ai.HandleInputContinue)

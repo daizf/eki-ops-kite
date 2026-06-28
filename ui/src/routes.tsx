@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import App, { ClusterSearchApp, StandaloneAIChatApp } from './App'
 import { InitCheckRoute } from './components/init-check-route'
-import { ProtectedRoute } from './components/protected-route'
+import { AdminRoute, ProtectedRoute } from './components/protected-route'
 import { getSubPath } from './lib/subpath'
 import { CRListPage } from './pages/cr-list-page'
 import { InitializationPage } from './pages/initialization'
@@ -52,9 +52,9 @@ export const router = createBrowserRouter(
       path: '/settings',
       element: (
         <InitCheckRoute>
-          <ProtectedRoute>
+          <AdminRoute>
             <App />
-          </ProtectedRoute>
+          </AdminRoute>
         </InitCheckRoute>
       ),
       children: [
@@ -84,7 +84,11 @@ export const router = createBrowserRouter(
         },
         {
           path: 'settings',
-          element: <SettingsPage />,
+          element: (
+            <AdminRoute>
+              <SettingsPage />
+            </AdminRoute>
+          ),
         },
         {
           path: 'crds/:crd',

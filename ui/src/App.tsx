@@ -16,6 +16,7 @@ import {
 import { SiteHeader } from './components/site-header'
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
 import { Toaster } from './components/ui/sonner'
+import { Watermark } from './components/watermark'
 import { AIChatProvider } from './contexts/ai-chat-context'
 import { ClusterProvider } from './contexts/cluster-context'
 import { TerminalProvider, useTerminal } from './contexts/terminal-context'
@@ -89,6 +90,7 @@ function AppContent() {
         <AIChatbox />
       </ErrorBoundary>
       <Toaster />
+      <Watermark />
     </>
   )
 }
@@ -129,6 +131,7 @@ export function ClusterSearchApp() {
   return (
     <AppProviders>
       <ClusterSearch />
+      <Watermark />
     </AppProviders>
   )
 }

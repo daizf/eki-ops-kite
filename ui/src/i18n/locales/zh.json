@@ -720,6 +720,13 @@
         "enableVersionCheck": "启用版本检查"
       }
     },
+    "watermark": {
+      "title": "水印",
+      "description": "在所有页面显示对角平铺的水印覆盖层，展示当前登录用户和实时时间。",
+      "form": {
+        "enableWatermark": "启用水印"
+      }
+    },
     "errors": {
       "modelRequired": "模型不能为空",
       "apiKeyRequired": "启用 AI Agent 时必须配置 API Key",
