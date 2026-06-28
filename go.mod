@@ -3,7 +3,7 @@ module github.com/zxh326/kite
 go 1.26.0
 
 require (
-	github.com/anthropics/anthropic-sdk-go v1.51.1
+	github.com/anthropics/anthropic-sdk-go v1.52.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/bytedance/mockey v1.4.6
 	github.com/fsnotify/fsnotify v1.10.1
@@ -27,7 +27,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0
-	gorm.io/gorm v1.31.1
+	gorm.io/gorm v1.31.2
 	helm.sh/helm/v4 v4.2.2
 	k8s.io/api v0.36.2
 	k8s.io/apiextensions-apiserver v0.36.2
