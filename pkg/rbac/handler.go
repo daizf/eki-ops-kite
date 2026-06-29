@@ -11,22 +11,26 @@ import (
 )
 
 type roleReq struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Clusters    []string `json:"clusters"`
-	Namespaces  []string `json:"namespaces"`
-	Resources   []string `json:"resources"`
-	Verbs       []string `json:"verbs"`
+	Name              string   `json:"name"`
+	Description       string   `json:"description"`
+	Clusters          []string `json:"clusters"`
+	ClusterCategories []string `json:"clusterCategories"`
+	ClusterTags       []string `json:"clusterTags"`
+	Namespaces        []string `json:"namespaces"`
+	Resources         []string `json:"resources"`
+	Verbs             []string `json:"verbs"`
 }
 
 func (req roleReq) toRole() model.Role {
 	return model.Role{
-		Name:        strings.TrimSpace(req.Name),
-		Description: req.Description,
-		Clusters:    model.SliceString(req.Clusters),
-		Namespaces:  model.SliceString(req.Namespaces),
-		Resources:   model.SliceString(req.Resources),
-		Verbs:       model.SliceString(req.Verbs),
+		Name:              strings.TrimSpace(req.Name),
+		Description:       req.Description,
+		Clusters:          model.SliceString(req.Clusters),
+		ClusterCategories: model.SliceString(req.ClusterCategories),
+		ClusterTags:       model.SliceString(req.ClusterTags),
+		Namespaces:        model.SliceString(req.Namespaces),
+		Resources:         model.SliceString(req.Resources),
+		Verbs:             model.SliceString(req.Verbs),
 	}
 }
 

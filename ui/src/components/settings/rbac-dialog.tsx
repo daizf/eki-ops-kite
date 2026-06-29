@@ -6,6 +6,7 @@ import { Cluster, Role } from '@/types/api'
 import { useClusterList } from '@/lib/api'
 import { CATEGORIES } from '@/lib/constants'
 import { resourceCatalog } from '@/lib/resource-catalog'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 
 import { Separator } from '../ui/separator'
@@ -36,12 +36,19 @@ interface RBACDialogProps {
   isSubmitting?: boolean
 }
 
-type ArrayRoleField = 'clusters' | 'clusterTags' | 'namespaces' | 'resources' | 'verbs'
+type ArrayRoleField =
+  | 'clusters'
+  | 'clusterTags'
+  | 'namespaces'
+  | 'resources'
+  | 'verbs'
 
 const emptyRoleForm = (): Partial<Role> => ({
   name: '',
   description: '',
   clusters: [],
+  clusterCategories: ['*'],
+  clusterTags: ['*'],
   namespaces: [],
   resources: [],
   verbs: [],
@@ -54,6 +61,8 @@ const roleToForm = (role?: Role | null): Partial<Role> => {
     name: role.name,
     description: role.description || '',
     clusters: role.clusters || [],
+    clusterCategories: role.clusterCategories || ['*'],
+    clusterTags: role.clusterTags || ['*'],
     namespaces: role.namespaces || [],
     resources: role.resources || [],
     verbs: role.verbs || [],
@@ -207,7 +216,13 @@ export function RBACDialog({
       clusterCategories: role?.clusterCategories || ['*'],
       clusterTags: role?.clusterTags || ['*'],
     })
-    setDrafts({ clusters: '', clusterTags: '', namespaces: '', resources: '', verbs: '' })
+    setDrafts({
+      clusters: '',
+      clusterTags: '',
+      namespaces: '',
+      resources: '',
+      verbs: '',
+    })
   }, [role, open])
 
   const handleChange = (field: keyof Role, value: string) =>
@@ -268,7 +283,7 @@ export function RBACDialog({
       description: form.description || '',
       clusters: withDraftValues('clusters'),
       clusterCategories: form.clusterCategories || ['*'],
-      clusterTags: form.clusterTags || ['*'],
+      clusterTags: withDraftValues('clusterTags'),
       namespaces: withDraftValues('namespaces'),
       resources: withDraftValues('resources'),
       verbs: withDraftValues('verbs'),
@@ -353,7 +368,10 @@ export function RBACDialog({
                 >
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={t('rbac.dialog.allCategories', 'All Categories')}
+                      placeholder={t(
+                        'rbac.dialog.allCategories',
+                        'All Categories'
+                      )}
                     />
                   </SelectTrigger>
                 </Select>
@@ -395,7 +413,10 @@ export function RBACDialog({
                 >
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={t('rbac.dialog.addCategory', 'Add a category...')}
+                      placeholder={t(
+                        'rbac.dialog.addCategory',
+                        'Add a category...'
+                      )}
                     />
                   </SelectTrigger>
                   <SelectContent>

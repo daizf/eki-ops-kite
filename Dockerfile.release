@@ -1,0 +1,6 @@
+FROM alpine:3.21
+RUN apk add --no-cache ca-certificates tzdata
+COPY kite /app/kite
+EXPOSE 8080
+WORKDIR /app
+ENTRYPOINT ["/app/kite"]
