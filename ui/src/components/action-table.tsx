@@ -8,8 +8,8 @@ import {
   Updater,
   useReactTable,
 } from '@tanstack/react-table'
-import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from './ui/button'
 import {
@@ -146,7 +146,10 @@ export function ActionTable<T>({
                     }
                   >
                     {cell.column.columnDef.cell
-                      ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                      ? flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
                       : String(cell.getValue() || '-')}
                   </TableCell>
                 ))}
@@ -184,9 +187,8 @@ export function ActionTable<T>({
           </div>
           <div className="flex items-center gap-3">
             <span>
-              {t('common.pagination.page', 'Page')}{' '}
-              {pagination!.pageIndex + 1} {t('common.pagination.of', 'of')}{' '}
-              {table.getPageCount() || 1}
+              {t('common.pagination.page', 'Page')} {pagination!.pageIndex + 1}{' '}
+              {t('common.pagination.of', 'of')} {table.getPageCount() || 1}
             </span>
             <div className="flex items-center gap-1">
               <Button

@@ -287,7 +287,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             .filter((cluster) => cluster.clusterId !== currentCluster)
             .map((cluster) => ({
               id: `switch-cluster-${cluster.clusterId}`,
-              label: t('globalSearch.switchCluster', { name: cluster.clusterId }),
+              label: t('globalSearch.switchCluster', {
+                name: cluster.clusterId,
+              }),
               icon: IconServer,
               searchText: `cluster ${cluster.clusterId}`.toLocaleLowerCase(),
               onSelect: () => {

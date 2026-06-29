@@ -7,14 +7,24 @@ interface ClusterStatusDotProps {
   className?: string
 }
 
-export function getClusterStatus(cluster: { version?: string; error?: string }): ClusterStatus {
+export function getClusterStatus(cluster: {
+  version?: string
+  error?: string
+}): ClusterStatus {
   if (cluster.error) return 'error'
   if (cluster.version) return 'ready'
   return 'unknown'
 }
 
-const statusConfig: Record<ClusterStatus, { color: string; label: string; animate?: boolean }> = {
-  ready: { color: 'bg-green-500 dark:bg-green-400', label: 'Ready', animate: true },
+const statusConfig: Record<
+  ClusterStatus,
+  { color: string; label: string; animate?: boolean }
+> = {
+  ready: {
+    color: 'bg-green-500 dark:bg-green-400',
+    label: 'Ready',
+    animate: true,
+  },
   error: { color: 'bg-red-500 dark:bg-red-400', label: 'Error' },
   unknown: { color: 'bg-gray-400 dark:bg-gray-500', label: 'Unknown' },
 }

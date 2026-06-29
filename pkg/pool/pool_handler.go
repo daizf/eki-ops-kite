@@ -28,8 +28,8 @@ type BatchPoolImportItem struct {
 
 type BatchPoolImportResult struct {
 	Imported []string `json:"imported"`
-	Skipped   []string `json:"skipped"`
-	Rejected  []string `json:"rejected"`
+	Skipped  []string `json:"skipped"`
+	Rejected []string `json:"rejected"`
 }
 
 func BatchImportPools(c *gin.Context) {
@@ -106,15 +106,15 @@ func GetPoolList(c *gin.Context) {
 	result := make([]gin.H, 0, len(pools))
 	for _, pool := range pools {
 		result = append(result, gin.H{
-			"id":             pool.ID,
-			"poolId":         pool.PoolID,
-			"poolName":       pool.PoolName,
-			"description":    pool.Description,
-			"proxy":          pool.Proxy,
-			"imageRegistry":  pool.ImageRegistry,
-			"eskBaseURL":     pool.EskBaseURL,
-			"kcsBaseURL":     pool.KcsBaseURL,
-			"enable":         pool.Enable,
+			"id":            pool.ID,
+			"poolId":        pool.PoolID,
+			"poolName":      pool.PoolName,
+			"description":   pool.Description,
+			"proxy":         pool.Proxy,
+			"imageRegistry": pool.ImageRegistry,
+			"eskBaseURL":    pool.EskBaseURL,
+			"kcsBaseURL":    pool.KcsBaseURL,
+			"enable":        pool.Enable,
 		})
 	}
 

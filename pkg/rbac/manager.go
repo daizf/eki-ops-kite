@@ -44,7 +44,7 @@ func loadRolesFromDB() error {
 			Clusters:          r.Clusters,
 			ClusterCategories: r.ClusterCategories,
 			ClusterTags:       r.ClusterTags,
-			Namespaces:         r.Namespaces,
+			Namespaces:        r.Namespaces,
 			Resources:         r.Resources,
 			Verbs:             r.Verbs,
 		}

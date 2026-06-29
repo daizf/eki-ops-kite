@@ -3,8 +3,10 @@ import { IconEdit, IconServer } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
 import { Cluster } from '@/types/api'
-import { ClusterCreateRequest, usePoolList } from '@/lib/api'
 import type { Pool } from '@/types/api'
+import { ClusterCreateRequest, usePoolList } from '@/lib/api'
+import { CATEGORIES } from '@/lib/constants'
+import { normalizeTags } from '@/lib/tags'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,9 +27,6 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { TagInput } from '@/components/ui/tag-input'
 import { Textarea } from '@/components/ui/textarea'
-
-import { CATEGORIES } from '@/lib/constants'
-import { normalizeTags } from '@/lib/tags'
 
 interface ClusterDialogProps {
   open: boolean
@@ -92,9 +91,17 @@ function ClusterDialogContent({
     ? !enabledPools.some((p: Pool) => p.poolId === formData.poolId)
     : false
 
-  const orphanPool: Pool | undefined = currentPoolIsOrphan && formData.poolId
-    ? { id: -1, poolId: formData.poolId, poolName: `${formData.poolId} (unavailable)`, enable: false, createdAt: '', updatedAt: '' }
-    : undefined
+  const orphanPool: Pool | undefined =
+    currentPoolIsOrphan && formData.poolId
+      ? {
+          id: -1,
+          poolId: formData.poolId,
+          poolName: `${formData.poolId} (unavailable)`,
+          enable: false,
+          createdAt: '',
+          updatedAt: '',
+        }
+      : undefined
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,10 +113,7 @@ function ClusterDialogContent({
     onSubmit(normalizedData)
   }
 
-  const handleChange = (
-    field: string,
-    value: string | boolean | string[]
-  ) => {
+  const handleChange = (field: string, value: string | boolean | string[]) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -264,9 +268,13 @@ function ClusterDialogContent({
           >
             <SelectTrigger className="w-full">
               <SelectValue
-                placeholder={isLoadingPools
-                  ? t('common.messages.loading', 'Loading...')
-                  : t('clusterManagement.dialog.poolPlaceholder', 'Select a resource pool')
+                placeholder={
+                  isLoadingPools
+                    ? t('common.messages.loading', 'Loading...')
+                    : t(
+                        'clusterManagement.dialog.poolPlaceholder',
+                        'Select a resource pool'
+                      )
                 }
               />
             </SelectTrigger>
@@ -297,7 +305,12 @@ function ClusterDialogContent({
             onValueChange={(value) => handleChange('category', value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder={t('clusterManagement.dialog.categoryPlaceholder', 'Select a category')} />
+              <SelectValue
+                placeholder={t(
+                  'clusterManagement.dialog.categoryPlaceholder',
+                  'Select a category'
+                )}
+              />
             </SelectTrigger>
             <SelectContent>
               {CATEGORIES.map((cat) => (
@@ -314,7 +327,10 @@ function ClusterDialogContent({
           <TagInput
             value={formData.tags}
             onChange={(tags) => handleChange('tags', tags)}
-            placeholder={t('clusterManagement.dialog.tagsPlaceholder', 'Add tags...')}
+            placeholder={t(
+              'clusterManagement.dialog.tagsPlaceholder',
+              'Add tags...'
+            )}
           />
         </div>
 

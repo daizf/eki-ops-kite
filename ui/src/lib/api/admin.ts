@@ -6,9 +6,9 @@ import {
   Cluster,
   FetchUserListResponse,
   OAuthProvider,
+  Pool,
   Role,
   UserItem,
-  Pool,
 } from '@/types/api'
 
 import { apiClient } from '../api-client'
@@ -418,8 +418,6 @@ export interface GeneralSettingUpdateRequest {
   loginPrompt?: string
 }
 
-
-
 export interface LDAPSetting {
   enabled: boolean
   serverUrl: string
@@ -589,9 +587,7 @@ export const updatePool = async (
   )
 }
 
-export const deletePool = async (
-  id: number
-): Promise<{ message: string }> => {
+export const deletePool = async (id: number): Promise<{ message: string }> => {
   return await apiClient.delete<{ message: string }>(`/admin/pools/${id}`)
 }
 
@@ -612,8 +608,8 @@ export interface PoolBatchImportResult {
   rejected: string[]
 }
 
-export const batchImportPools = async (
-  data: { pools: PoolBatchImportItem[] }
-): Promise<PoolBatchImportResult> => {
+export const batchImportPools = async (data: {
+  pools: PoolBatchImportItem[]
+}): Promise<PoolBatchImportResult> => {
   return await apiClient.post<PoolBatchImportResult>('/admin/pools/batch', data)
 }

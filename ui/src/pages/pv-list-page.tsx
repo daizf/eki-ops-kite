@@ -29,7 +29,9 @@ export function PVListPage() {
         header: t('common.fields.name'),
         cell: ({ row }) => (
           <div className="font-medium app-link">
-            <Link to={`/dashboard/persistentvolumes/${row.original.metadata!.name}`}>
+            <Link
+              to={`/dashboard/persistentvolumes/${row.original.metadata!.name}`}
+            >
               {row.original.metadata!.name}
             </Link>
           </div>

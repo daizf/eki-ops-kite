@@ -1,32 +1,32 @@
-import { useState, useCallback, useRef } from 'react'
-import { IconUpload, IconX, IconCheck, IconDownload } from '@tabler/icons-react'
+import { useCallback, useRef, useState } from 'react'
+import { IconCheck, IconDownload, IconUpload, IconX } from '@tabler/icons-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  batchImportPools,
-  PoolBatchImportItem,
-} from '@/lib/api'
+import { batchImportPools, PoolBatchImportItem } from '@/lib/api'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 
 interface PoolImportDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) {
+export function PoolImportDialog({
+  open,
+  onOpenChange,
+}: PoolImportDialogProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -46,12 +46,36 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
 
       if (hasIssues) {
         const parts: string[] = []
-        if (importedCount > 0) parts.push(t('poolManagement.batchImport.summaryImported', '{{count}} imported', { count: importedCount }))
-        if (skippedCount > 0) parts.push(t('poolManagement.batchImport.summarySkipped', '{{count}} skipped (duplicate)', { count: skippedCount }))
-        if (rejectedCount > 0) parts.push(t('poolManagement.batchImport.summaryRejected', '{{count}} rejected', { count: rejectedCount }))
+        if (importedCount > 0)
+          parts.push(
+            t(
+              'poolManagement.batchImport.summaryImported',
+              '{{count}} imported',
+              { count: importedCount }
+            )
+          )
+        if (skippedCount > 0)
+          parts.push(
+            t(
+              'poolManagement.batchImport.summarySkipped',
+              '{{count}} skipped (duplicate)',
+              { count: skippedCount }
+            )
+          )
+        if (rejectedCount > 0)
+          parts.push(
+            t(
+              'poolManagement.batchImport.summaryRejected',
+              '{{count}} rejected',
+              { count: rejectedCount }
+            )
+          )
 
         toast.warning(
-          t('poolManagement.batchImport.warning.partialSuccess', 'Import completed with warnings'),
+          t(
+            'poolManagement.batchImport.warning.partialSuccess',
+            'Import completed with warnings'
+          ),
           {
             description: parts.join(', '),
             duration: 10000,
@@ -59,7 +83,10 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
         )
       } else {
         toast.success(
-          t('poolManagement.batchImport.success', 'Pools imported successfully'),
+          t(
+            'poolManagement.batchImport.success',
+            'Pools imported successfully'
+          ),
           {
             description: t(
               'poolManagement.batchImport.successCount',
@@ -106,15 +133,36 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
 
           jsonData.forEach((row: any, index: number) => {
             const pool: PoolBatchImportItem = {
-              poolId: String(row['poolId'] || row['PoolID'] || row['资源池ID'] || '').trim(),
-              poolName: String(row['poolName'] || row['PoolName'] || row['资源池名称'] || '').trim(),
-              description: String(row['description'] || row['Description'] || row['描述'] || '').trim(),
-              proxy: String(row['proxy'] || row['Proxy'] || row['代理'] || '').trim(),
-              imageRegistry: String(row['imageRegistry'] || row['ImageRegistry'] || row['镜像仓库'] || '').trim(),
-              eskBaseURL: String(row['eskBaseURL'] || row['EskBaseURL'] || row['ESK地址'] || '').trim(),
-              kcsBaseURL: String(row['kcsBaseURL'] || row['KcsBaseURL'] || row['KCS地址'] || '').trim(),
-              enable: typeof row['enable'] === 'boolean' ? row['enable']
-                : (row['enable'] || row['Enable'] || row['启用'] || '').toString().toLowerCase() !== 'false',
+              poolId: String(
+                row['poolId'] || row['PoolID'] || row['资源池ID'] || ''
+              ).trim(),
+              poolName: String(
+                row['poolName'] || row['PoolName'] || row['资源池名称'] || ''
+              ).trim(),
+              description: String(
+                row['description'] || row['Description'] || row['描述'] || ''
+              ).trim(),
+              proxy: String(
+                row['proxy'] || row['Proxy'] || row['代理'] || ''
+              ).trim(),
+              imageRegistry: String(
+                row['imageRegistry'] ||
+                  row['ImageRegistry'] ||
+                  row['镜像仓库'] ||
+                  ''
+              ).trim(),
+              eskBaseURL: String(
+                row['eskBaseURL'] || row['EskBaseURL'] || row['ESK地址'] || ''
+              ).trim(),
+              kcsBaseURL: String(
+                row['kcsBaseURL'] || row['KcsBaseURL'] || row['KCS地址'] || ''
+              ).trim(),
+              enable:
+                typeof row['enable'] === 'boolean'
+                  ? row['enable']
+                  : (row['enable'] || row['Enable'] || row['启用'] || '')
+                      .toString()
+                      .toLowerCase() !== 'false',
             }
 
             if (!pool.poolId || !pool.poolName) {
@@ -127,14 +175,23 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
           setPools(validItems)
 
           if (validItems.length > 0) {
-            const message = invalidRows.length > 0
-              ? t('poolManagement.batchImport.parsedWithInvalid', 'Parsed {{count}} pools from file, {{invalid}} rows invalid', {
-                  count: validItems.length,
-                  invalid: invalidRows.length
-                })
-              : t('poolManagement.batchImport.parsed', 'Parsed {{count}} pools from file', {
-                  count: validItems.length
-                })
+            const message =
+              invalidRows.length > 0
+                ? t(
+                    'poolManagement.batchImport.parsedWithInvalid',
+                    'Parsed {{count}} pools from file, {{invalid}} rows invalid',
+                    {
+                      count: validItems.length,
+                      invalid: invalidRows.length,
+                    }
+                  )
+                : t(
+                    'poolManagement.batchImport.parsed',
+                    'Parsed {{count}} pools from file',
+                    {
+                      count: validItems.length,
+                    }
+                  )
             toast.success(message)
           } else {
             toast.error(
@@ -148,7 +205,8 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
           toast.error(
             t('poolManagement.batchImport.parseError', 'Failed to parse file'),
             {
-              description: error instanceof Error ? error.message : 'Invalid file format',
+              description:
+                error instanceof Error ? error.message : 'Invalid file format',
             }
           )
         }
@@ -232,7 +290,10 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="pool-file-upload">
-                {t('poolManagement.batchImport.selectFile', 'Select Excel File')}
+                {t(
+                  'poolManagement.batchImport.selectFile',
+                  'Select Excel File'
+                )}
               </Label>
               <Button
                 type="button"
@@ -242,7 +303,10 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
                 className="text-xs gap-1"
               >
                 <IconDownload className="h-3 w-3" />
-                {t('poolManagement.batchImport.downloadTemplate', 'Download Template')}
+                {t(
+                  'poolManagement.batchImport.downloadTemplate',
+                  'Download Template'
+                )}
               </Button>
             </div>
             <div className="flex gap-2">
@@ -281,17 +345,37 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
           {fileName && (
             <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded space-y-2">
               <div className="font-medium">
-                {t('poolManagement.batchImport.fileFormat', 'Excel File Columns')}:
+                {t(
+                  'poolManagement.batchImport.fileFormat',
+                  'Excel File Columns'
+                )}
+                :
               </div>
               <div className="grid grid-cols-2 gap-1 text-xs">
-                <div><code>poolId</code> / <code>资源池ID</code> *</div>
-                <div><code>poolName</code> / <code>资源池名称</code> *</div>
-                <div><code>description</code> / <code>描述</code></div>
-                <div><code>proxy</code> / <code>代理</code></div>
-                <div><code>imageRegistry</code> / <code>镜像仓库</code></div>
-                <div><code>eskBaseURL</code> / <code>ESK地址</code></div>
-                <div><code>kcsBaseURL</code> / <code>KCS地址</code></div>
-                <div><code>enable</code> / <code>启用</code></div>
+                <div>
+                  <code>poolId</code> / <code>资源池ID</code> *
+                </div>
+                <div>
+                  <code>poolName</code> / <code>资源池名称</code> *
+                </div>
+                <div>
+                  <code>description</code> / <code>描述</code>
+                </div>
+                <div>
+                  <code>proxy</code> / <code>代理</code>
+                </div>
+                <div>
+                  <code>imageRegistry</code> / <code>镜像仓库</code>
+                </div>
+                <div>
+                  <code>eskBaseURL</code> / <code>ESK地址</code>
+                </div>
+                <div>
+                  <code>kcsBaseURL</code> / <code>KCS地址</code>
+                </div>
+                <div>
+                  <code>enable</code> / <code>启用</code>
+                </div>
               </div>
             </div>
           )}
@@ -300,7 +384,10 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>
-                  {t('poolManagement.batchImport.poolsPreview', 'Pools to Import')}{' '}
+                  {t(
+                    'poolManagement.batchImport.poolsPreview',
+                    'Pools to Import'
+                  )}{' '}
                   <Badge variant="secondary">{pools.length}</Badge>
                 </Label>
               </div>
@@ -316,7 +403,9 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
                       </Badge>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium truncate">{pool.poolName}</span>
+                          <span className="font-medium truncate">
+                            {pool.poolName}
+                          </span>
                           {!pool.enable && (
                             <Badge variant="secondary" className="text-xs">
                               {t('status.disabled', 'Disabled')}
@@ -357,7 +446,10 @@ export function PoolImportDialog({ open, onOpenChange }: PoolImportDialogProps) 
                 className="mt-2"
               >
                 <IconDownload className="h-3 w-3 mr-1" />
-                {t('poolManagement.batchImport.downloadTemplate', 'Download Template')}
+                {t(
+                  'poolManagement.batchImport.downloadTemplate',
+                  'Download Template'
+                )}
               </Button>
             </div>
           )}

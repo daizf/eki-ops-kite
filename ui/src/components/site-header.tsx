@@ -3,8 +3,8 @@ import { useAuth } from '@/contexts/auth-context'
 import { useClusterContext } from '@/contexts/cluster-context'
 import { useTerminal } from '@/contexts/terminal-context'
 import { Plus, Settings, TerminalSquare } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import type { Cluster } from '@/types/api'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -30,7 +30,9 @@ export function SiteHeader() {
   const isAdmin = user?.isAdmin() ?? false
   const kubectlEnabled = capabilities.kubectlEnabled
 
-  const clusterInfo = clusters.find((c: Cluster) => c.clusterId === currentCluster)
+  const clusterInfo = clusters.find(
+    (c: Cluster) => c.clusterId === currentCluster
+  )
 
   return (
     <>
@@ -45,7 +47,9 @@ export function SiteHeader() {
           <div className="ml-auto flex items-center gap-2">
             {clusterInfo && !isMobile && (
               <div className="text-sm text-red-500 pr-2">
-                {t('overview.clusterInfo')}: {clusterInfo.name} (ID: {clusterInfo.clusterId}) | {t('common.fields.pool')}: {clusterInfo.pool?.poolName || clusterInfo.poolId}
+                {t('overview.clusterInfo')}: {clusterInfo.name} (ID:{' '}
+                {clusterInfo.clusterId}) | {t('common.fields.pool')}:{' '}
+                {clusterInfo.pool?.poolName || clusterInfo.poolId}
               </div>
             )}
             <Search />

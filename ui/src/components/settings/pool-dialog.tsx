@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 
 import { Pool } from '@/types/api'
 import type { PoolCreateRequest } from '@/lib/api/admin'
-
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,7 +24,12 @@ export interface PoolDialogProps {
   onSubmit: (data: PoolCreateRequest) => void
 }
 
-export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogProps) {
+export function PoolDialog({
+  open,
+  onOpenChange,
+  pool,
+  onSubmit,
+}: PoolDialogProps) {
   const { t } = useTranslation()
 
   // Form state
@@ -137,7 +141,8 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="poolId">
-                {t('common.fields.poolId', 'Pool ID')} <span className="text-destructive">*</span>
+                {t('common.fields.poolId', 'Pool ID')}{' '}
+                <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="poolId"
@@ -157,7 +162,8 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
 
             <div className="grid gap-2">
               <Label htmlFor="poolName">
-                {t('common.fields.poolName', 'Pool Name')} <span className="text-destructive">*</span>
+                {t('common.fields.poolName', 'Pool Name')}{' '}
+                <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="poolName"
@@ -170,7 +176,9 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
                 className={errors.poolName ? 'border-destructive' : ''}
               />
               {errors.poolName && (
-                <div className="text-sm text-destructive">{errors.poolName}</div>
+                <div className="text-sm text-destructive">
+                  {errors.poolName}
+                </div>
               )}
             </div>
 
@@ -204,7 +212,9 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="imageRegistry">{t('poolManagement.fields.imageRegistry', 'Image Registry')}</Label>
+              <Label htmlFor="imageRegistry">
+                {t('poolManagement.fields.imageRegistry', 'Image Registry')}
+              </Label>
               <Input
                 id="imageRegistry"
                 value={imageRegistry}
@@ -217,7 +227,9 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="eskBaseURL">{t('poolManagement.fields.eskBaseURL', 'ESK Base URL')}</Label>
+              <Label htmlFor="eskBaseURL">
+                {t('poolManagement.fields.eskBaseURL', 'ESK Base URL')}
+              </Label>
               <Input
                 id="eskBaseURL"
                 value={eskBaseURL}
@@ -227,7 +239,9 @@ export function PoolDialog({ open, onOpenChange, pool, onSubmit }: PoolDialogPro
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="kcsBaseURL">{t('poolManagement.fields.kcsBaseURL', 'KCS Base URL')}</Label>
+              <Label htmlFor="kcsBaseURL">
+                {t('poolManagement.fields.kcsBaseURL', 'KCS Base URL')}
+              </Label>
               <Input
                 id="kcsBaseURL"
                 value={kcsBaseURL}

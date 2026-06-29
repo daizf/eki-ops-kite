@@ -1,9 +1,15 @@
 import { useCallback, useMemo, useState } from 'react'
-import { IconEdit, IconPlus, IconServer, IconTrash, IconUpload } from '@tabler/icons-react'
+import {
+  IconEdit,
+  IconPlus,
+  IconServer,
+  IconTrash,
+  IconUpload,
+} from '@tabler/icons-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ColumnDef, PaginationState } from '@tanstack/react-table'
-import { useTranslation } from 'react-i18next'
 import { Search, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { Cluster } from '@/types/api'
@@ -15,7 +21,8 @@ import {
   updateCluster,
   useClusterList,
 } from '@/lib/api'
-import { ClusterStatusDot, getClusterStatus } from '@/components/cluster-status-dot'
+import { CATEGORIES } from '@/lib/constants'
+import { getTagColor } from '@/lib/tags'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,13 +39,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  ClusterStatusDot,
+  getClusterStatus,
+} from '@/components/cluster-status-dot'
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog'
 
 import { Action, ActionTable } from '../action-table'
-import { ClusterDialog } from './cluster-dialog'
 import { BatchImportDialog } from './batch-import-dialog'
-import { CATEGORIES } from '@/lib/constants'
-import { getTagColor } from '@/lib/tags'
+import { ClusterDialog } from './cluster-dialog'
 
 export function ClusterManagement() {
   const { t } = useTranslation()
@@ -186,7 +195,6 @@ export function ClusterManagement() {
     [t]
   )
 
-
   const columns = useMemo<ColumnDef<Cluster>[]>(
     () => [
       {
@@ -291,7 +299,11 @@ export function ClusterManagement() {
           return (
             <div className="flex items-center gap-1 flex-wrap">
               {displayedTags.map((tag, index) => (
-                <Badge key={index} variant="outline" className={getTagColor(tag)}>
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className={getTagColor(tag)}
+                >
                   {tag}
                 </Badge>
               ))}
@@ -536,34 +548,34 @@ export function ClusterManagement() {
 
             {/* Category dropdown */}
             <Select
-                value={selectedCategory || '__all__'}
-                onValueChange={(value) => {
-                  setSelectedCategory(value === '__all__' ? '' : value)
-                  setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-                }}
-              >
-                <SelectTrigger size="sm" className="w-[180px]">
-                  <SelectValue
-                    placeholder={t(
-                      'clusterManagement.filter.allCategories',
-                      'All Categories'
-                    )}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">
-                    {t(
-                      'clusterManagement.filter.allCategories',
-                      'All Categories'
-                    )}
+              value={selectedCategory || '__all__'}
+              onValueChange={(value) => {
+                setSelectedCategory(value === '__all__' ? '' : value)
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              }}
+            >
+              <SelectTrigger size="sm" className="w-[180px]">
+                <SelectValue
+                  placeholder={t(
+                    'clusterManagement.filter.allCategories',
+                    'All Categories'
+                  )}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">
+                  {t(
+                    'clusterManagement.filter.allCategories',
+                    'All Categories'
+                  )}
+                </SelectItem>
+                {CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
                   </SelectItem>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                ))}
+              </SelectContent>
+            </Select>
 
             {hasActiveFilters && (
               <Button

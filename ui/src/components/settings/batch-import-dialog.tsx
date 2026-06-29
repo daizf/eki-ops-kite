@@ -1,33 +1,36 @@
-import { useState, useCallback, useRef } from 'react'
-import { IconUpload, IconX, IconCheck, IconDownload } from '@tabler/icons-react'
+import { useCallback, useRef, useState } from 'react'
+import { IconCheck, IconDownload, IconUpload, IconX } from '@tabler/icons-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   batchImportClusters,
   ClusterBatchImportItem,
   ClusterBatchImportResult,
 } from '@/lib/api'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 
 interface BatchImportDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps) {
+export function BatchImportDialog({
+  open,
+  onOpenChange,
+}: BatchImportDialogProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -45,7 +48,10 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
 
       if (rejectedCount > 0) {
         toast.warning(
-          t('clusterManagement.batchImport.warning.partialSuccess', 'Import completed with warnings'),
+          t(
+            'clusterManagement.batchImport.warning.partialSuccess',
+            'Import completed with warnings'
+          ),
           {
             description: t(
               'clusterManagement.batchImport.warning.rejected',
@@ -57,7 +63,10 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
         )
       } else {
         toast.success(
-          t('clusterManagement.batchImport.success', 'Clusters imported successfully'),
+          t(
+            'clusterManagement.batchImport.success',
+            'Clusters imported successfully'
+          ),
           {
             description: t(
               'clusterManagement.batchImport.successCount',
@@ -104,19 +113,58 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
 
           jsonData.forEach((row: any, index: number) => {
             const cluster: ClusterBatchImportItem = {
-              name: String(row['name'] || row['Name'] || row['集群名称'] || '').trim(),
-              clusterId: String(row['clusterId'] || row['ClusterID'] || row['集群ID'] || '').trim(),
-              description: String(row['description'] || row['Description'] || row['描述'] || '').trim(),
-              config: String(row['config'] || row['Config'] || row['Kubeconfig'] || '').trim(),
-              prometheusURL: String(row['prometheusURL'] || row['PrometheusURL'] || row['Prometheus地址'] || '').trim(),
-              category: String(row['category'] || row['Category'] || row['分类'] || '').trim(),
-              poolId: String(row['poolId'] || row['PoolID'] || row['资源池'] || '').trim(),
-              inCluster: typeof row['inCluster'] === 'boolean' ? row['inCluster']
-                : (row['inCluster'] || row['InCluster'] || row['集群类型'] || '').toString().toLowerCase() === 'true',
-              isDefault: typeof row['isDefault'] === 'boolean' ? row['isDefault']
-                : (row['isDefault'] || row['IsDefault'] || row['是否默认'] || '').toString().toLowerCase() === 'true',
-              enabled: typeof row['enabled'] === 'boolean' ? row['enabled']
-                : (row['enabled'] || row['Enabled'] || row['是否启用'] || '').toString().toLowerCase() !== 'false',
+              name: String(
+                row['name'] || row['Name'] || row['集群名称'] || ''
+              ).trim(),
+              clusterId: String(
+                row['clusterId'] || row['ClusterID'] || row['集群ID'] || ''
+              ).trim(),
+              description: String(
+                row['description'] || row['Description'] || row['描述'] || ''
+              ).trim(),
+              config: String(
+                row['config'] || row['Config'] || row['Kubeconfig'] || ''
+              ).trim(),
+              prometheusURL: String(
+                row['prometheusURL'] ||
+                  row['PrometheusURL'] ||
+                  row['Prometheus地址'] ||
+                  ''
+              ).trim(),
+              category: String(
+                row['category'] || row['Category'] || row['分类'] || ''
+              ).trim(),
+              poolId: String(
+                row['poolId'] || row['PoolID'] || row['资源池'] || ''
+              ).trim(),
+              inCluster:
+                typeof row['inCluster'] === 'boolean'
+                  ? row['inCluster']
+                  : (
+                      row['inCluster'] ||
+                      row['InCluster'] ||
+                      row['集群类型'] ||
+                      ''
+                    )
+                      .toString()
+                      .toLowerCase() === 'true',
+              isDefault:
+                typeof row['isDefault'] === 'boolean'
+                  ? row['isDefault']
+                  : (
+                      row['isDefault'] ||
+                      row['IsDefault'] ||
+                      row['是否默认'] ||
+                      ''
+                    )
+                      .toString()
+                      .toLowerCase() === 'true',
+              enabled:
+                typeof row['enabled'] === 'boolean'
+                  ? row['enabled']
+                  : (row['enabled'] || row['Enabled'] || row['是否启用'] || '')
+                      .toString()
+                      .toLowerCase() !== 'false',
             }
 
             if (!cluster.name || !cluster.clusterId) {
@@ -129,14 +177,23 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
           setClusters(validItems)
 
           if (validItems.length > 0) {
-            const message = invalidCount.length > 0
-              ? t('clusterManagement.batchImport.parsedWithInvalid', 'Parsed {{count}} clusters from file, {{invalid}} rows invalid', {
-                  count: validItems.length,
-                  invalid: invalidCount.length
-                })
-              : t('clusterManagement.batchImport.parsed', 'Parsed {{count}} clusters from file', {
-                  count: validItems.length
-                })
+            const message =
+              invalidCount.length > 0
+                ? t(
+                    'clusterManagement.batchImport.parsedWithInvalid',
+                    'Parsed {{count}} clusters from file, {{invalid}} rows invalid',
+                    {
+                      count: validItems.length,
+                      invalid: invalidCount.length,
+                    }
+                  )
+                : t(
+                    'clusterManagement.batchImport.parsed',
+                    'Parsed {{count}} clusters from file',
+                    {
+                      count: validItems.length,
+                    }
+                  )
             toast.success(message)
           } else {
             toast.error(
@@ -148,9 +205,13 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
           }
         } catch (error) {
           toast.error(
-            t('clusterManagement.batchImport.parseError', 'Failed to parse file'),
+            t(
+              'clusterManagement.batchImport.parseError',
+              'Failed to parse file'
+            ),
             {
-              description: error instanceof Error ? error.message : 'Invalid file format',
+              description:
+                error instanceof Error ? error.message : 'Invalid file format',
             }
           )
         }
@@ -210,10 +271,7 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
   const handleSubmit = () => {
     if (clusters.length === 0) {
       toast.warning(
-        t(
-          'clusterManagement.batchImport.noClusters',
-          'No clusters to import'
-        )
+        t('clusterManagement.batchImport.noClusters', 'No clusters to import')
       )
       return
     }
@@ -241,7 +299,10 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="file-upload">
-                {t('clusterManagement.batchImport.selectFile', 'Select Excel File')}
+                {t(
+                  'clusterManagement.batchImport.selectFile',
+                  'Select Excel File'
+                )}
               </Label>
               <Button
                 type="button"
@@ -251,7 +312,10 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
                 className="text-xs gap-1"
               >
                 <IconDownload className="h-3 w-3" />
-                {t('clusterManagement.batchImport.downloadTemplate', 'Download Template')}
+                {t(
+                  'clusterManagement.batchImport.downloadTemplate',
+                  'Download Template'
+                )}
               </Button>
             </div>
             <div className="flex gap-2">
@@ -290,17 +354,45 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
           {fileName && (
             <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded space-y-2">
               <div className="font-medium">
-                {t('clusterManagement.batchImport.fileFormat', 'Excel File Columns')}:
+                {t(
+                  'clusterManagement.batchImport.fileFormat',
+                  'Excel File Columns'
+                )}
+                :
               </div>
               <div className="grid grid-cols-2 gap-1 text-xs">
-                <div><code>name</code> / <code>Name</code> / <code>集群名称</code> *</div>
-                <div><code>clusterId</code> / <code>ClusterID</code> / <code>集群ID</code> *</div>
-                <div><code>description</code> / <code>Description</code> / <code>描述</code></div>
-                <div><code>config</code> / <code>Config</code> / <code>Kubeconfig</code></div>
-                <div><code>prometheusURL</code> / <code>PrometheusURL</code> / <code>Prometheus地址</code></div>
-                <div><code>category</code> / <code>Category</code> / <code>分类</code></div>
-                <div><code>poolId</code> / <code>PoolID</code> / <code>资源池</code></div>
-                <div><code>inCluster</code> / <code>IsDefault</code> / <code>enabled</code></div>
+                <div>
+                  <code>name</code> / <code>Name</code> / <code>集群名称</code>{' '}
+                  *
+                </div>
+                <div>
+                  <code>clusterId</code> / <code>ClusterID</code> /{' '}
+                  <code>集群ID</code> *
+                </div>
+                <div>
+                  <code>description</code> / <code>Description</code> /{' '}
+                  <code>描述</code>
+                </div>
+                <div>
+                  <code>config</code> / <code>Config</code> /{' '}
+                  <code>Kubeconfig</code>
+                </div>
+                <div>
+                  <code>prometheusURL</code> / <code>PrometheusURL</code> /{' '}
+                  <code>Prometheus地址</code>
+                </div>
+                <div>
+                  <code>category</code> / <code>Category</code> /{' '}
+                  <code>分类</code>
+                </div>
+                <div>
+                  <code>poolId</code> / <code>PoolID</code> /{' '}
+                  <code>资源池</code>
+                </div>
+                <div>
+                  <code>inCluster</code> / <code>IsDefault</code> /{' '}
+                  <code>enabled</code>
+                </div>
               </div>
             </div>
           )}
@@ -309,7 +401,10 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>
-                  {t('clusterManagement.batchImport.clustersPreview', 'Clusters to Import')}{' '}
+                  {t(
+                    'clusterManagement.batchImport.clustersPreview',
+                    'Clusters to Import'
+                  )}{' '}
                   <Badge variant="secondary">{clusters.length}</Badge>
                 </Label>
               </div>
@@ -325,7 +420,9 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
                       </Badge>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium truncate">{cluster.name}</span>
+                          <span className="font-medium truncate">
+                            {cluster.name}
+                          </span>
                           {cluster.isDefault && (
                             <Badge variant="secondary" className="text-xs">
                               {t('clusterManagement.badges.default', 'Default')}
@@ -376,7 +473,10 @@ export function BatchImportDialog({ open, onOpenChange }: BatchImportDialogProps
                 className="mt-2"
               >
                 <IconDownload className="h-3 w-3 mr-1" />
-                {t('clusterManagement.batchImport.downloadTemplate', 'Download Template')}
+                {t(
+                  'clusterManagement.batchImport.downloadTemplate',
+                  'Download Template'
+                )}
               </Button>
             </div>
           )}

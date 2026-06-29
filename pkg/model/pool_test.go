@@ -6,10 +6,10 @@ import (
 
 func TestApplyImageRegistry(t *testing.T) {
 	tests := []struct {
-		name      string
-		registry  string
-		image     string
-		want      string
+		name     string
+		registry string
+		image    string
+		want     string
 	}{
 		{
 			name:     "empty registry returns image as-is",

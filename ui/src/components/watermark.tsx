@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-
 import { useAuth } from '@/contexts/auth-context'
+
 import { useWatermarkConfig } from '@/lib/api'
 
 function pad(n: number): string {
@@ -54,12 +54,15 @@ export function Watermark() {
       aria-hidden
       className="pointer-events-none fixed inset-0 z-[9999] select-none overflow-hidden"
     >
-      <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+      <div
+        className="absolute inset-0 grid"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`,
+        }}
+      >
         {Array.from({ length: rows * cols }).map((_, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-center"
-          >
+          <div key={i} className="flex items-center justify-center">
             <div
               className="rotate-45 text-center text-muted-foreground/20"
               style={{ fontSize: '14px', lineHeight: 1.4 }}

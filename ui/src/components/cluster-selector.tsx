@@ -1,9 +1,8 @@
-import { IconCheck, IconServer, IconSearch } from '@tabler/icons-react'
 import { useState } from 'react'
+import { IconCheck, IconSearch, IconServer } from '@tabler/icons-react'
 
 import type { Cluster } from '@/types/api'
 import { cn } from '@/lib/utils'
-import { ClusterStatusDot, getClusterStatus } from '@/components/cluster-status-dot'
 import { useCluster } from '@/hooks/use-cluster'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,6 +11,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  ClusterStatusDot,
+  getClusterStatus,
+} from '@/components/cluster-status-dot'
 
 export function ClusterSelector() {
   const {
@@ -37,7 +40,9 @@ export function ClusterSelector() {
     )
   }
 
-  const currentClusterData = clusters.find((c) => c.clusterId === currentCluster)
+  const currentClusterData = clusters.find(
+    (c) => c.clusterId === currentCluster
+  )
 
   const filteredClusters = clusters.filter((cluster) => {
     if (!searchQuery.trim()) return true
@@ -52,8 +57,11 @@ export function ClusterSelector() {
 
   const peerClusters = currentClusterData
     ? filteredClusters.filter((c) => {
-        const samePool = (c.poolId || 'no-pool') === (currentClusterData.poolId || 'no-pool')
-        const sameCategory = (c.category || 'Uncategorized') === (currentClusterData.category || 'Uncategorized')
+        const samePool =
+          (c.poolId || 'no-pool') === (currentClusterData.poolId || 'no-pool')
+        const sameCategory =
+          (c.category || 'Uncategorized') ===
+          (currentClusterData.category || 'Uncategorized')
         return samePool && sameCategory
       })
     : filteredClusters
@@ -148,7 +156,10 @@ function ClusterMenuItem({
             </Badge>
           )}
           {cluster.category && (
-            <Badge variant="outline" className="text-xs h-5 px-1.5 shrink-0 bg-purple-50 text-purple-700 border-purple-200">
+            <Badge
+              variant="outline"
+              className="text-xs h-5 px-1.5 shrink-0 bg-purple-50 text-purple-700 border-purple-200"
+            >
               {cluster.category}
             </Badge>
           )}
@@ -158,7 +169,10 @@ function ClusterMenuItem({
             </Badge>
           )}
           {hasError && (
-            <Badge variant="destructive" className="text-xs h-5 px-1.5 shrink-0">
+            <Badge
+              variant="destructive"
+              className="text-xs h-5 px-1.5 shrink-0"
+            >
               Sync Error
             </Badge>
           )}
