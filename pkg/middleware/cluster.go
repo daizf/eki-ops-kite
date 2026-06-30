@@ -9,12 +9,10 @@ import (
 )
 
 const (
-	ClusterIdHeader   = "x-cluster-id"
-	ClusterNameHeader = ClusterIdHeader
-	ClusterIdKey      = "cluster-id"
-	ClusterNameKey    = ClusterIdKey
-	K8sClientKey      = "k8s-client"
-	PromClientKey     = "prom-client"
+	ClusterIdHeader = "x-cluster-id"
+	ClusterIdKey    = "cluster-id"
+	K8sClientKey    = "k8s-client"
+	PromClientKey   = "prom-client"
 )
 
 // ClusterMiddleware extracts cluster name from header and injects clients into context
@@ -42,7 +40,6 @@ func ClusterMiddleware(cm *cluster.ClusterManager) gin.HandlerFunc {
 		}
 		c.Set("cluster", cluster)
 		c.Set(ClusterIdKey, cluster.ClusterID)
-		c.Set(ClusterNameKey, cluster.Name)
 		c.Next()
 	}
 }

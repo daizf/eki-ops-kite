@@ -110,7 +110,7 @@ func TestGlobalSearchNegativeLimitDoesNotPanic(t *testing.T) {
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.Request = httptest.NewRequest(http.MethodGet, "/search?q=po&limit=-1", nil)
-	ctx.Request.Header.Set(middleware.ClusterNameHeader, "*")
+	ctx.Request.Header.Set(middleware.ClusterIdHeader, "*")
 	ctx.Set("user", model.AnonymousUser)
 
 	handler := NewSearchHandler(map[string]resources.SearchFunc{})

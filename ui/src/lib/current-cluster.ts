@@ -1,5 +1,5 @@
 const CURRENT_CLUSTER_STORAGE_KEY = 'current-cluster'
-const CURRENT_CLUSTER_HEADER_KEY = 'x-cluster-name'
+const CURRENT_CLUSTER_HEADER_KEY = 'x-cluster-id'
 
 export function getCurrentCluster() {
   return (

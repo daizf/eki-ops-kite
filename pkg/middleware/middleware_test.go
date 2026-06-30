@@ -139,7 +139,7 @@ func TestLogger(t *testing.T) {
 		r.Use(Logger())
 		r.GET("/api/v1/pods", func(c *gin.Context) {
 			c.Set("user", model.User{Username: "alice"})
-			c.Set(ClusterNameKey, "cluster-a")
+			c.Set(ClusterIdKey, "cluster-a")
 			c.Status(http.StatusCreated)
 		})
 

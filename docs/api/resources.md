@@ -7,13 +7,13 @@ Kite exposes generic CRUD-style APIs for built-in Kubernetes resources under `/a
 Resource endpoints require:
 
 - an authenticated user or API key
-- a target cluster, usually passed through `x-cluster-name`
+- a target cluster, usually passed through `x-cluster-id`
 
 Example:
 
 ```bash
 -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
--H "x-cluster-name: demo-cluster"
+-H "x-cluster-id: demo-cluster"
 ```
 
 ## Path patterns
@@ -64,7 +64,7 @@ This example creates a ConfigMap in the `default` namespace.
 curl \
   -X POST \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "apiVersion": "v1",
@@ -91,7 +91,7 @@ This example replaces the ConfigMap content.
 curl \
   -X PUT \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "apiVersion": "v1",
@@ -123,7 +123,7 @@ This example uses JSON merge patch to update one field without sending the full 
 curl \
   -X PATCH \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "data": {
@@ -139,7 +139,7 @@ To restart a Deployment with `PATCH`, update an annotation under `spec.template.
 curl \
   -X PATCH \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "spec": {
@@ -163,7 +163,7 @@ This example deletes the ConfigMap.
 curl \
   -X DELETE \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   https://kite.example.com/api/v1/configmaps/default/example-config
 ```
 
@@ -179,7 +179,7 @@ Example:
 curl \
   -X DELETE \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   "https://kite.example.com/api/v1/deployments/default/example-app?force=true&wait=false"
 ```
 
@@ -193,7 +193,7 @@ This example patches a Namespace label:
 curl \
   -X PATCH \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "metadata": {

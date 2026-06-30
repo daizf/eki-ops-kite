@@ -302,15 +302,15 @@ func normalizeSearchQuery(query string) string {
 }
 
 func getSearchClusterName(c *gin.Context) string {
-	if clusterName := c.GetString(middleware.ClusterNameKey); clusterName != "" {
+	if clusterName := c.GetString(middleware.ClusterIdKey); clusterName != "" {
 		return clusterName
 	}
-	if clusterName := c.GetHeader(middleware.ClusterNameHeader); clusterName != "" {
+	if clusterName := c.GetHeader(middleware.ClusterIdHeader); clusterName != "" {
 		return clusterName
 	}
-	if clusterName, ok := c.GetQuery(middleware.ClusterNameHeader); ok {
+	if clusterName, ok := c.GetQuery(middleware.ClusterIdHeader); ok {
 		return clusterName
 	}
-	clusterName, _ := c.Cookie(middleware.ClusterNameHeader)
+	clusterName, _ := c.Cookie(middleware.ClusterIdHeader)
 	return clusterName
 }

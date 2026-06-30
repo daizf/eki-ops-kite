@@ -7,13 +7,13 @@ Kite 在 `/api/v1/<resource>` 下为内置 Kubernetes 资源提供通用的 CRUD
 资源接口需要：
 
 - 一个已经认证的用户或 API 密钥
-- 一个目标集群，通常通过 `x-cluster-name` 传入
+- 一个目标集群，通常通过 `x-cluster-id` 传入
 
 示例：
 
 ```bash
 -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
--H "x-cluster-name: demo-cluster"
+-H "x-cluster-id: demo-cluster"
 ```
 
 ## 路径规则
@@ -64,7 +64,7 @@ DELETE /api/v1/<resource>/_all/<name>
 curl \
   -X POST \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "apiVersion": "v1",
@@ -91,7 +91,7 @@ curl \
 curl \
   -X PUT \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "apiVersion": "v1",
@@ -123,7 +123,7 @@ curl \
 curl \
   -X PATCH \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "data": {
@@ -139,7 +139,7 @@ curl \
 curl \
   -X PATCH \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "spec": {
@@ -163,7 +163,7 @@ curl \
 curl \
   -X DELETE \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   https://kite.example.com/api/v1/configmaps/default/example-config
 ```
 
@@ -179,7 +179,7 @@ curl \
 curl \
   -X DELETE \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   "https://kite.example.com/api/v1/deployments/default/example-app?force=true&wait=false"
 ```
 
@@ -193,7 +193,7 @@ curl \
 curl \
   -X PATCH \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   -H "Content-Type: application/json" \
   -d '{
     "metadata": {

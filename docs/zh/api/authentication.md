@@ -135,7 +135,7 @@ API 密钥与普通用户共用同一套 RBAC 权限模型。
 - 创建 API 密钥本身不会自动获得任何资源权限。
 - `/api/v1/...` 下的资源访问仍然会经过 RBAC 校验。
 - `/api/v1/admin/...` 下的管理接口要求调用方拥有 `admin` 角色。
-- 集群资源接口通常还需要传 `x-cluster-name`。
+- 集群资源接口通常还需要传 `x-cluster-id`。
 
 ## 认证请求
 
@@ -144,10 +144,10 @@ API 密钥与普通用户共用同一套 RBAC 权限模型。
 ```bash
 curl \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   https://kite.example.com/api/v1/pods/default
 ```
 
 说明：
 
-- `/api/v1/...` 下的资源接口通常还需要传 `x-cluster-name`。
+- `/api/v1/...` 下的资源接口通常还需要传 `x-cluster-id`。

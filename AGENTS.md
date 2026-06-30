@@ -104,7 +104,7 @@ Most protected API calls go through:
 3. feature-specific handlers
 4. `middleware.RBACMiddleware()` before registered Kubernetes resource routes
 
-The current cluster is passed as `x-cluster-name`. The frontend writes it to
+The current cluster is passed as `x-cluster-id`. The frontend writes it to
 localStorage and a cookie in `ui/src/lib/current-cluster.ts`, and the API client
 adds the encoded header in `ui/src/lib/api-client.ts`. The backend middleware
 also accepts the same value from query params or cookies for websocket and other

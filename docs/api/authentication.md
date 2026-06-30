@@ -135,7 +135,7 @@ API keys use the same RBAC model as regular users.
 - Creating an API key does not automatically grant any resource permissions.
 - Resource access under `/api/v1/...` is still checked by RBAC.
 - Admin APIs under `/api/v1/admin/...` require the caller to have the `admin` role.
-- Cluster resource APIs usually also require `x-cluster-name`.
+- Cluster resource APIs usually also require `x-cluster-id`.
 
 ## Authenticate requests
 
@@ -144,10 +144,10 @@ Example:
 ```bash
 curl \
   -H "Authorization: kite12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-  -H "x-cluster-name: demo-cluster" \
+  -H "x-cluster-id: demo-cluster" \
   https://kite.example.com/api/v1/pods/default
 ```
 
 Notes:
 
-- Resource endpoints under `/api/v1/...` usually also require `x-cluster-name`.
+- Resource endpoints under `/api/v1/...` usually also require `x-cluster-id`.
