@@ -57,6 +57,7 @@ func (h *KubectlTerminalHandler) HandleKubectlTerminalWebSocket(c *gin.Context) 
 		if kubectlImage == "" {
 			kubectlImage = common.KubectlTerminalImage
 		}
+		kubectlImage = model.ResolveImage(cs.PoolID, kubectlImage)
 
 		ctx := ws.Context
 

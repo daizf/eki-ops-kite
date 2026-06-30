@@ -67,6 +67,7 @@ func (h *NodeTerminalHandler) HandleNodeTerminalWebSocket(c *gin.Context) {
 		if nodeTerminalImage == "" {
 			nodeTerminalImage = common.NodeTerminalImage
 		}
+		nodeTerminalImage = model.ResolveImage(cs.PoolID, nodeTerminalImage)
 		nodeAgentName, err := h.createNodeAgent(ctx, cs, nodeName, nodeTerminalImage)
 		if err != nil {
 			klog.Errorf("Failed to create node agent pod: %v", err)
