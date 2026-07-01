@@ -177,14 +177,14 @@ func UpdatePool(c *gin.Context) {
 	}
 
 	var req struct {
-		PoolID        string `json:"poolId"`
-		PoolName      string `json:"poolName"`
-		Description   string `json:"description"`
-		Proxy         string `json:"proxy"`
-		ImageRegistry string `json:"imageRegistry"`
-		EskBaseURL    string `json:"eskBaseURL"`
-		KcsBaseURL    string `json:"kcsBaseURL"`
-		Enable        bool   `json:"enable"`
+		PoolID        *string `json:"poolId"`
+		PoolName      *string `json:"poolName"`
+		Description   *string `json:"description"`
+		Proxy         *string `json:"proxy"`
+		ImageRegistry *string `json:"imageRegistry"`
+		EskBaseURL    *string `json:"eskBaseURL"`
+		KcsBaseURL    *string `json:"kcsBaseURL"`
+		Enable        *bool   `json:"enable"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -202,25 +202,36 @@ func UpdatePool(c *gin.Context) {
 		return
 	}
 
-	updates := map[string]any{
-		"description":    req.Description,
-		"proxy":          req.Proxy,
-		"image_registry": req.ImageRegistry,
-		"esk_base_url":   req.EskBaseURL,
-		"kcs_base_url":   req.KcsBaseURL,
-		"enable":         req.Enable,
+	updates := map[string]any{}
+	if req.Description != nil {
+		updates["description"] = *req.Description
+	}
+	if req.Proxy != nil {
+		updates["proxy"] = *req.Proxy
+	}
+	if req.ImageRegistry != nil {
+		updates["image_registry"] = *req.ImageRegistry
+	}
+	if req.EskBaseURL != nil {
+		updates["esk_base_url"] = *req.EskBaseURL
+	}
+	if req.KcsBaseURL != nil {
+		updates["kcs_base_url"] = *req.KcsBaseURL
+	}
+	if req.Enable != nil {
+		updates["enable"] = *req.Enable
 	}
 
-	if req.PoolID != "" && req.PoolID != pool.PoolID {
-		if _, err := model.GetPoolByPoolID(req.PoolID); err == nil {
+	if req.PoolID != nil && *req.PoolID != "" && *req.PoolID != pool.PoolID {
+		if _, err := model.GetPoolByPoolID(*req.PoolID); err == nil {
 			c.JSON(http.StatusConflict, gin.H{"error": "poolId already exists"})
 			return
 		}
-		updates["pool_id"] = req.PoolID
+		updates["pool_id"] = *req.PoolID
 	}
 
-	if req.PoolName != "" {
-		updates["pool_name"] = req.PoolName
+	if req.PoolName != nil && *req.PoolName != "" {
+		updates["pool_name"] = *req.PoolName
 	}
 
 	if err := model.UpdatePool(pool, updates); err != nil {
