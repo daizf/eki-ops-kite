@@ -151,6 +151,7 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 func registerProtectedRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *cluster.ClusterManager, helmChartsHandler *helm.HelmChartHandler) {
 	api := r.Group("/api/v1")
 	api.GET("/clusters", authHandler.RequireAuth(), cm.GetClusterList)
+	api.GET("/watermark", authHandler.RequireAuth(), ai.HandleGetWatermarkConfig)
 	api.Use(authHandler.RequireAuth(), middleware.ClusterMiddleware(cm))
 
 	api.GET("/overview", system.GetOverview)
@@ -185,7 +186,6 @@ func registerProtectedRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, 
 	proxyHandler := proxy.NewProxyHandler()
 	proxyHandler.RegisterRoutes(api)
 
-	api.GET("/watermark", ai.HandleGetWatermarkConfig)
 	api.POST("/ai/chat", ai.HandleChat)
 	api.POST("/ai/execute/continue", ai.HandleExecuteContinue)
 	api.POST("/ai/input/continue", ai.HandleInputContinue)

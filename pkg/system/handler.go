@@ -24,9 +24,8 @@ var knownAcceleratorResources = []string{
 	"baidu.com/xpu",
 	"metax-tech.com/gpu",
 	"hygon.com/dcu",
-	"mthreads.com/musa",
-	"enflame.com/tops",
-	"iluvatar.ai/corex",
+	"kunlunxin.com/xpu",
+	"alibabacloud.com/ppu",
 }
 
 func isAccelerator(name string) bool {

@@ -33,6 +33,7 @@ func HandleGetGeneralSetting(c *gin.Context) {
 		"enableMFA":             setting.EnableMFA,
 		"enablePasskeyLogin":    setting.EnablePasskeyLogin,
 		"loginPrompt":           setting.LoginPrompt,
+		"watermarkEnabled":      setting.WatermarkEnabled,
 	})
 }
 
@@ -52,6 +53,7 @@ type UpdateGeneralSettingRequest struct {
 	EnableMFA             *bool   `json:"enableMFA"`
 	EnablePasskeyLogin    *bool   `json:"enablePasskeyLogin"`
 	LoginPrompt           *string `json:"loginPrompt"`
+	WatermarkEnabled      *bool   `json:"watermarkEnabled"`
 }
 
 func HandleUpdateGeneralSetting(c *gin.Context) { //nolint:gocyclo
@@ -168,6 +170,9 @@ func HandleUpdateGeneralSetting(c *gin.Context) { //nolint:gocyclo
 	if req.LoginPrompt != nil {
 		updates["login_prompt"] = strings.TrimSpace(*req.LoginPrompt)
 	}
+	if req.WatermarkEnabled != nil {
+		updates["watermark_enabled"] = *req.WatermarkEnabled
+	}
 	if req.PasswordLoginDisabled != nil {
 		updates["password_login_disabled"] = *req.PasswordLoginDisabled
 	}
@@ -205,5 +210,6 @@ func HandleUpdateGeneralSetting(c *gin.Context) { //nolint:gocyclo
 		"enableMFA":             updated.EnableMFA,
 		"enablePasskeyLogin":    updated.EnablePasskeyLogin,
 		"loginPrompt":           updated.LoginPrompt,
+		"watermarkEnabled":      updated.WatermarkEnabled,
 	})
 }

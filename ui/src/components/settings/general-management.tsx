@@ -99,6 +99,7 @@ export function GeneralManagement() {
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'general-setting' ||
+          query.queryKey[0] === 'watermark-config' ||
           query.queryKey[0] === 'ai-status' ||
           query.queryKey[0] === 'bootstrap',
       })
