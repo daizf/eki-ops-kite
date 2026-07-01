@@ -475,6 +475,10 @@
     "clusterStats": "Cluster Statistics",
     "recentEvents": "Recent Events",
     "resourceCharts": "Resource Charts",
+    "accelerators": "Accelerators",
+    "requests": "Requests",
+    "limits": "Limits",
+    "available": "Available",
     "failedToLoad": "Failed to load overview data",
     "unknownError": "Unknown error occurred",
     "clusterInfo": "Cluster"

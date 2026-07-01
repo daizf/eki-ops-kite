@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTranslation } from 'react-i18next'
 
 import { useOverview, useResourceUsageHistory } from '@/lib/api'
+import AcceleratorCharts from '@/components/accelerator-charts'
 import NetworkUsageChart from '@/components/chart/network-usage-chart'
 import ResourceUtilizationChart from '@/components/chart/resource-utilization'
 import { ClusterStatsCards } from '@/components/cluster-stats-cards'
@@ -55,12 +56,18 @@ export function Overview() {
         user?.roles?.some((role) => role.name === 'admin') && <SettingsHint />}
 
       <div className="grid grid-cols-1 gap-4 @5xl/main:grid-cols-2">
-        <ResourceCharts
-          data={overview?.resource}
-          isLoading={isLoading}
-          error={error}
-          isError={isError}
-        />
+        <div className="space-y-4">
+          <ResourceCharts
+            data={overview?.resource}
+            isLoading={isLoading}
+            error={error}
+            isError={isError}
+          />
+          <AcceleratorCharts
+            data={overview?.accelerators}
+            isLoading={isLoading}
+          />
+        </div>
         <RecentEvents />
       </div>
 

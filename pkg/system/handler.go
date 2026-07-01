@@ -2,6 +2,8 @@ package system
 
 import (
 	"net/http"
+	"sort"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zxh326/kite/pkg/cluster"
@@ -13,15 +15,39 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+var knownAcceleratorResources = []string{
+	"nvidia.com/gpu",
+	"huawei.com/Ascend",
+	"cambricon.com/mlu",
+	"intel.com/gpu",
+	"intel.com/sgpu",
+	"baidu.com/xpu",
+	"metax-tech.com/gpu",
+	"hygon.com/dcu",
+	"mthreads.com/musa",
+	"enflame.com/tops",
+	"iluvatar.ai/corex",
+}
+
+func isAccelerator(name string) bool {
+	for _, p := range knownAcceleratorResources {
+		if name == p || strings.HasPrefix(name, p) {
+			return true
+		}
+	}
+	return false
+}
+
 type OverviewData struct {
-	TotalNodes      int                   `json:"totalNodes"`
-	ReadyNodes      int                   `json:"readyNodes"`
-	TotalPods       int                   `json:"totalPods"`
-	RunningPods     int                   `json:"runningPods"`
-	TotalNamespaces int                   `json:"totalNamespaces"`
-	TotalServices   int                   `json:"totalServices"`
-	PromEnabled     bool                  `json:"prometheusEnabled"`
-	Resource        common.ResourceMetric `json:"resource"`
+	TotalNodes      int                       `json:"totalNodes"`
+	ReadyNodes      int                       `json:"readyNodes"`
+	TotalPods       int                       `json:"totalPods"`
+	RunningPods     int                       `json:"runningPods"`
+	TotalNamespaces int                       `json:"totalNamespaces"`
+	TotalServices   int                       `json:"totalServices"`
+	PromEnabled     bool                      `json:"prometheusEnabled"`
+	Resource        common.ResourceMetric     `json:"resource"`
+	Accelerators    []common.ExtendedResource `json:"accelerators"`
 }
 
 // nodeMetrics holds aggregated metrics computed from the node list.
@@ -57,6 +83,9 @@ func GetOverview(c *gin.Context) {
 	var nm nodeMetrics
 	var pm podMetrics
 	var nsCount, svcCount int
+	accAllocatable := make(map[string]int64)
+	accRequested := make(map[string]int64)
+	accLimited := make(map[string]int64)
 
 	g, gctx := errgroup.WithContext(ctx)
 
@@ -73,6 +102,12 @@ func GetOverview(c *gin.Context) {
 			node := &nodes.Items[i]
 			nm.cpuAllocatable += node.Status.Allocatable.Cpu().MilliValue()
 			nm.memAllocatable += node.Status.Allocatable.Memory().MilliValue()
+			for rn, q := range node.Status.Allocatable {
+				name := string(rn)
+				if isAccelerator(name) {
+					accAllocatable[name] += q.Value()
+				}
+			}
 			for _, cond := range node.Status.Conditions {
 				if cond.Type == v1.NodeReady && cond.Status == v1.ConditionTrue {
 					nm.ready++
@@ -99,6 +134,12 @@ func GetOverview(c *gin.Context) {
 					container := &pod.Spec.Containers[j]
 					pm.cpuRequested += container.Resources.Requests.Cpu().MilliValue()
 					pm.memRequested += container.Resources.Requests.Memory().MilliValue()
+					for rn, q := range container.Resources.Requests {
+						name := string(rn)
+						if isAccelerator(name) {
+							accRequested[name] += q.Value()
+						}
+					}
 
 					if container.Resources.Limits != nil {
 						if cpu := container.Resources.Limits.Cpu(); cpu != nil {
@@ -106,6 +147,12 @@ func GetOverview(c *gin.Context) {
 						}
 						if mem := container.Resources.Limits.Memory(); mem != nil {
 							pm.memLimited += mem.MilliValue()
+						}
+						for rn, q := range container.Resources.Limits {
+							name := string(rn)
+							if isAccelerator(name) {
+								accLimited[name] += q.Value()
+							}
 						}
 					}
 				}
@@ -143,6 +190,34 @@ func GetOverview(c *gin.Context) {
 		return
 	}
 
+	// Merge accelerator allocatable/requested/limited maps into a sorted slice.
+	// Only resources seen on nodes (allocatable) are reported; pods may request a
+	// resource that no node advertises, in which case allocatable stays 0.
+	acceleratorNames := make(map[string]struct{})
+	for name := range accAllocatable {
+		acceleratorNames[name] = struct{}{}
+	}
+	for name := range accRequested {
+		acceleratorNames[name] = struct{}{}
+	}
+	for name := range accLimited {
+		acceleratorNames[name] = struct{}{}
+	}
+	var accelerators []common.ExtendedResource
+	for name := range acceleratorNames {
+		accelerators = append(accelerators, common.ExtendedResource{
+			Name: name,
+			Resource: common.Resource{
+				Allocatable: accAllocatable[name],
+				Requested:   accRequested[name],
+				Limited:     accLimited[name],
+			},
+		})
+	}
+	sort.Slice(accelerators, func(i, j int) bool {
+		return accelerators[i].Name < accelerators[j].Name
+	})
+
 	// Memory is reported in bytes from Value(); convert to milli for the API
 	// (consistent with the original behavior that used MilliValue() on Quantity)
 	overview := OverviewData{
@@ -165,6 +240,7 @@ func GetOverview(c *gin.Context) {
 				Limited:     pm.memLimited,
 			},
 		},
+		Accelerators: accelerators,
 	}
 
 	c.JSON(http.StatusOK, overview)

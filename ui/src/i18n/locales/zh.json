@@ -480,6 +480,10 @@
     "clusterStats": "集群统计",
     "recentEvents": "最近事件",
     "resourceCharts": "资源图表",
+    "accelerators": "加速卡分配",
+    "requests": "已分配",
+    "limits": "限制",
+    "available": "可用",
     "failedToLoad": "加载概览数据失败",
     "unknownError": "未知错误",
     "clusterInfo": "集群信息"

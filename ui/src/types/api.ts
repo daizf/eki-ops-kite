@@ -571,6 +571,12 @@ export interface PodMetrics {
   fallback?: boolean
 }
 
+export interface Resource {
+  allocatable: number
+  requested: number
+  limited: number
+}
+
 export interface OverviewData {
   totalNodes: number
   readyNodes: number
@@ -580,17 +586,10 @@ export interface OverviewData {
   totalServices: number
   prometheusEnabled: boolean
   resource: {
-    cpu: {
-      allocatable: number
-      requested: number
-      limited: number
-    }
-    memory: {
-      allocatable: number
-      requested: number
-      limited: number
-    }
+    cpu: Resource
+    memory: Resource
   }
+  accelerators?: (Resource & { name: string })[]
 }
 
 // Pagination types

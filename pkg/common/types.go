@@ -31,6 +31,11 @@ type ResourceMetric struct {
 	Mem Resource `json:"memory,omitempty"`
 }
 
+type ExtendedResource struct {
+	Name string `json:"name"`
+	Resource
+}
+
 type PasswordLoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
