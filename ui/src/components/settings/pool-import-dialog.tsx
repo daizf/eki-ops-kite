@@ -162,7 +162,7 @@ export function PoolImportDialog({
                   ? row['enable']
                   : (row['enable'] || row['Enable'] || row['启用'] || '')
                       .toString()
-                      .toLowerCase() !== 'false',
+                      .toLowerCase() === 'true',
             }
 
             if (!pool.poolId || !pool.poolName) {
@@ -230,7 +230,7 @@ export function PoolImportDialog({
         imageRegistry: 'registry.example.com',
         eskBaseURL: 'https://esk.example.com',
         kcsBaseURL: 'https://kcs.example.com',
-        enable: 'true',
+        enable: 'false',
       },
       {
         poolId: 'CIDC-RP-30',
@@ -240,7 +240,7 @@ export function PoolImportDialog({
         imageRegistry: '',
         eskBaseURL: 'https://esk2.example.com',
         kcsBaseURL: '',
-        enable: 'true',
+        enable: 'false',
       },
     ]
 

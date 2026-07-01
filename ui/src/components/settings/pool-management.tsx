@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   IconDatabase,
   IconEdit,
@@ -20,9 +20,9 @@ import {
   updatePool,
   usePoolList,
 } from '@/lib/api'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog'
 
 import { Action, ActionTable } from '../action-table'
@@ -40,17 +40,19 @@ export function PoolManagement() {
   const [editingPool, setEditingPool] = useState<Pool | null>(null)
   const [deletingPool, setDeletingPool] = useState<Pool | null>(null)
 
-  const getStatusBadge = useCallback(
-    (pool: Pool) => {
-      if (!pool.enable) {
-        return (
-          <Badge variant="secondary">{t('status.disabled', 'Disabled')}</Badge>
-        )
-      }
-      return <Badge variant="default">{t('status.enabled', 'Enabled')}</Badge>
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, enable }: { id: number; enable: boolean }) =>
+      updatePool(id, { enable }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pool-list'] })
     },
-    [t]
-  )
+    onError: (error: Error) => {
+      toast.error(
+        error.message ||
+          t('poolManagement.messages.updateError', 'Failed to update pool')
+      )
+    },
+  })
 
   const columns = useMemo<ColumnDef<Pool>[]>(
     () => [
@@ -114,14 +116,20 @@ export function PoolManagement() {
         ),
       },
       {
-        id: 'status',
+        id: 'enable',
         header: t('common.fields.status', 'Status'),
         cell: ({ row: { original: pool } }) => (
-          <div className="flex items-center gap-3">{getStatusBadge(pool)}</div>
+          <Switch
+            checked={pool.enable}
+            onCheckedChange={(checked) =>
+              toggleMutation.mutate({ id: pool.id, enable: checked })
+            }
+            disabled={toggleMutation.isPending}
+          />
         ),
       },
     ],
-    [getStatusBadge, t]
+    [toggleMutation, t]
   )
 
   const actions = useMemo<Action<Pool>[]>(() => {

@@ -51,3 +51,5 @@ kite
 .gocache/
 /node_modules/
 kite-linux-amd64
+dev.db-journal
+dev.db
