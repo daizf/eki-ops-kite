@@ -871,7 +871,8 @@
     "title": "Cluster Management",
     "actions": {
       "add": "Add Cluster",
-      "batchImport": "Batch Import"
+      "batchImport": "Batch Import",
+      "testConnection": "Test Connection"
     },
     "table": {
       "name": "Name",
@@ -901,7 +902,10 @@
       "deleted": "Cluster deleted successfully",
       "createError": "Failed to create cluster",
       "updateError": "Failed to update cluster",
-      "deleteError": "Failed to delete cluster"
+      "deleteError": "Failed to delete cluster",
+      "testing": "Testing connection...",
+      "testSuccess": "Connected in {{ms}}ms (Kubernetes {{version}})",
+      "testFailed": "Connection failed: {{error}}"
     },
     "errors": {
       "loadFailed": "Failed to load clusters"

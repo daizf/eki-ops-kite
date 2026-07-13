@@ -103,6 +103,7 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	clusterAPI.POST("/import", cm.ImportClustersFromKubeconfig)
 	clusterAPI.PUT("/:id", cm.UpdateCluster)
 	clusterAPI.DELETE("/:id", cm.DeleteCluster)
+	clusterAPI.POST("/:id/test", cm.TestConnection)
 	clusterAPI.POST("/batch", cm.BatchImportClusters)
 
 	rbacAPI := adminAPI.Group("/roles")

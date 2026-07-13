@@ -72,6 +72,22 @@ export const deleteCluster = async (
   return await apiClient.delete<{ message: string }>(`/admin/clusters/${id}`)
 }
 
+// Test cluster connectivity
+export interface ClusterConnectionTestResult {
+  success: boolean
+  version?: string
+  elapsedMs: number
+  error?: string
+}
+
+export const testClusterConnection = async (
+  id: number
+): Promise<ClusterConnectionTestResult> => {
+  return await apiClient.post<ClusterConnectionTestResult>(
+    `/admin/clusters/${id}/test`
+  )
+}
+
 // Batch import clusters
 export interface ClusterBatchImportItem {
   name: string

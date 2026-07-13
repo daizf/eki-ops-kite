@@ -879,7 +879,8 @@
     "title": "集群管理",
     "actions": {
       "add": "添加集群",
-      "batchImport": "批量导入"
+      "batchImport": "批量导入",
+      "testConnection": "测试连通性"
     },
     "table": {
       "name": "名称",
@@ -909,7 +910,10 @@
       "deleted": "集群删除成功",
       "createError": "创建集群失败",
       "updateError": "更新集群失败",
-      "deleteError": "删除集群失败"
+      "deleteError": "删除集群失败",
+      "testing": "正在测试连通性...",
+      "testSuccess": "连接成功，耗时 {{ms}}ms（Kubernetes {{version}}）",
+      "testFailed": "连接失败：{{error}}"
     },
     "form": {
       "pool": {

@@ -46,6 +46,14 @@ func GetClusterByID(id uint) (*Cluster, error) {
 	return &cluster, nil
 }
 
+func GetClusterByIDWithPool(id uint) (*Cluster, error) {
+	var cluster Cluster
+	if err := DB.Preload("Pool").First(&cluster, id).Error; err != nil {
+		return nil, err
+	}
+	return &cluster, nil
+}
+
 func UpdateCluster(cluster *Cluster, updates map[string]interface{}) error {
 	return DB.Model(cluster).Updates(updates).Error
 }

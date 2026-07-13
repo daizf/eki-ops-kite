@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import {
   IconEdit,
+  IconPlugConnected,
   IconPlus,
   IconServer,
   IconTrash,
@@ -18,6 +19,7 @@ import {
   ClusterUpdateRequest,
   createCluster,
   deleteCluster,
+  testClusterConnection,
   updateCluster,
   useClusterList,
 } from '@/lib/api'
@@ -322,6 +324,54 @@ export function ClusterManagement() {
 
   const actions = useMemo<Action<Cluster>[]>(
     () => [
+      {
+        label: (
+          <>
+            <IconPlugConnected className="h-4 w-4" />
+            {t('clusterManagement.actions.testConnection', 'Test Connection')}
+          </>
+        ),
+        onClick: (cluster) => {
+          const toastId = toast.loading(
+            t('clusterManagement.messages.testing', 'Testing connection...')
+          )
+          testClusterConnection(cluster.id)
+            .then((result) => {
+              if (result.success) {
+                toast.success(
+                  t(
+                    'clusterManagement.messages.testSuccess',
+                    'Connected in {{ms}}ms (Kubernetes {{version}})',
+                    {
+                      ms: result.elapsedMs,
+                      version: result.version || '-',
+                    }
+                  ),
+                  { id: toastId }
+                )
+              } else {
+                toast.error(
+                  t(
+                    'clusterManagement.messages.testFailed',
+                    'Connection failed: {{error}}',
+                    { error: result.error || 'unknown error' }
+                  ),
+                  { id: toastId }
+                )
+              }
+            })
+            .catch((error: Error) => {
+              toast.error(
+                t(
+                  'clusterManagement.messages.testFailed',
+                  'Connection failed: {{error}}',
+                  { error: error.message || 'unknown error' }
+                ),
+                { id: toastId }
+              )
+            })
+        },
+      },
       {
         label: (
           <>

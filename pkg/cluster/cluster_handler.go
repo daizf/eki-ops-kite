@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 	"github.com/zxh326/kite/pkg/model"
 	"github.com/zxh326/kite/pkg/rbac"
 	"gorm.io/gorm"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -344,6 +347,109 @@ func (cm *ClusterManager) DeleteCluster(c *gin.Context) {
 	TriggerClusterSync()
 
 	c.JSON(http.StatusOK, gin.H{"message": "cluster deleted successfully"})
+}
+
+func (cm *ClusterManager) TestConnection(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid cluster id"})
+		return
+	}
+
+	cluster, err := model.GetClusterByIDWithPool(uint(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "cluster not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	var restConfig *rest.Config
+	if cluster.InCluster {
+		restConfig, err = rest.InClusterConfig()
+	} else {
+		if string(cluster.Config) == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success":   false,
+				"elapsedMs": 0,
+				"error":     "kubeconfig is empty",
+			})
+			return
+		}
+		restConfig, err = clientcmd.RESTConfigFromKubeConfig([]byte(string(cluster.Config)))
+	}
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success":   false,
+			"elapsedMs": 0,
+			"error":     err.Error(),
+		})
+		return
+	}
+
+	if cluster.Pool != nil && cluster.Pool.Proxy != "" {
+		if applyErr := applyProxyToRestConfig(restConfig, cluster.Pool.Proxy); applyErr != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success":   false,
+				"elapsedMs": 0,
+				"error":     fmt.Sprintf("apply proxy failed: %v", applyErr),
+			})
+			return
+		}
+	}
+
+	restConfig.Timeout = 5 * time.Second
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConfig)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success":   false,
+			"elapsedMs": 0,
+			"error":     err.Error(),
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	start := time.Now()
+	done := make(chan struct{})
+	var version string
+	var versionErr error
+	go func() {
+		v, e := discoveryClient.ServerVersion()
+		if e == nil && v != nil {
+			version = v.String()
+		}
+		versionErr = e
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-ctx.Done():
+		versionErr = ctx.Err()
+	}
+	elapsedMs := time.Since(start).Milliseconds()
+
+	if versionErr != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success":   false,
+			"elapsedMs": elapsedMs,
+			"error":     versionErr.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":   true,
+		"version":   version,
+		"elapsedMs": elapsedMs,
+	})
 }
 
 func (cm *ClusterManager) ImportClustersFromKubeconfig(c *gin.Context) {

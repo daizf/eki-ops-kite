@@ -121,7 +121,8 @@ export default function AcceleratorCharts(props: AcceleratorChartsProps) {
                 </div>
 
                 <div className="text-xs text-muted-foreground font-mono">
-                  {t('overview.available')}: {Math.max(0, acc.allocatable - acc.requested)}
+                  {t('overview.available')}:{' '}
+                  {Math.max(0, acc.allocatable - acc.requested)}
                 </div>
               </div>
             </CardContent>
