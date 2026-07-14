@@ -85,7 +85,7 @@ function buildPoolTree(clusters: Cluster[]): PoolGroup[] {
   poolGroups.sort((a, b) => {
     if (a.poolId === 'no-pool') return 1
     if (b.poolId === 'no-pool') return -1
-    return a.poolName.localeCompare(b.poolName)
+    return b.totalClusters - a.totalClusters
   })
 
   return poolGroups

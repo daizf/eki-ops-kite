@@ -31,12 +31,17 @@ export function ClusterSearch() {
   const [searchQuery, setSearchQuery] = useState('')
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
+  const enabledClusters = useMemo(
+    () => (clusters || []).filter((c) => c.enabled),
+    [clusters]
+  )
+
   const filteredClusters = useMemo(() => {
-    if (!searchQuery.trim() || !clusters) {
+    if (!searchQuery.trim() || !enabledClusters) {
       return []
     }
     const query = searchQuery.toLowerCase()
-    return clusters.filter((cluster) => {
+    return enabledClusters.filter((cluster) => {
       const nameMatch = cluster.name?.toLowerCase().includes(query) ?? false
       const idMatch = cluster.clusterId?.toLowerCase().includes(query) ?? false
       const poolMatch = cluster.poolId?.toLowerCase().includes(query) ?? false
@@ -44,7 +49,7 @@ export function ClusterSearch() {
         cluster.category?.toLowerCase().includes(query) ?? false
       return nameMatch || idMatch || poolMatch || categoryMatch
     })
-  }, [clusters, searchQuery])
+  }, [enabledClusters, searchQuery])
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -149,11 +154,8 @@ export function ClusterSearch() {
         {/* Left Sidebar - Cluster Panel */}
         <aside className="w-96 border-r bg-muted/10 flex-shrink-0 overflow-y-auto">
           <div className="p-4">
-            <h2 className="text-sm font-semibold text-muted-foreground mb-4">
-              {t('clusterSearch.clustersByCategory')}
-            </h2>
             <ClusterPanel
-              clusters={clusters || []}
+              clusters={enabledClusters}
               onClusterClick={handleClusterClick}
               currentCluster={currentCluster}
             />
@@ -301,12 +303,11 @@ export function ClusterSearch() {
               {/* Quick Stats */}
               {!searchQuery.trim() &&
                 !isLoading &&
-                clusters &&
-                clusters.length > 0 && (
+                enabledClusters.length > 0 && (
                   <div className="text-center space-y-2">
                     <p className="text-muted-foreground text-sm">
                       {t('clusterSearch.availableCount', {
-                        count: clusters.length,
+                        count: enabledClusters.length,
                       })}
                     </p>
                   </div>
