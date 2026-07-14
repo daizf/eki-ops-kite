@@ -688,7 +688,13 @@
       "error": "Error",
       "pool": "Pool: {{name}}"
     },
-    "availableCount": "Available: {{count}} cluster{{count, plural, one{} other{s}}}"
+    "availableCount": "Available: {{count}} clusters",
+    "stats": {
+      "title": "Cluster Statistics",
+      "byCategory": "By Category",
+      "recent7d": "New (7 days)",
+      "uncategorized": "Uncategorized"
+    }
   },
   "resourceTable": {
     "errorLoading": "Error loading {{resourceName}}",

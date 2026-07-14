@@ -693,7 +693,13 @@
       "error": "错误",
       "pool": "资源池：{{name}}"
     },
-    "availableCount": "可用：{{count}} 个集群"
+    "availableCount": "可用：{{count}} 个集群",
+    "stats": {
+      "title": "集群统计",
+      "byCategory": "按分类",
+      "recent7d": "近7天新增",
+      "uncategorized": "未分类"
+    }
   },
   "resourceTable": {
     "errorLoading": "加载 {{resourceName}} 失败",

@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ClusterPanel } from '@/components/cluster-panel'
+import { ClusterStatsPanel } from '@/components/cluster-stats-panel'
 import {
   ClusterStatusDot,
   getClusterStatus,
@@ -300,18 +301,10 @@ export function ClusterSearch() {
                 </div>
               )}
 
-              {/* Quick Stats */}
-              {!searchQuery.trim() &&
-                !isLoading &&
-                enabledClusters.length > 0 && (
-                  <div className="text-center space-y-2">
-                    <p className="text-muted-foreground text-sm">
-                      {t('clusterSearch.availableCount', {
-                        count: enabledClusters.length,
-                      })}
-                    </p>
-                  </div>
-                )}
+              {/* Cluster Statistics */}
+              {!searchQuery.trim() && !isLoading && (
+                <ClusterStatsPanel clusters={enabledClusters} />
+              )}
             </div>
           </div>
         </div>
