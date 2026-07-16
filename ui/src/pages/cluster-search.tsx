@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { Cluster } from '@/types/api'
+import { getTagColor } from '@/lib/tags'
 import { useCluster as useClusterContext } from '@/hooks/use-cluster'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -289,6 +290,19 @@ export function ClusterSearch() {
                                   </span>
                                 )}
                               </div>
+                              {cluster.tags && cluster.tags.length > 0 && (
+                                <div className="flex items-center gap-1 flex-wrap mt-1">
+                                  {cluster.tags.map((tag, i) => (
+                                    <Badge
+                                      key={i}
+                                      variant="outline"
+                                      className={`text-xs ${getTagColor(tag)}`}
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                               <Search className="h-5 w-5 text-muted-foreground" />

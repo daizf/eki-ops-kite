@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { IconChevronRight, IconServer } from '@tabler/icons-react'
 
 import type { Cluster } from '@/types/api'
+import { getTagColor } from '@/lib/tags'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -97,6 +98,7 @@ export function ClusterPanel({
   currentCluster,
 }: ClusterPanelProps) {
   const [openKeys, setOpenKeys] = useState<Set<string>>(new Set())
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({})
 
   const poolGroups = buildPoolTree(clusters)
 
@@ -111,6 +113,16 @@ export function ClusterPanel({
       return next
     })
   }
+
+  const getVisibleCount = (key: string) =>
+    visibleCounts[key] ?? MAX_CLUSTERS_PER_CATEGORY
+
+  const showMore = (key: string) =>
+    setVisibleCounts((prev) => ({
+      ...prev,
+      [key]:
+        (prev[key] ?? MAX_CLUSTERS_PER_CATEGORY) + MAX_CLUSTERS_PER_CATEGORY,
+    }))
 
   if (clusters.length === 0) {
     return (
@@ -179,7 +191,7 @@ export function ClusterPanel({
                           <div className="ml-4 border-l-2 border-muted-foreground/15">
                             <div className="divide-y">
                               {categoryGroup.clusters
-                                .slice(0, MAX_CLUSTERS_PER_CATEGORY)
+                                .slice(0, getVisibleCount(categoryKey))
                                 .map((cluster) => (
                                   <ClusterItem
                                     key={cluster.id}
@@ -191,11 +203,19 @@ export function ClusterPanel({
                                   />
                                 ))}
                               {categoryGroup.clusters.length >
-                                MAX_CLUSTERS_PER_CATEGORY && (
-                                <div className="pl-6 pr-4 py-2 text-xs text-muted-foreground text-center">
-                                  Showing {MAX_CLUSTERS_PER_CATEGORY} of{' '}
-                                  {categoryGroup.clusters.length} clusters
-                                </div>
+                                getVisibleCount(categoryKey) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    showMore(categoryKey)
+                                  }}
+                                  className="pl-6 pr-4 py-2 text-xs text-primary w-full text-left hover:underline"
+                                >
+                                  Show more (
+                                  {categoryGroup.clusters.length -
+                                    getVisibleCount(categoryKey)}{' '}
+                                  remaining)
+                                </button>
                               )}
                             </div>
                           </div>
@@ -230,10 +250,34 @@ function ClusterItem({
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
         <ClusterStatusDot status={getClusterStatus(cluster)} />
         <IconServer className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <span className="font-medium whitespace-nowrap">{cluster.name}</span>
-        <span className="text-xs text-muted-foreground font-mono truncate opacity-0 group-hover:opacity-100 transition-opacity">
-          {cluster.clusterId}
-        </span>
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium whitespace-nowrap">
+              {cluster.name}
+            </span>
+            <span className="text-xs text-muted-foreground font-mono truncate opacity-0 group-hover:opacity-100 transition-opacity">
+              {cluster.clusterId}
+            </span>
+          </div>
+          {cluster.tags && cluster.tags.length > 0 && (
+            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+              {cluster.tags.slice(0, 3).map((tag, i) => (
+                <Badge
+                  key={i}
+                  variant="outline"
+                  className={`text-[10px] h-4 px-1 ${getTagColor(tag)}`}
+                >
+                  {tag}
+                </Badge>
+              ))}
+              {cluster.tags.length > 3 && (
+                <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                  +{cluster.tags.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       {cluster.isDefault && (
         <Badge variant="secondary" className="text-xs h-5 px-1.5 shrink-0">
