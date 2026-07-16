@@ -58,7 +58,7 @@ const (
 	clusterStartupSyncTimeout = 10 * time.Second
 	versionCheckTimeout       = 10 * time.Second
 	versionCheckConcurrency   = 10
-	forceRebuildThreshold     = 5 * time.Minute
+	forceRebuildThreshold     = 1 * time.Hour
 	backoffMaxInterval        = 30 * time.Minute
 )
 

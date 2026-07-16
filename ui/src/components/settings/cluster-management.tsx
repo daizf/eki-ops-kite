@@ -79,6 +79,7 @@ export function ClusterManagement() {
     const tagSet = new Set<string>()
     clusters.forEach((cluster) => {
       cluster.tags?.forEach((tag) => tagSet.add(tag))
+      cluster.aggTags?.forEach((tag) => tagSet.add(tag))
     })
     return Array.from(tagSet).sort()
   }, [clusters])
@@ -125,8 +126,8 @@ export function ClusterManagement() {
     // Tag filter (existing — every selected tag must be present)
     if (selectedTags.length > 0) {
       result = result.filter((cluster) => {
-        if (!cluster.tags || cluster.tags.length === 0) return false
-        return selectedTags.every((tag) => cluster.tags?.includes(tag))
+        const allTags = [...(cluster.tags || []), ...(cluster.aggTags || [])]
+        return selectedTags.every((tag) => allTags.includes(tag))
       })
     }
 
@@ -673,24 +674,29 @@ export function ClusterManagement() {
               <span className="text-sm text-muted-foreground">
                 {t('clusterManagement.filter.label', 'Filter by tags')}:
               </span>
-              {availableTags.slice(0, 8).map((tag) => (
-                <Badge
-                  key={tag}
-                  variant={selectedTags.includes(tag) ? 'default' : 'outline'}
-                  className={`cursor-pointer ${!selectedTags.includes(tag) ? getTagColor(tag) : ''}`}
-                  onClick={() => {
-                    toggleTag(tag)
-                    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-                  }}
-                >
-                  {tag}
-                </Badge>
-              ))}
-              {availableTags.length > 8 && (
-                <span className="text-xs text-muted-foreground">
-                  +{availableTags.length - 8} more
-                </span>
-              )}
+              {availableTags.map((tag) => {
+                const isAgg = clusters.some(
+                  (c) => c.aggTags?.includes(tag)
+                )
+                return (
+                  <Badge
+                    key={tag}
+                    variant={
+                      selectedTags.includes(tag) ? 'default' : 'outline'
+                    }
+                    className={`cursor-pointer ${!selectedTags.includes(tag) ? (isAgg ? getAggTagColor(tag) : getTagColor(tag)) : ''}`}
+                    onClick={() => {
+                      toggleTag(tag)
+                      setPagination((prev) => ({
+                        ...prev,
+                        pageIndex: 0,
+                      }))
+                    }}
+                  >
+                    {tag}
+                  </Badge>
+                )
+              })}
             </div>
           )}
 

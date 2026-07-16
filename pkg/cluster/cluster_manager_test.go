@@ -195,7 +195,7 @@ func Test_shouldUpdateCluster(t *testing.T) {
 				},
 				config:           "test-config",
 				prometheusURL:    "test-prometheus-url",
-				lastVersionCheck: time.Now().Add(-10 * time.Minute),
+				lastVersionCheck: time.Now().Add(-2 * time.Hour),
 			}
 			cluster := &model.Cluster{
 				Name:          "test",
