@@ -37,11 +37,12 @@ const chartConfig = {
 export function ClusterStatsPanel({ clusters }: ClusterStatsPanelProps) {
   const { t } = useTranslation()
 
-  const { categoryData, recentCount } = useMemo(() => {
+  const { categoryData, recentCount, sizeCounts } = useMemo(() => {
     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
     let recent = 0
 
     const categoryMap = new Map<string, { existing: number; recent: number }>()
+    const sizeMap = new Map<string, number>()
     for (const cluster of clusters) {
       const category =
         cluster.category ||
@@ -57,6 +58,14 @@ export function ClusterStatsPanel({ clusters }: ClusterStatsPanelProps) {
         entry.existing++
       }
       categoryMap.set(category, entry)
+
+      if (cluster.aggTags) {
+        for (const tag of cluster.aggTags) {
+          if (['small', 'medium', 'large', 'xlarge'].includes(tag)) {
+            sizeMap.set(tag, (sizeMap.get(tag) || 0) + 1)
+          }
+        }
+      }
     }
 
     const data = Array.from(categoryMap.entries())
@@ -68,7 +77,7 @@ export function ClusterStatsPanel({ clusters }: ClusterStatsPanelProps) {
       }))
       .sort((a, b) => b.total - a.total)
 
-    return { categoryData: data, recentCount: recent }
+    return { categoryData: data, recentCount: recent, sizeCounts: sizeMap }
   }, [clusters, t])
 
   if (clusters.length === 0) return null
@@ -138,6 +147,24 @@ export function ClusterStatsPanel({ clusters }: ClusterStatsPanelProps) {
             />
           </BarChart>
         </ChartContainer>
+
+        {sizeCounts.size > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-muted-foreground">
+              {t('clusterSearch.stats.bySize', 'By Size')}:
+            </span>
+            {(['small', 'medium', 'large', 'xlarge'] as const).map((size) => {
+              const count = sizeCounts.get(size) || 0
+              if (count === 0) return null
+              return (
+                <Badge key={size} variant="outline" className="text-xs">
+                  {t(`clusterSearch.size.${size}`, size)}
+                  <span className="font-bold tabular-nums ml-1">{count}</span>
+                </Badge>
+              )
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

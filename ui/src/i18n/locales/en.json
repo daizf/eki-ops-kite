@@ -692,8 +692,15 @@
     "stats": {
       "title": "Cluster Statistics",
       "byCategory": "By Category",
+      "bySize": "By Size",
       "recent7d": "New (7 days)",
       "uncategorized": "Uncategorized"
+    },
+    "size": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "xlarge": "X-Large"
     }
   },
   "resourceTable": {

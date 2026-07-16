@@ -1,18 +1,22 @@
 package cluster
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"maps"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/zxh326/kite/pkg/common"
 	"github.com/zxh326/kite/pkg/kube"
 	"github.com/zxh326/kite/pkg/model"
 	"github.com/zxh326/kite/pkg/prometheus"
+	v1 "k8s.io/api/core/v1"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/rest"
@@ -30,6 +34,7 @@ type ClientSet struct {
 	PromClient *prometheus.Client
 
 	DiscoveredPrometheusURL string
+	AggTags                 []string
 	config                  string
 	prometheusURL           string
 	lastVersionCheck        time.Time
@@ -143,7 +148,80 @@ func newClientSet(name string, poolName string, k8sConfig *rest.Config, promethe
 		cs.lastVersionCheck = time.Now()
 	}
 	klog.Infof("Loaded K8s client for cluster: %s, version: %s", name, cs.Version)
+
+	nodeCount, accelTypes, err := fetchClusterNodeStats(cs.K8sClient)
+	if err != nil {
+		klog.Warningf("Failed to fetch node stats for cluster %s: %v", name, err)
+	} else {
+		cs.AggTags = computeClusterTags(nodeCount, accelTypes)
+		klog.Infof("Cluster %s: %d nodes, agg tags: %v", name, nodeCount, cs.AggTags)
+	}
+
 	return cs, nil
+}
+
+func fetchClusterNodeStats(kc *kube.K8sClient) (int, []string, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	var nodes v1.NodeList
+	if err := kc.List(ctx, &nodes); err != nil {
+		return 0, nil, err
+	}
+
+	accelSet := make(map[string]struct{})
+	for i := range nodes.Items {
+		for rn := range nodes.Items[i].Status.Allocatable {
+			name := string(rn)
+			for _, acc := range common.KnownAcceleratorResources {
+				if name == acc || strings.HasPrefix(name, acc) {
+					parts := strings.SplitN(name, "/", 2)
+					if len(parts) == 2 {
+						accelSet[parts[1]] = struct{}{}
+					}
+					break
+				}
+			}
+		}
+	}
+
+	accelTypes := make([]string, 0, len(accelSet))
+	for t := range accelSet {
+		accelTypes = append(accelTypes, t)
+	}
+	sort.Strings(accelTypes)
+
+	return len(nodes.Items), accelTypes, nil
+}
+
+func computeClusterTags(nodeCount int, accelTypes []string) []string {
+	tags := make([]string, 0, 1+len(accelTypes))
+
+	switch {
+	case nodeCount < 10:
+		tags = append(tags, "small")
+	case nodeCount < 50:
+		tags = append(tags, "medium")
+	case nodeCount < 200:
+		tags = append(tags, "large")
+	default:
+		tags = append(tags, "xlarge")
+	}
+
+	tags = append(tags, accelTypes...)
+	return tags
+}
+
+func tagsEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func isClusterLocalURL(urlStr string) bool {
@@ -401,6 +479,21 @@ func syncClusters(cm *ClusterManager, readyCh chan<- struct{}) error {
 			continue
 		}
 		cm.recordSuccess(r.cluster.ClusterID, r.clientSet)
+
+		// Update computed tags in DB if changed
+		if len(r.clientSet.AggTags) > 0 {
+			existing := r.cluster.GetAggTags()
+			if !tagsEqual(existing, r.clientSet.AggTags) {
+				tmp := &model.Cluster{}
+				if err := tmp.SetAggTags(r.clientSet.AggTags); err == nil {
+					if err := model.UpdateCluster(r.cluster, map[string]interface{}{
+						"agg_tags": tmp.AggTags,
+					}); err != nil {
+						klog.Warningf("Failed to update computed tags for cluster %s: %v", r.cluster.Name, err)
+					}
+				}
+			}
+		}
 	}
 
 	// Cleanup: remove clusters that no longer exist in DB

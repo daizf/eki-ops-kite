@@ -24,7 +24,7 @@ import {
   useClusterList,
 } from '@/lib/api'
 import { CATEGORIES } from '@/lib/constants'
-import { getTagColor } from '@/lib/tags'
+import { getAggTagColor, getTagColor } from '@/lib/tags'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -292,26 +292,46 @@ export function ClusterManagement() {
         id: 'tags',
         header: t('common.fields.tags', 'Tags'),
         cell: ({ row: { original: cluster } }) => {
-          if (!cluster.tags || cluster.tags.length === 0) return '-'
+          const hasUserTags = cluster.tags && cluster.tags.length > 0
+          const hasAggTags = cluster.aggTags && cluster.aggTags.length > 0
+          if (!hasUserTags && !hasAggTags) return '-'
 
           const maxDisplay = 3
-          const displayedTags = cluster.tags.slice(0, maxDisplay)
-          const remainingCount = cluster.tags.length - maxDisplay
+          const userTags = cluster.tags || []
+          const aggTags = cluster.aggTags || []
+          const displayedUser = userTags.slice(0, maxDisplay)
+          const remainingUser = userTags.length - maxDisplay
+          const displayedAgg = aggTags.slice(0, maxDisplay)
+          const remainingAgg = aggTags.length - maxDisplay
 
           return (
             <div className="flex items-center gap-1 flex-wrap">
-              {displayedTags.map((tag, index) => (
+              {displayedUser.map((tag, index) => (
                 <Badge
-                  key={index}
+                  key={`t-${index}`}
                   variant="outline"
                   className={getTagColor(tag)}
                 >
                   {tag}
                 </Badge>
               ))}
-              {remainingCount > 0 && (
+              {remainingUser > 0 && (
                 <Badge variant="secondary" className="text-xs">
-                  +{remainingCount}
+                  +{remainingUser}
+                </Badge>
+              )}
+              {displayedAgg.map((tag, index) => (
+                <Badge
+                  key={`a-${index}`}
+                  variant="outline"
+                  className={getAggTagColor(tag)}
+                >
+                  {tag}
+                </Badge>
+              ))}
+              {remainingAgg > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{remainingAgg}
                 </Badge>
               )}
             </div>
@@ -319,7 +339,7 @@ export function ClusterManagement() {
         },
       },
     ],
-    [getClusterTypeBadge, getStatusBadge, getTagColor, t]
+    [getClusterTypeBadge, getStatusBadge, getAggTagColor, getTagColor, t]
   )
 
   const actions = useMemo<Action<Cluster>[]>(

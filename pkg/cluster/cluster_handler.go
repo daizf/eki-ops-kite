@@ -51,9 +51,10 @@ func (cm *ClusterManager) GetClusters(c *gin.Context) {
 			continue
 		}
 		result = append(result, common.ClusterInfo{
-			Name:      name,
-			Version:   cluster.Version,
-			IsDefault: name == defaultContext,
+			Name:         name,
+			Version:      cluster.Version,
+			IsDefault:    name == defaultContext,
+			AggTags:     cluster.AggTags,
 		})
 	}
 	for name, errMsg := range errors {
@@ -99,6 +100,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 			"poolId":        cluster.PoolID,
 			"category":      cluster.Category,
 			"tags":          cluster.GetTags(),
+			"aggTags":      cluster.GetAggTags(),
 			"pool":          cluster.Pool,
 		}
 

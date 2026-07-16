@@ -47,6 +47,13 @@ pnpm --dir ui run lint
 pnpm --dir ui run test
 ```
 
+```bash
+pnpm --dir ui run build
+pnpm --dir ui run type-check
+pnpm --dir ui run lint
+pnpm --dir ui run test
+```
+
 End-to-end tests live in `e2e/` and use Playwright plus a local kind cluster:
 
 ```bash

@@ -29,3 +29,12 @@ export function getTagBadgeClassName(tag: string): string {
   const color = getTagColor(tag)
   return `text-xs ${color}`
 }
+
+const sizeTags = new Set(['small', 'medium', 'large', 'xlarge'])
+
+export function getAggTagColor(tag: string): string {
+  if (sizeTags.has(tag)) {
+    return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+  }
+  return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
+}

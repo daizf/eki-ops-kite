@@ -48,10 +48,11 @@ type ImportClustersRequest struct {
 }
 
 type ClusterInfo struct {
-	Name      string `json:"name"`
-	Version   string `json:"version"`
-	IsDefault bool   `json:"isDefault"`
-	Error     string `json:"error,omitempty"`
+	Name      string   `json:"name"`
+	Version   string   `json:"version"`
+	IsDefault bool     `json:"isDefault"`
+	Error     string   `json:"error,omitempty"`
+	AggTags   []string `json:"aggTags,omitempty"`
 }
 
 type MetricsCell struct {

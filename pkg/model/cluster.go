@@ -18,6 +18,7 @@ type Cluster struct {
 	PrometheusURL string       `json:"prometheus_url,omitempty" gorm:"type:varchar(255)"`
 	Category      string       `json:"category" gorm:"type:varchar(100)"`
 	Tags          string       `json:"tags" gorm:"type:varchar(500);default:''"`
+	AggTags       string       `json:"aggTags" gorm:"type:varchar(500);default:''"`
 	InCluster     bool         `json:"in_cluster" gorm:"type:boolean;default:false"`
 	IsDefault     bool         `json:"is_default" gorm:"type:boolean;default:false"`
 	Enable        bool         `json:"enable" gorm:"type:boolean;default:true"`
@@ -164,4 +165,31 @@ func NormalizeTags(tags []string) []string {
 		seen[tag] = true
 	}
 	return normalized
+}
+
+// GetAggTags returns the aggregated tags as a string array
+func (c *Cluster) GetAggTags() []string {
+	if c.AggTags == "" {
+		return []string{}
+	}
+	var tags []string
+	if err := json.Unmarshal([]byte(c.AggTags), &tags); err != nil {
+		return []string{}
+	}
+	return tags
+}
+
+// SetAggTags sets the aggregated tags from a string array
+func (c *Cluster) SetAggTags(tags []string) error {
+	tags = NormalizeTags(tags)
+	if len(tags) == 0 {
+		c.AggTags = ""
+		return nil
+	}
+	data, err := json.Marshal(tags)
+	if err != nil {
+		return err
+	}
+	c.AggTags = string(data)
+	return nil
 }

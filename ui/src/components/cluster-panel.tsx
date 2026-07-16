@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { IconChevronRight, IconServer } from '@tabler/icons-react'
 
 import type { Cluster } from '@/types/api'
-import { getTagColor } from '@/lib/tags'
+import { getAggTagColor, getTagColor } from '@/lib/tags'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -259,20 +259,35 @@ function ClusterItem({
               {cluster.clusterId}
             </span>
           </div>
-          {cluster.tags && cluster.tags.length > 0 && (
+          {((cluster.tags && cluster.tags.length > 0) ||
+            (cluster.aggTags && cluster.aggTags.length > 0)) && (
             <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-              {cluster.tags.slice(0, 3).map((tag, i) => (
+              {cluster.tags?.slice(0, 3).map((tag, i) => (
                 <Badge
-                  key={i}
+                  key={`t-${i}`}
                   variant="outline"
                   className={`text-[10px] h-4 px-1 ${getTagColor(tag)}`}
                 >
                   {tag}
                 </Badge>
               ))}
-              {cluster.tags.length > 3 && (
+              {cluster.tags && cluster.tags.length > 3 && (
                 <Badge variant="secondary" className="text-[10px] h-4 px-1">
                   +{cluster.tags.length - 3}
+                </Badge>
+              )}
+              {cluster.aggTags?.slice(0, 3).map((tag, i) => (
+                <Badge
+                  key={`c-${i}`}
+                  variant="outline"
+                  className={`text-[10px] h-4 px-1 ${getAggTagColor(tag)}`}
+                >
+                  {tag}
+                </Badge>
+              ))}
+              {cluster.aggTags && cluster.aggTags.length > 3 && (
+                <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                  +{cluster.aggTags.length - 3}
                 </Badge>
               )}
             </div>

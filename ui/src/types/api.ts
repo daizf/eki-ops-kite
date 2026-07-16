@@ -641,6 +641,7 @@ export interface Cluster {
   poolId?: string
   pool?: Pool
   tags?: string[]
+  aggTags?: string[]
   error?: string
 }
 

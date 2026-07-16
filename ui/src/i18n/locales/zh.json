@@ -697,8 +697,15 @@
     "stats": {
       "title": "集群统计",
       "byCategory": "按分类",
+      "bySize": "按规模",
       "recent7d": "近7天新增",
       "uncategorized": "未分类"
+    },
+    "size": {
+      "small": "小型",
+      "medium": "中型",
+      "large": "大型",
+      "xlarge": "超大型"
     }
   },
   "resourceTable": {

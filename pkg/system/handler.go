@@ -3,7 +3,6 @@ package system
 import (
 	"net/http"
 	"sort"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zxh326/kite/pkg/cluster"
@@ -15,26 +14,10 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-var knownAcceleratorResources = []string{
-	"nvidia.com/gpu",
-	"huawei.com/Ascend",
-	"cambricon.com/mlu",
-	"intel.com/gpu",
-	"intel.com/sgpu",
-	"baidu.com/xpu",
-	"metax-tech.com/gpu",
-	"hygon.com/dcu",
-	"kunlunxin.com/xpu",
-	"alibabacloud.com/ppu",
-}
+var knownAcceleratorResources = common.KnownAcceleratorResources
 
 func isAccelerator(name string) bool {
-	for _, p := range knownAcceleratorResources {
-		if name == p || strings.HasPrefix(name, p) {
-			return true
-		}
-	}
-	return false
+	return common.IsAccelerator(name)
 }
 
 type OverviewData struct {

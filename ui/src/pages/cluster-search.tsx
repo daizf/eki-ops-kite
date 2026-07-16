@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { Cluster } from '@/types/api'
-import { getTagColor } from '@/lib/tags'
+import { getAggTagColor, getTagColor } from '@/lib/tags'
 import { useCluster as useClusterContext } from '@/hooks/use-cluster'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -166,7 +166,7 @@ export function ClusterSearch() {
 
         <div className="flex-1 flex flex-col p-4">
           <div className="flex-1 flex flex-col items-center justify-start pt-24 sm:pt-32 md:pt-40">
-            <div className="w-full max-w-2xl space-y-8">
+            <div className="w-full max-w-5xl space-y-8">
               {/* Logo/Title */}
               <div className="text-center space-y-2">
                 <h1 className="text-4xl font-bold text-foreground">
@@ -290,13 +290,24 @@ export function ClusterSearch() {
                                   </span>
                                 )}
                               </div>
-                              {cluster.tags && cluster.tags.length > 0 && (
+                              {((cluster.tags && cluster.tags.length > 0) ||
+                                (cluster.aggTags &&
+                                  cluster.aggTags.length > 0)) && (
                                 <div className="flex items-center gap-1 flex-wrap mt-1">
-                                  {cluster.tags.map((tag, i) => (
+                                  {cluster.tags?.map((tag, i) => (
                                     <Badge
-                                      key={i}
+                                      key={`t-${i}`}
                                       variant="outline"
                                       className={`text-xs ${getTagColor(tag)}`}
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                  {cluster.aggTags?.map((tag, i) => (
+                                    <Badge
+                                      key={`c-${i}`}
+                                      variant="outline"
+                                      className={`text-xs ${getAggTagColor(tag)}`}
                                     >
                                       {tag}
                                     </Badge>
